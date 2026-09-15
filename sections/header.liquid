@@ -22,8 +22,8 @@
     <div class="sub">{{ tagline }}</div>
   </div>
 
+  <button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="SiteNav">{{ 'sections.header.menu' | t }}</button>
   <div class="masthead-right">
-    <button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="SiteNav">{{ 'sections.header.menu' | t }}</button>
     <nav class="nav" id="SiteNav" aria-label="{{ 'sections.header.menu' | t }}">
       {%- for link in section.settings.menu.links -%}
         <a class="link" href="{{ link.url }}"{% if link.current %} aria-current="page"{% endif %}>{{ link.title }}</a>

@@ -50,6 +50,8 @@
   --font-display:"IBM Plex Sans Arabic","Noto Sans Arabic",system-ui,sans-serif;
   --font-body:"Noto Naskh Arabic","Amiri",serif;
   --font-ui:"IBM Plex Sans Arabic","Noto Sans Arabic",system-ui,sans-serif;
+  /* Latin codes stay mono; Arabic words inside code chips fall back to Plex Sans Arabic */
+  --font-mono:"IBM Plex Mono","IBM Plex Sans Arabic","Noto Sans Arabic",ui-monospace,monospace;
   --stretch:100%;
   --track-wide:0;
   --track:0;
@@ -217,10 +219,18 @@ main{flex:1}
 .menu-toggle{display:none;font-family:var(--font-ui);font-size:11px;letter-spacing:var(--track);text-transform:var(--upper);border:1px solid var(--ink);padding:8px 12px;border-radius:var(--radius)}
 [dir="rtl"] .menu-toggle{font-size:13px}
 @media (max-width:760px){
-  .site-header{align-items:center}
-  .menu-toggle{display:inline-block}
+  .site-header{flex-wrap:wrap;align-items:center;gap:14px 20px;padding-block:16px}
+  .brand .sub{font-size:10px;letter-spacing:var(--track)}
+  .menu-toggle{display:inline-block;order:2;margin-inline-start:auto}
+  .masthead-right{order:3;width:100%;flex-direction:row;justify-content:space-between;align-items:center;gap:10px 16px;text-align:start;border-top:1px solid var(--line);padding-block-start:12px}
+  .masthead-right .utils{gap:14px;justify-content:flex-start;width:100%}
+  .masthead-right .utils .cart-link{margin-inline-start:auto}
   .masthead-right .nav{display:none}
-  .site-header.is-open .masthead-right .nav{display:flex;flex-direction:column;align-items:flex-end;gap:12px;position:absolute;inset-inline:0;top:100%;background:var(--bg);border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:24px var(--gutter);z-index:30;font-size:13px}
+  .site-header.is-open .masthead-right .nav{display:flex;flex-direction:column;align-items:flex-start;gap:14px;position:absolute;inset-inline:0;top:100%;background:var(--bg);border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:24px var(--gutter);z-index:30;font-size:13px}
+}
+@media (max-width:420px){
+  .brand .mark{font-size:22px}
+  .masthead-right .utils{font-size:10px}
 }
 
 /* ---- localization ---- */
@@ -308,7 +318,8 @@ main{flex:1}
 
 /* price */
 .price{font-family:var(--font-display);font-stretch:var(--stretch);font-size:14px;letter-spacing:.02em;display:inline-flex;gap:10px;align-items:baseline;flex-wrap:wrap;font-variant-numeric:tabular-nums;font-weight:500}
-[dir="rtl"] .price{letter-spacing:0}
+[dir="rtl"] .price{letter-spacing:0;font-family:var(--font-ui)}
+[dir="rtl"] .code,[dir="rtl"] .chip,[dir="rtl"] .cover__code,[dir="rtl"] .meta-row b,[dir="rtl"] .spec b{letter-spacing:0}
 .price b{font-weight:600;color:var(--ink)}
 .price s{color:var(--ink-soft);font-weight:400}
 .price--lg{font-size:clamp(20px,1.8vw,26px)}
