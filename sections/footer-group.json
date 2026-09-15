@@ -5,11 +5,22 @@
     "footer": {
       "type": "footer",
       "blocks": {
-        "guides": { "type": "menu", "settings": { "heading": "", "menu": "footer" } },
-        "company": { "type": "menu", "settings": { "heading": "", "menu": "main-menu" } },
-        "newsletter": { "type": "newsletter", "settings": {} }
+        "guides": {
+          "type": "menu",
+          "settings": {
+            "heading": "",
+            "menu": "footer"
+          }
+        },
+        "newsletter": {
+          "type": "newsletter",
+          "settings": {}
+        }
       },
-      "block_order": ["guides", "company", "newsletter"],
+      "block_order": [
+        "guides",
+        "newsletter"
+      ],
       "settings": {
         "tagline": "",
         "show_payment_icons": true,
@@ -17,5 +28,7 @@
       }
     }
   },
-  "order": ["footer"]
+  "order": [
+    "footer"
+  ]
 }

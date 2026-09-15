@@ -17,6 +17,7 @@
     {%- if section.settings.show_tagline -%}<span class="sub">{{ tagline }}</span>{%- endif -%}
   </div>
 
+  {%- if section.settings.menu.links.size > 0 -%}
   <button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="SiteNav">{{ 'sections.header.menu' | t }}</button>
 
   <nav class="site-nav" id="SiteNav" aria-label="{{ 'sections.header.menu' | t }}">
@@ -24,6 +25,7 @@
       <a href="{{ link.url }}"{% if link.current %} aria-current="page"{% endif %}>{{ link.title }}</a>
     {%- endfor -%}
   </nav>
+  {%- endif -%}
 
   <div class="utils">
     {%- if section.settings.show_localization -%}
@@ -49,7 +51,7 @@
     { "type": "image_picker", "id": "logo", "label": "t:sections.header.logo", "info": "t:sections.header.logo_info" },
     { "type": "checkbox", "id": "show_tagline", "label": "t:sections.header.show_tagline", "default": true },
     { "type": "text", "id": "tagline", "label": "t:sections.header.tagline", "info": "t:general.blank_uses_builtin" },
-    { "type": "link_list", "id": "menu", "label": "t:sections.header.menu_label", "default": "main-menu" },
+    { "type": "link_list", "id": "menu", "label": "t:sections.header.menu_label" },
     { "type": "checkbox", "id": "sticky", "label": "t:sections.header.sticky", "default": true },
     { "type": "checkbox", "id": "show_localization", "label": "t:sections.header.localization", "info": "t:sections.header.localization_info", "default": true },
     { "type": "checkbox", "id": "show_search", "label": "t:sections.header.search", "default": true },

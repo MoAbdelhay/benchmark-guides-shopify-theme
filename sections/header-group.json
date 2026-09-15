@@ -12,11 +12,14 @@
     "header": {
       "type": "header",
       "settings": {
-        "menu": "main-menu",
+        "menu": "",
         "sticky": true,
         "show_localization": true
       }
     }
   },
-  "order": ["announcement", "header"]
+  "order": [
+    "announcement",
+    "header"
+  ]
 }
