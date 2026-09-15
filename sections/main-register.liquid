@@ -26,7 +26,7 @@
         <label for="RegisterPassword">{{ 'customer.login.password' | t }}</label>
         <input id="RegisterPassword" type="password" name="customer[password]" autocomplete="new-password" required>
       </div>
-      <button class="btn btn--solid" type="submit"><span>{{ 'customer.register.submit' | t }}</span></button>
+      <button class="btn" type="submit"><span>{{ 'customer.register.submit' | t }}</span></button>
       <p class="form-note" style="margin-block-start:22px">{{ 'customer.register.have_account' | t }} <a class="link" href="{{ routes.account_login_url }}" style="color:var(--ink)">{{ 'customer.login.submit' | t }}</a></p>
     {%- endform -%}
   </div>

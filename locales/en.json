@@ -13,11 +13,11 @@
     "search": {
       "title": "Search",
       "heading": "Search the library",
-      "placeholder": "Search guides, codes, topics…",
+      "placeholder": "Search guides, codes, topics",
       "submit": "Search",
       "results_for": "Results for \"{{ terms }}\"",
       "results_count": "{{ count }} results",
-      "no_results": "Nothing found for \"{{ terms }}\""
+      "no_results": "Nothing found for \"{{ terms }}\". Try a guide code or a discipline."
     },
     "cart": {
       "title": "Cart",
@@ -27,9 +27,10 @@
       "total": "Total",
       "subtotal": "Subtotal",
       "empty": "Your cart is empty.",
-      "continue": "Browse the guides",
+      "empty_sub": "Browse guides by discipline.",
+      "continue": "Browse guides",
       "checkout": "Checkout",
-      "taxes_note": "Digital guides are delivered by email after payment. Taxes are calculated at checkout.",
+      "taxes_note": "Guides are PDFs. The download link arrives by email right after payment. Taxes are calculated at checkout.",
       "note_label": "Order note",
       "remove": "Remove",
       "update": "Update cart",
@@ -39,17 +40,14 @@
     },
     "language": { "label": "Language" },
     "currency": { "label": "Country / currency" },
-    "pagination": {
-      "label": "Pagination",
-      "page": "Page {{ number }}"
-    },
+    "pagination": { "label": "Pagination", "page": "Page {{ number }}" },
     "newsletter": {
-      "label": "Field notes",
-      "subtext": "New revisions, new guides, once a month.",
+      "label": "Revision updates",
+      "subtext": "One email per new revision or new guide. Nothing else.",
       "email": "Email address",
       "button": "Subscribe",
-      "success": "Thanks for subscribing. Check your inbox.",
-      "privacy": "No spam. Unsubscribe any time."
+      "success": "You're subscribed. Check your inbox.",
+      "privacy": "Unsubscribe any time."
     },
     "page": { "eyebrow": "Page" },
     "404": {
@@ -59,45 +57,44 @@
       "link": "Back to the index"
     },
     "password": {
-      "heading": "Opening soon.",
-      "text": "The library is being drafted. Enter the password to preview, or subscribe to be notified.",
+      "heading": "Measure from here.",
+      "text": "The library is being drafted. Enter the password to preview.",
       "label": "Password",
       "submit": "Enter",
       "powered_by": "This shop will be powered by"
     },
     "blank_uses_builtin": "Leave blank to use the built-in bilingual text.",
-    "blank_uses_builtin_long": "Leave any field blank to use the built-in bilingual text (English + Arabic). Fill it in to override, then translate via Translate & Adapt."
+    "blank_uses_builtin_long": "Leave any field blank to use the built-in bilingual text (Arabic + English). Fill it in to override, then translate via Translate & Adapt."
   },
   "sections": {
     "announcement": {
       "label": "Announcement",
-      "default": "Instant PDF delivery · Lifetime revisions · Arabic & English"
+      "default": "Rev. C of Steel Connection Design is live. It's a free update if you own Rev. B."
     },
     "header": {
-      "default_tagline": "Engineering guides · Arabic editions",
+      "default_tagline": "Measure from here.",
       "menu": "Menu",
       "account": "Account"
     },
     "footer": {
-      "default_tagline": "Practical engineering guides, written in Arabic, revised for the field. Delivered as PDF, updated for life.",
+      "default_tagline": "The reference point for working engineers. Every step. Every unit. Every clause.",
       "rights": "All rights reserved",
       "social": "Social",
       "payment": "Payment methods"
     },
     "hero": {
-      "eyebrow": "Engineering guides · Arabic editions · Drafted for the field",
-      "heading": "Guides that read like a <em>good set of drawings</em>.",
-      "quote": "Clear enough to act on. Precise enough to trust.",
-      "text": "Every guide is written in Arabic by working engineers, numbered like a drawing sheet, and revised whenever the code changes. Buy once, keep every revision.",
-      "cta": "Browse the guides",
+      "heading": "Measure from here.",
+      "text": "Compact engineering references built on worked examples, for students and working engineers who need to get a calculation right the first time. Each guide shows every step, unit and code clause, so the answer can be checked, not just copied.",
+      "cta": "Browse guides",
       "cta2": "By discipline",
-      "meta_guides": "Guides",
-      "meta_language": "Language",
-      "meta_language_value": "AR / EN",
-      "meta_format": "Format",
-      "meta_updates": "Updates",
-      "meta_updates_value": "Lifetime",
-      "stamp": "Issued for use · {{ year }}"
+      "tb_client": "Client",
+      "tb_title": "Title",
+      "tb_title_value": "Engineering guides in Arabic",
+      "tb_no": "Sheet no.",
+      "tb_guides": "Guides",
+      "tb_language": "Language",
+      "tb_language_value": "AR / EN",
+      "tb_date": "Date"
     },
     "featured_collection": {
       "eyebrow": "The collection",
@@ -112,14 +109,14 @@
     },
     "image_with_text": {
       "eyebrow": "How a guide is made",
-      "heading": "Drafted, checked, issued.",
-      "text": "<p>Each guide starts as a field problem, not a textbook chapter. It is written in plain Arabic, checked by a second engineer, and issued with a revision letter. When a standard is updated, so is the guide — and you get the new revision free.</p>",
+      "heading": "Checked. Referenced. Ready to use.",
+      "text": "<p>Each guide starts as a field problem, not a textbook chapter. It is written in plain Arabic, checked by a second engineer, and issued with a revision letter. When a standard is updated, so is the guide, and you get the new revision free.</p>",
       "cta": "Read our method"
     },
     "rich_text": {
       "eyebrow": "Why Benchmark",
-      "heading": "Built for engineers who work in Arabic.",
-      "text": "<p>Most technical references reach the region late and in translation. Benchmark guides are written in Arabic first, with English terms kept where the site uses them, so what you read is what you'll see on the drawing.</p>",
+      "heading": "We don't sell shortcuts. We sell the fixed point.",
+      "text": "<p>A benchmark is a fixed mark of known elevation that every other level on a job is measured from. Each guide works the same way: a trusted reference to check your own calculation against, with a source for every number and units on every value.</p>",
       "stat_guides": "Guides issued",
       "stat_disciplines": "Disciplines",
       "stat_languages": "Languages",
@@ -145,24 +142,25 @@
       "eyebrow": "Questions",
       "heading": "Before you buy",
       "q_1": "How do I receive the guide?",
-      "a_1": "<p>Immediately after payment you'll get an email with a secure download link. The guide is a PDF that opens on any device.</p>",
+      "a_1": "<p>Right after payment you get an email with a secure download link. The guide is a PDF and prints on A4 or US Letter.</p>",
       "q_2": "Are the guides in Arabic or English?",
       "a_2": "<p>Guides are written in Arabic. Technical terms, codes and drawing labels are kept in English where that's what you'll see on site.</p>",
       "q_3": "What happens when a standard changes?",
       "a_3": "<p>We issue a new revision and email it to every previous buyer at no cost. The revision letter on the cover tells you which version you have.</p>",
       "q_4": "Can I get a refund?",
-      "a_4": "<p>Because guides are digital, we can't take them back — but if a guide isn't what you expected, write to us within 14 days and we'll make it right.</p>"
+      "a_4": "<p>Guide not what you needed? Email us within 14 days for a refund.</p>"
     },
     "newsletter": {
-      "eyebrow": "Field notes",
-      "heading": "One email a month. New guides, new revisions.",
-      "text": "No marketing, just the changelog."
+      "eyebrow": "Revision updates",
+      "heading": "One email per new revision.",
+      "text": "Just the changelog. No marketing."
     }
   },
   "products": {
     "product": {
       "add_to_cart": "Add to cart",
-      "adding": "Adding…",
+      "adding": "Adding",
+      "choose": "Choose version",
       "sold_out": "Sold out",
       "unavailable": "Unavailable",
       "quantity": "Quantity",
@@ -171,30 +169,41 @@
       "from": "From",
       "sale": "Sale",
       "new_rev": "New rev",
-      "rev": "Rev",
-      "pages": "Pages",
+      "datum": "Datum {{ letter }}",
+      "revision": "Revision {{ rev }}",
+      "level": "Level",
+      "pp": "{{ count }} pp",
+      "examples": "{{ count }} worked examples",
+      "examples_label": "Worked examples",
       "format": "Format",
       "language": "Language",
       "language_default": "Arabic",
       "delivery": "Delivery",
       "delivery_value": "Instant",
+      "preview": "Preview {{ count }} pages",
+      "inside": "What's inside",
       "description": "About this guide",
       "tax_note": "Tax included where applicable.",
       "media": "Image {{ index }}",
       "trust_instant": "Instant PDF download after payment",
-      "trust_updates": "Free revisions for life",
-      "trust_secure": "Secure checkout via Shopify",
+      "trust_updates": "Rev. {{ rev }} and every later revision, free",
+      "trust_refund": "Guide not what you needed? Email us within 14 days for a refund",
       "related_eyebrow": "Same shelf",
       "related": "Related guides"
     },
     "discipline": {
       "label": "Discipline",
-      "gen": "General",
-      "civ": "Civil",
+      "gen": "Fundamentals",
+      "civ": "Civil & Geotech",
       "str": "Structural",
       "mec": "Mechanical",
       "ele": "Electrical",
       "prc": "Process"
+    },
+    "level": {
+      "l100": "Foundation",
+      "l200": "Practice",
+      "l300": "Specialist"
     }
   },
   "collections": {
@@ -214,10 +223,7 @@
     "sorting": { "title": "Sort" }
   },
   "blogs": {
-    "general": {
-      "eyebrow": "Journal",
-      "empty": "No posts yet."
-    },
+    "general": { "eyebrow": "Revision log", "empty": "No posts yet." },
     "article": {
       "label": "Article",
       "written_by": "By {{ author }}",
@@ -235,7 +241,7 @@
       "phone": "Phone",
       "message": "Message",
       "send": "Send",
-      "post_success": "Thanks. We'll reply within one working day.",
+      "post_success": "Received. We'll reply within one working day.",
       "post_error": "Please correct the following:"
     }
   },

@@ -1,15 +1,13 @@
 {%- comment -%}
-  Generated document cover, used when a product has no image (and as the password/404 art).
+  Guide cover per the Identity Standard §5: Datum Ink ground, discipline stripe,
+  survey grid, code + revision on top, title + subtitle, elevation level + mark below.
   Usage: {% render 'cover', product: product, size: 'lg' %}
+         {% render 'cover', title: 'Text', subtitle: 'Text', code: 'BG-STR-204', rev: 'C', level: '200', disc: 'str' %}
 {%- endcomment -%}
 {%- liquid
-  assign disc_css = 'var(--disc-gen)'
-  assign code = ''
-  assign rev = ''
-  assign name = ''
   if product
-    capture disc_css
-      render 'guide-meta', product: product, part: 'css'
+    capture disc
+      render 'guide-meta', product: product, part: 'disc'
     endcapture
     capture code
       render 'guide-meta', product: product, part: 'code'
@@ -17,24 +15,28 @@
     capture rev
       render 'guide-meta', product: product, part: 'rev'
     endcapture
-    capture name
-      render 'guide-meta', product: product, part: 'name'
+    capture level
+      render 'guide-meta', product: product, part: 'level'
     endcapture
+    capture subtitle
+      render 'guide-meta', product: product, part: 'subtitle'
+    endcapture
+    assign title = product.title
   endif
-  assign number = code | split: '-' | last
+  assign disc = disc | strip | default: 'gen'
+  assign code = code | strip
+  assign rev = rev | strip
+  assign level = level | strip
+  assign subtitle = subtitle | strip
 -%}
-<div class="cover{% if size == 'lg' %} cover--lg{% endif %}" style="--disc:{{ disc_css | strip }}" aria-hidden="true">
-  <div class="cover__spine"></div>
-  <div class="cover__body">
-    <div class="cover__rules"></div>
-    <div class="cover__code">
-      <span>{{ code | strip }}</span>
-      <span>{{ rev | strip }}</span>
-    </div>
-    <div class="cover__title">{{ title | default: product.title | default: shop.name }}</div>
-    <div class="cover__foot">
-      <span class="label">{{ name | strip }}</span>
-      <span class="serial">{{ number | strip }}</span>
-    </div>
+<div class="cover{% if size == 'lg' %} cover--lg{% endif %}" style="--disc:var(--disc-{{ disc }})" aria-hidden="true">
+  <div class="cv-top">
+    <span>{{ code }}</span>
+    {%- if rev != blank -%}<span>REV {{ rev }}</span>{%- endif -%}
+  </div>
+  <p class="cv-title">{{ title | default: shop.name }}{% if subtitle != blank %}<small>{{ subtitle }}</small>{% endif %}</p>
+  <div class="cv-foot">
+    <span>{% if level != blank %}EL {{ level }}{% endif %}</span>
+    <svg viewBox="0 0 100 100"><g fill="none" stroke-width="12" stroke-miterlimit="10"><path d="M0 6 H100" stroke="#C98B3E"/><path d="M1.15 100 L50 37.36 L98.85 100 M50 37.36 V100" stroke="currentColor"/></g></svg>
   </div>
 </div>

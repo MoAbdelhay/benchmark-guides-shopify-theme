@@ -6,44 +6,39 @@
 -%}
 <header class="site-header{% if section.settings.sticky %} is-sticky{% endif %}" data-section-id="{{ section.id }}">
   <div class="brand">
-    <a class="mark" href="{{ routes.root_url }}" aria-label="{{ shop.name | escape }}">
+    <a href="{{ routes.root_url }}" aria-label="{{ shop.name | escape }}">
       {%- if section.settings.logo != blank -%}
-        <img src="{{ section.settings.logo | image_url: width: 400 }}" alt="{{ shop.name | escape }}" width="{{ section.settings.logo.width }}" height="{{ section.settings.logo.height }}">
+        <img class="logo logo--custom" src="{{ section.settings.logo | image_url: width: 600 }}" alt="{{ shop.name | escape }}" width="{{ section.settings.logo.width }}" height="{{ section.settings.logo.height }}">
       {%- else -%}
-        <span class="dot" aria-hidden="true"></span>
-        {%- assign words = shop.name | split: ' ' -%}
-        {%- if words.size > 1 -%}
-          <span>{{ words | first }}&nbsp;<b>{{ words | slice: 1, 20 | join: ' ' }}</b></span>
-        {%- else -%}
-          <span>{{ shop.name }}</span>
-        {%- endif -%}
+        {%- comment -%} Identity Standard §2: primary logo at 200–220 px desktop, 150 px mobile. Never retype the name. {%- endcomment -%}
+        <img class="logo" src="{{ 'logo-primary.svg' | asset_url }}" alt="{{ shop.name | escape }}" width="1123" height="170">
       {%- endif -%}
     </a>
-    <div class="sub">{{ tagline }}</div>
+    {%- if section.settings.show_tagline -%}<span class="sub">{{ tagline }}</span>{%- endif -%}
   </div>
 
   <button class="menu-toggle" type="button" data-menu-toggle aria-expanded="false" aria-controls="SiteNav">{{ 'sections.header.menu' | t }}</button>
-  <div class="masthead-right">
-    <nav class="nav" id="SiteNav" aria-label="{{ 'sections.header.menu' | t }}">
-      {%- for link in section.settings.menu.links -%}
-        <a class="link" href="{{ link.url }}"{% if link.current %} aria-current="page"{% endif %}>{{ link.title }}</a>
-      {%- endfor -%}
-    </nav>
-    <div class="utils">
-      {%- if section.settings.show_localization -%}
-        {% render 'localization', id: 'header' %}
-      {%- endif -%}
-      {%- if section.settings.show_search -%}
-        <a class="link" href="{{ routes.search_url }}">{{ 'general.search.title' | t }}</a>
-      {%- endif -%}
-      {%- if shop.customer_accounts_enabled and section.settings.show_account -%}
-        <a class="link" href="{% if customer %}{{ routes.account_url }}{% else %}{{ routes.account_login_url }}{% endif %}">{{ 'sections.header.account' | t }}</a>
-      {%- endif -%}
-      <a class="link cart-link" href="{{ routes.cart_url }}">
-        <b>{{ 'general.cart.title' | t }}</b>
-        <span class="cart-count" data-cart-count data-count="{{ cart.item_count }}">{{ cart.item_count }}</span>
-      </a>
-    </div>
+
+  <nav class="site-nav" id="SiteNav" aria-label="{{ 'sections.header.menu' | t }}">
+    {%- for link in section.settings.menu.links -%}
+      <a href="{{ link.url }}"{% if link.current %} aria-current="page"{% endif %}>{{ link.title }}</a>
+    {%- endfor -%}
+  </nav>
+
+  <div class="utils">
+    {%- if section.settings.show_localization -%}
+      {% render 'localization', id: 'header' %}
+    {%- endif -%}
+    {%- if section.settings.show_search -%}
+      <a href="{{ routes.search_url }}">{{ 'general.search.title' | t }}</a>
+    {%- endif -%}
+    {%- if shop.customer_accounts_enabled and section.settings.show_account -%}
+      <a href="{% if customer %}{{ routes.account_url }}{% else %}{{ routes.account_login_url }}{% endif %}">{{ 'sections.header.account' | t }}</a>
+    {%- endif -%}
+    <a class="cart-link" href="{{ routes.cart_url }}">
+      {{ 'general.cart.title' | t }}
+      <span class="cart-count" data-cart-count data-count="{{ cart.item_count }}">{{ cart.item_count }}</span>
+    </a>
   </div>
 </header>
 
@@ -52,6 +47,7 @@
   "name": "t:sections.header.name",
   "settings": [
     { "type": "image_picker", "id": "logo", "label": "t:sections.header.logo", "info": "t:sections.header.logo_info" },
+    { "type": "checkbox", "id": "show_tagline", "label": "t:sections.header.show_tagline", "default": true },
     { "type": "text", "id": "tagline", "label": "t:sections.header.tagline", "info": "t:general.blank_uses_builtin" },
     { "type": "link_list", "id": "menu", "label": "t:sections.header.menu_label", "default": "main-menu" },
     { "type": "checkbox", "id": "sticky", "label": "t:sections.header.sticky", "default": true },

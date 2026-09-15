@@ -9,13 +9,14 @@
   endif
   assign disc_list = 'gen,civ,str,mec,ele,prc' | split: ','
 -%}
+{%- comment -%} Identity Standard §3: discipline colour appears only on Datum Ink, here as a collection tab stripe. {%- endcomment -%}
 <section class="container section section--border-top" data-section-id="{{ section.id }}">
   <div class="section-head">
     <div>
       <p class="eyebrow">{{ eyebrow }}</p>
       <h2 class="display h2">{{ heading }}</h2>
     </div>
-    <a class="link arrow-link label" href="{{ routes.collections_url }}">{{ 'collections.general.browse' | t }} {% render 'icon', name: 'arrow' %}</a>
+    <a class="link arrow-link" href="{{ routes.collections_url }}">{{ 'collections.general.browse' | t }} {% render 'icon', name: 'arrow' %}</a>
   </div>
   <div class="grid grid--3">
     {%- if section.blocks.size > 0 -%}
@@ -23,22 +24,20 @@
         {%- assign c = block.settings.collection -%}
         {%- assign d = disc_list[forloop.index0] | default: 'gen' -%}
         {%- if block.settings.discipline != blank -%}{%- assign d = block.settings.discipline -%}{%- endif -%}
+        {%- assign d_key = 'products.discipline.' | append: d -%}
         <a class="coll reveal" href="{{ c.url | default: routes.collections_url }}" style="--disc:var(--disc-{{ d }})" {{ block.shopify_attributes }}>
-          <span class="spine"></span>
-          {%- if c.image and section.settings.show_images -%}
-            <img src="{{ c.image | image_url: width: 600 }}" alt="" loading="lazy" width="600" height="338">
-          {%- endif -%}
-          <span class="coll__count">{{ d | upcase }} &middot; {{ 'collections.general.count' | t: count: c.products_count | default: 0 }}</span>
-          <span class="coll__title">{{ c.title | default: block.settings.title | default: 'sections.collection_list.placeholder' | t }}</span>
+          <span class="coll__code">{{ d | upcase }}</span>
+          <span class="coll__title">{{ c.title | default: block.settings.title | default: d_key | t }}</span>
+          <span class="coll__count">{{ 'collections.general.count' | t: count: c.products_count | default: 0 }}</span>
         </a>
       {%- endfor -%}
     {%- else -%}
       {%- for c in collections limit: 6 -%}
         {%- assign d = disc_list[forloop.index0] | default: 'gen' -%}
         <a class="coll reveal" href="{{ c.url }}" style="--disc:var(--disc-{{ d }})">
-          <span class="spine"></span>
-          <span class="coll__count">{{ 'collections.general.count' | t: count: c.products_count }}</span>
+          <span class="coll__code">{{ d | upcase }}</span>
           <span class="coll__title">{{ c.title }}</span>
+          <span class="coll__count">{{ 'collections.general.count' | t: count: c.products_count }}</span>
         </a>
       {%- endfor -%}
     {%- endif -%}
@@ -50,8 +49,7 @@
   "name": "t:sections.collection_list.name",
   "settings": [
     { "type": "text", "id": "eyebrow", "label": "t:sections.hero.eyebrow_label", "info": "t:general.blank_uses_builtin" },
-    { "type": "text", "id": "heading", "label": "t:sections.hero.heading_label", "info": "t:general.blank_uses_builtin" },
-    { "type": "checkbox", "id": "show_images", "label": "t:sections.collection_list.show_images", "default": false }
+    { "type": "text", "id": "heading", "label": "t:sections.hero.heading_label", "info": "t:general.blank_uses_builtin" }
   ],
   "blocks": [
     {

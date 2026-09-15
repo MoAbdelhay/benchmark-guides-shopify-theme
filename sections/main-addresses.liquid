@@ -5,15 +5,15 @@
   </div>
 
   <div class="account">
-    <button class="btn btn--solid" type="button" data-address-toggle="AddressNew" aria-expanded="false" aria-controls="AddressNew"><span>{{ 'customer.addresses.add_new' | t }}</span></button>
+    <button class="btn" type="button" data-address-toggle="AddressNew" aria-expanded="false" aria-controls="AddressNew"><span>{{ 'customer.addresses.add_new' | t }}</span></button>
 
     <div id="AddressNew" class="address-form">
       {%- form 'customer_address', customer.new_address, id: 'AddressFormNew' -%}
         <h2 class="display h4" style="margin-block:24px 18px">{{ 'customer.addresses.add_new' | t }}</h2>
         {% render 'address-fields', form: form, prefix: 'New' %}
         <div class="actions" style="display:flex;gap:12px">
-          <button class="btn btn--solid" type="submit"><span>{{ 'customer.addresses.save' | t }}</span></button>
-          <button class="btn" type="button" data-address-toggle="AddressNew"><span>{{ 'customer.addresses.cancel' | t }}</span></button>
+          <button class="btn" type="submit"><span>{{ 'customer.addresses.save' | t }}</span></button>
+          <button class="btn btn--outline" type="button" data-address-toggle="AddressNew"><span>{{ 'customer.addresses.cancel' | t }}</span></button>
         </div>
       {%- endform -%}
     </div>
@@ -33,8 +33,8 @@
               {%- form 'customer_address', address, id: form_id -%}
                 {% render 'address-fields', form: form, prefix: address.id, address: address %}
                 <div class="actions" style="display:flex;gap:12px">
-                  <button class="btn btn--solid" type="submit"><span>{{ 'customer.addresses.save' | t }}</span></button>
-                  <button class="btn" type="button" data-address-toggle="AddressEdit-{{ address.id }}"><span>{{ 'customer.addresses.cancel' | t }}</span></button>
+                  <button class="btn" type="submit"><span>{{ 'customer.addresses.save' | t }}</span></button>
+                  <button class="btn btn--outline" type="button" data-address-toggle="AddressEdit-{{ address.id }}"><span>{{ 'customer.addresses.cancel' | t }}</span></button>
                 </div>
               {%- endform -%}
             </div>

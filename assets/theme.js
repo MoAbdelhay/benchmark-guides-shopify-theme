@@ -101,7 +101,7 @@
     }
 
     function findVariant() {
-      if (!product) return null;
+      if (!product) return { id: idInput.value, available: true, price: null };
       const opts = selectedOptions();
       if (!opts.length) return product.variants.find((v) => String(v.id) === idInput.value) || product.variants[0];
       return product.variants.find((v) => v.options.every((o, i) => o === opts[i])) || null;
@@ -113,6 +113,7 @@
         return;
       }
       idInput.value = variant.id;
+      if (!product) return; /* card forms: nothing else to sync */
       if (variant.available) { submit.disabled = false; submitText.textContent = strings.addToCart || 'Add to cart'; }
       else { submit.disabled = true; submitText.textContent = strings.soldOut || 'Sold out'; }
       if (priceEl) {

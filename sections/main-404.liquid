@@ -1,9 +1,9 @@
 <section class="container notfound" data-section-id="{{ section.id }}">
   <p class="eyebrow">{{ 'general.404.eyebrow' | t }}</p>
-  <div class="serial" aria-hidden="true">404</div>
-  <h1 class="display h3">{{ 'general.404.title' | t }}</h1>
+  <div class="big" aria-hidden="true">404</div>
+  <h1 class="display h2">{{ 'general.404.title' | t }}</h1>
   <p class="lede">{{ 'general.404.subtext' | t }}</p>
-  <a class="btn btn--solid" href="{{ routes.root_url }}"><span>{{ 'general.404.link' | t }}</span></a>
+  <a class="btn" href="{{ routes.root_url }}">{{ 'general.404.link' | t }}</a>
 </section>
 
 {% schema %}

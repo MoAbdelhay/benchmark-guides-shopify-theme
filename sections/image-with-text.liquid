@@ -15,23 +15,26 @@
   if cta == blank
     assign cta = 'sections.image_with_text.cta' | t
   endif
+  assign scheme = section.settings.scheme
 -%}
-<section class="container section section--border-top" data-section-id="{{ section.id }}">
-  <div class="iwt{% if section.settings.reverse %} iwt--reverse{% endif %}">
-    <div class="iwt__media reveal">
-      {%- if section.settings.image != blank -%}
-        <img src="{{ section.settings.image | image_url: width: 1000 }}" srcset="{{ section.settings.image | image_url: width: 600 }} 600w, {{ section.settings.image | image_url: width: 1000 }} 1000w" sizes="(max-width:860px) 90vw, 45vw" alt="{{ section.settings.image.alt | escape }}" loading="lazy" width="{{ section.settings.image.width }}" height="{{ section.settings.image.height }}">
-      {%- else -%}
-        {% render 'cover', size: 'lg', title: heading %}
-      {%- endif -%}
-    </div>
-    <div class="iwt__copy">
-      <p class="eyebrow reveal">{{ eyebrow }}</p>
-      <h2 class="display h2 reveal">{{ heading }}</h2>
-      <div class="lede reveal">{{ text }}</div>
-      {%- if section.settings.cta_url != blank or section.settings.cta_label == blank -%}
-        <a class="btn reveal" href="{{ section.settings.cta_url | default: routes.all_products_collection_url }}"><span>{{ cta }}</span></a>
-      {%- endif -%}
+<section class="scheme-{{ scheme }}" data-section-id="{{ section.id }}">
+  <div class="container section{% if scheme == 'vellum' %} section--border-top{% endif %}">
+    <div class="iwt{% if section.settings.reverse %} iwt--reverse{% endif %}">
+      <div class="iwt__media reveal{% if scheme == 'vellum' or scheme == 'chalk' %} survey-grid{% endif %}">
+        {%- if section.settings.image != blank -%}
+          <img src="{{ section.settings.image | image_url: width: 1000 }}" srcset="{{ section.settings.image | image_url: width: 600 }} 600w, {{ section.settings.image | image_url: width: 1000 }} 1000w" sizes="(max-width:860px) 90vw, 45vw" alt="{{ section.settings.image.alt | escape }}" loading="lazy" width="{{ section.settings.image.width }}" height="{{ section.settings.image.height }}">
+        {%- else -%}
+          {% render 'cover', title: heading, subtitle: eyebrow, code: section.settings.sample_code, rev: 'A', level: '100', disc: section.settings.sample_disc %}
+        {%- endif -%}
+      </div>
+      <div class="iwt__copy">
+        <p class="eyebrow reveal">{{ eyebrow }}</p>
+        <h2 class="display h2 reveal">{{ heading }}</h2>
+        <div class="lede reveal">{{ text }}</div>
+        {%- if section.settings.cta_url != blank or section.settings.cta_label == blank -%}
+          <a class="btn reveal" href="{{ section.settings.cta_url | default: routes.all_products_collection_url }}">{{ cta }}</a>
+        {%- endif -%}
+      </div>
     </div>
   </div>
 </section>
@@ -40,7 +43,18 @@
 {
   "name": "t:sections.image_with_text.name",
   "settings": [
+    {
+      "type": "select", "id": "scheme", "label": "t:general.scheme", "default": "vellum",
+      "options": [
+        { "value": "vellum", "label": "t:general.scheme_vellum" },
+        { "value": "chalk", "label": "t:general.scheme_chalk" },
+        { "value": "ink", "label": "t:general.scheme_ink" },
+        { "value": "bronze", "label": "t:general.scheme_bronze" }
+      ]
+    },
     { "type": "image_picker", "id": "image", "label": "t:sections.image_with_text.image" },
+    { "type": "text", "id": "sample_code", "label": "Sample cover code", "default": "BG-STR-204" },
+    { "type": "select", "id": "sample_disc", "label": "Sample cover discipline", "default": "str", "options": [{ "value": "gen", "label": "GEN" }, { "value": "civ", "label": "CIV" }, { "value": "str", "label": "STR" }, { "value": "mec", "label": "MEC" }, { "value": "ele", "label": "ELE" }, { "value": "prc", "label": "PRC" }] },
     { "type": "checkbox", "id": "reverse", "label": "t:sections.image_with_text.reverse", "default": false },
     { "type": "text", "id": "eyebrow", "label": "t:sections.hero.eyebrow_label", "info": "t:general.blank_uses_builtin" },
     { "type": "text", "id": "heading", "label": "t:sections.hero.heading_label", "info": "t:general.blank_uses_builtin" },

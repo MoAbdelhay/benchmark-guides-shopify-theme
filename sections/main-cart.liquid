@@ -79,7 +79,7 @@
         {%- endif -%}
         <div class="row row--total"><span>{{ 'general.cart.total' | t }}</span><span>{{ cart.total_price | money }}</span></div>
         <p class="cart-note">{{ 'general.cart.taxes_note' | t }}</p>
-        <button type="submit" class="btn btn--solid btn--block" name="checkout"><span>{{ 'general.cart.checkout' | t }}</span></button>
+        <button type="submit" class="btn btn--block" name="checkout"><span>{{ 'general.cart.checkout' | t }}</span></button>
         {%- if additional_checkout_buttons and section.settings.show_additional -%}
           <div class="additional-checkout-buttons" style="margin-block-start:12px">{{ content_for_additional_checkout_buttons }}</div>
         {%- endif -%}
@@ -88,8 +88,9 @@
     </form>
   {%- else -%}
     <div class="empty">
-      <h2 class="display h3">{{ 'general.cart.empty' | t }}</h2>
-      <a class="btn btn--solid" href="{{ routes.all_products_collection_url }}"><span>{{ 'general.cart.continue' | t }}</span></a>
+      <h2 class="display h2">{{ 'general.cart.empty' | t }}</h2>
+      <p class="lede">{{ 'general.cart.empty_sub' | t }}</p>
+      <a class="btn" href="{{ routes.collections_url }}">{{ 'general.cart.continue' | t }}</a>
     </div>
   {%- endif -%}
 </section>

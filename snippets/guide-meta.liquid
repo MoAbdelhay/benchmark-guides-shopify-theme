@@ -1,17 +1,23 @@
 {%- comment -%}
-  Resolves a product's discipline (GEN / CIV / STR / MEC / ELE / PRC) and outputs one piece of it.
+  Resolves a guide's identity data and outputs one piece of it.
   Usage: {% render 'guide-meta', product: product, part: 'code' %}
   part:
-    'disc'   → discipline key, e.g. "civ"
-    'css'    → CSS variable string, e.g. "var(--disc-civ)"
-    'name'   → localized discipline name
-    'code'   → guide code (metafield custom.guide_code → variant sku → "BG-CIV-###")
-    'rev'    → revision label (metafield custom.revision → "Rev A")
-    'pages'  → page count (metafield custom.pages)
-    'format' → file format (metafield custom.format → "PDF")
-    'lang'   → guide language (metafield custom.language → localized default)
-  Discipline is read from metafield custom.discipline, then from product tags
-  (tag "CIV", "civil", "disc:civ" all work), then defaults to GEN.
+    'disc'       → discipline key: gen / civ / str / mec / ele / prc
+    'css'        → "var(--disc-civ)"
+    'name'       → localized discipline name
+    'code'       → guide code, e.g. BG-STR-204 (metafield custom.guide_code → variant SKU → generated)
+    'rev'        → revision letter, e.g. "C" (metafield custom.revision → "A")
+    'rev_date'   → revision date text (metafield custom.revision_date), may be blank
+    'level'      → elevation level number: 100 / 200 / 300 (metafield custom.level → hundreds digit of the code sequence)
+    'level_name' → localized level name (Foundation / Practice / Specialist)
+    'pages'      → page count (metafield custom.pages)
+    'examples'   → worked-example count (metafield custom.examples)
+    'subtitle'   → one-line subtitle (metafield custom.subtitle)
+    'datum'      → datum letter for series base guides (metafield custom.datum), may be blank
+    'format'     → file format (metafield custom.format → PDF)
+    'lang'       → guide language (metafield custom.language → localized default)
+  Discipline is read from metafield custom.discipline, then product tags
+  (tag "STR", "structural", "disc:str" all work), then defaults to GEN.
 {%- endcomment -%}
 {%- liquid
   assign disc = product.metafields.custom.discipline.value | default: product.metafields.custom.discipline | downcase | strip
@@ -19,9 +25,9 @@
     for tag in product.tags
       assign t = tag | downcase | remove: 'disc:' | strip
       case t
-        when 'gen', 'general'
+        when 'gen', 'general', 'fundamentals'
           assign disc = 'gen'
-        when 'civ', 'civil'
+        when 'civ', 'civil', 'geotech'
           assign disc = 'civ'
         when 'str', 'structural', 'structures'
           assign disc = 'str'
@@ -41,29 +47,45 @@
     assign disc = 'gen'
   endunless
   assign disc_upper = disc | upcase
+
+  assign code = product.metafields.custom.guide_code.value | default: product.metafields.custom.guide_code
+  if code == blank
+    assign code = product.selected_or_first_available_variant.sku
+  endif
+  if code == blank
+    assign padded = product.id | modulo: 1000 | prepend: '000' | slice: -3, 3
+    assign code = settings.guide_code_prefix | default: 'BG' | append: '-' | append: disc_upper | append: '-' | append: padded
+  endif
+
+  assign level = product.metafields.custom.level.value | default: product.metafields.custom.level
+  if level == blank
+    assign seq = code | split: '-' | last
+    assign first_digit = seq | slice: 0, 1
+    case first_digit
+      when '1'
+        assign level = '100'
+      when '2'
+        assign level = '200'
+      when '3'
+        assign level = '300'
+    endcase
+  endif
 -%}
 {%- case part -%}
   {%- when 'disc' -%}{{ disc }}
   {%- when 'css' -%}var(--disc-{{ disc }})
   {%- when 'name' -%}{%- assign name_key = 'products.discipline.' | append: disc -%}{{ name_key | t }}
-  {%- when 'code' -%}
-    {%- liquid
-      assign code = product.metafields.custom.guide_code.value | default: product.metafields.custom.guide_code
-      if code == blank
-        assign code = product.selected_or_first_available_variant.sku
-      endif
-      if code == blank
-        assign padded = product.id | modulo: 1000 | prepend: '000' | slice: -3, 3
-        assign code = settings.guide_code_prefix | default: 'BG' | append: '-' | append: disc_upper | append: '-' | append: padded
-      endif
-    -%}{{ code }}
-  {%- when 'rev' -%}
-    {%- assign rev = product.metafields.custom.revision.value | default: product.metafields.custom.revision -%}
-    {%- if rev != blank -%}{{ 'products.product.rev' | t }} {{ rev }}{%- else -%}{{ 'products.product.rev' | t }} A{%- endif -%}
-  {%- when 'pages' -%}
-    {{- product.metafields.custom.pages.value | default: product.metafields.custom.pages -}}
-  {%- when 'format' -%}
-    {{- product.metafields.custom.format.value | default: product.metafields.custom.format | default: 'PDF' -}}
+  {%- when 'code' -%}{{ code }}
+  {%- when 'rev' -%}{{ product.metafields.custom.revision.value | default: product.metafields.custom.revision | default: 'A' | upcase }}
+  {%- when 'rev_date' -%}{{ product.metafields.custom.revision_date.value | default: product.metafields.custom.revision_date }}
+  {%- when 'level' -%}{{ level }}
+  {%- when 'level_name' -%}
+    {%- if level != blank -%}{%- assign lvl_key = 'products.level.l' | append: level -%}{{ lvl_key | t }}{%- endif -%}
+  {%- when 'pages' -%}{{ product.metafields.custom.pages.value | default: product.metafields.custom.pages }}
+  {%- when 'examples' -%}{{ product.metafields.custom.examples.value | default: product.metafields.custom.examples }}
+  {%- when 'subtitle' -%}{{ product.metafields.custom.subtitle.value | default: product.metafields.custom.subtitle }}
+  {%- when 'datum' -%}{{ product.metafields.custom.datum.value | default: product.metafields.custom.datum | upcase }}
+  {%- when 'format' -%}{{ product.metafields.custom.format.value | default: product.metafields.custom.format | default: 'PDF' }}
   {%- when 'lang' -%}
     {%- assign l = product.metafields.custom.language.value | default: product.metafields.custom.language -%}
     {%- if l != blank -%}{{ l }}{%- else -%}{{ 'products.product.language_default' | t }}{%- endif -%}

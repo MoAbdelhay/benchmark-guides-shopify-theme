@@ -3,11 +3,18 @@
   if tagline == blank
     assign tagline = 'sections.footer.default_tagline' | t
   endif
+  assign scheme = section.settings.scheme
+  assign logo_file = 'logo-stacked.svg'
+  if scheme == 'ink' or scheme == 'bronze'
+    assign logo_file = 'logo-stacked-reversed.svg'
+  endif
 -%}
-<footer class="site-footer" data-section-id="{{ section.id }}">
+<footer class="site-footer scheme-{{ scheme }}" data-section-id="{{ section.id }}">
   <div class="site-footer__grid">
     <div class="brand">
-      <a class="mark" href="{{ routes.root_url }}"><span class="dot" aria-hidden="true"></span>{{ shop.name }}</a>
+      <a href="{{ routes.root_url }}" aria-label="{{ shop.name | escape }}">
+        <img class="footer-logo" src="{{ logo_file | asset_url }}" alt="{{ shop.name | escape }}" width="889" height="400" loading="lazy">
+      </a>
       <p>{{ tagline }}</p>
       {%- if section.settings.show_localization -%}
         <div style="margin-block-start:18px">{% render 'localization', id: 'footer' %}</div>
@@ -34,7 +41,7 @@
         {%- when 'text' -%}
           <div {{ block.shopify_attributes }}>
             <h3>{{ block.settings.heading }}</h3>
-            <div class="rte" style="font-size:14px;color:var(--ink-soft)">{{ block.settings.text }}</div>
+            <div class="rte small" style="color:var(--ink-soft)">{{ block.settings.text }}</div>
           </div>
         {%- when 'newsletter' -%}
           <div {{ block.shopify_attributes }}>
@@ -47,10 +54,10 @@
                 <p class="form-error">{{ form.errors.translated_fields.email | capitalize }} {{ form.errors.messages.email }}</p>
               {%- endif -%}
               <input type="hidden" name="contact[tags]" value="newsletter">
-              <div style="display:flex;border:1px solid var(--ink);border-radius:var(--radius);overflow:hidden">
+              <div class="inline-form">
                 <label class="visually-hidden" for="FooterEmail">{{ 'general.newsletter.email' | t }}</label>
-                <input id="FooterEmail" type="email" name="contact[email]" value="{{ form.email }}" placeholder="{{ 'general.newsletter.email' | t }}" required autocomplete="email" style="flex:1;border:0;background:transparent;padding:12px 14px;min-width:0">
-                <button class="btn btn--sm" type="submit" style="border:0;border-inline-start:1px solid var(--ink);border-radius:0"><span>{{ 'general.newsletter.button' | t }}</span></button>
+                <input id="FooterEmail" type="email" name="contact[email]" value="{{ form.email }}" placeholder="{{ 'general.newsletter.email' | t }}" required autocomplete="email">
+                <button class="btn btn--sm" type="submit">{{ 'general.newsletter.button' | t }}</button>
               </div>
             {%- endform -%}
           </div>
@@ -61,7 +68,7 @@
   <div class="site-footer__bottom">
     <div>
       &copy; {{ 'now' | date: '%Y' }} <a href="{{ routes.root_url }}">{{ shop.name }}</a> &middot; {{ 'sections.footer.rights' | t }}
-      {%- if section.settings.show_powered -%} &middot; <a href="https://www.shopify.com" rel="nofollow" target="_blank">{{ powered_by_link | strip_html }}</a>{%- endif -%}
+      {%- if section.settings.show_powered -%} &middot; {{ powered_by_link }}{%- endif -%}
     </div>
 
     {%- assign has_social = false -%}
@@ -90,6 +97,15 @@
 {
   "name": "t:sections.footer.name",
   "settings": [
+    {
+      "type": "select", "id": "scheme", "label": "t:general.scheme", "default": "ink",
+      "options": [
+        { "value": "vellum", "label": "t:general.scheme_vellum" },
+        { "value": "chalk", "label": "t:general.scheme_chalk" },
+        { "value": "ink", "label": "t:general.scheme_ink" },
+        { "value": "bronze", "label": "t:general.scheme_bronze" }
+      ]
+    },
     { "type": "text", "id": "tagline", "label": "t:sections.footer.tagline", "info": "t:general.blank_uses_builtin" },
     { "type": "checkbox", "id": "show_localization", "label": "t:sections.header.localization", "default": true },
     { "type": "checkbox", "id": "show_payment_icons", "label": "t:sections.footer.payment_icons", "default": true },
@@ -112,12 +128,7 @@
         { "type": "richtext", "id": "text", "label": "t:sections.footer.block_text" }
       ]
     },
-    {
-      "type": "newsletter",
-      "name": "t:sections.footer.block_newsletter",
-      "limit": 1,
-      "settings": []
-    }
+    { "type": "newsletter", "name": "t:sections.footer.block_newsletter", "limit": 1, "settings": [] }
   ],
   "enabled_on": { "groups": ["footer"] }
 }

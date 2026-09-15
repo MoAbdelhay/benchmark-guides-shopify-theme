@@ -13,11 +13,11 @@
   endif
 -%}
 <section class="container section--tight" data-section-id="{{ section.id }}">
-  <div class="news reveal">
+  <div class="news reveal scheme-{{ section.settings.scheme }}">
     <div>
       <p class="eyebrow">{{ eyebrow }}</p>
-      <h2 class="display h3">{{ heading }}</h2>
-      <p class="lede" style="margin-block-start:12px;font-size:15px">{{ text }}</p>
+      <h2 class="display h2">{{ heading }}</h2>
+      <p class="lede" style="margin-block-start:10px;font-size:15px">{{ text }}</p>
     </div>
     <div>
       {%- assign form_id = 'SectionNewsletter-' | append: section.id -%}
@@ -28,11 +28,13 @@
           <p class="form-error">{{ form.errors.translated_fields.email | capitalize }} {{ form.errors.messages.email }}</p>
         {%- endif -%}
         <input type="hidden" name="contact[tags]" value="newsletter">
-        <label class="visually-hidden" for="NewsletterEmail-{{ section.id }}">{{ 'general.newsletter.email' | t }}</label>
-        <input id="NewsletterEmail-{{ section.id }}" type="email" name="contact[email]" value="{{ form.email }}" placeholder="{{ 'general.newsletter.email' | t }}" required autocomplete="email">
-        <button class="btn" type="submit"><span>{{ 'general.newsletter.button' | t }}</span></button>
+        <div class="inline-form">
+          <label class="visually-hidden" for="NewsletterEmail-{{ section.id }}">{{ 'general.newsletter.email' | t }}</label>
+          <input id="NewsletterEmail-{{ section.id }}" type="email" name="contact[email]" value="{{ form.email }}" placeholder="{{ 'general.newsletter.email' | t }}" required autocomplete="email">
+          <button class="btn" type="submit">{{ 'general.newsletter.button' | t }}</button>
+        </div>
       {%- endform -%}
-      <p class="form-note" style="margin-block-start:10px">{{ 'general.newsletter.privacy' | t }}</p>
+      <p class="form-note">{{ 'general.newsletter.privacy' | t }}</p>
     </div>
   </div>
 </section>
@@ -41,6 +43,15 @@
 {
   "name": "t:sections.newsletter.name",
   "settings": [
+    {
+      "type": "select", "id": "scheme", "label": "t:general.scheme", "default": "chalk",
+      "options": [
+        { "value": "vellum", "label": "t:general.scheme_vellum" },
+        { "value": "chalk", "label": "t:general.scheme_chalk" },
+        { "value": "ink", "label": "t:general.scheme_ink" },
+        { "value": "bronze", "label": "t:general.scheme_bronze" }
+      ]
+    },
     { "type": "text", "id": "eyebrow", "label": "t:sections.hero.eyebrow_label", "info": "t:general.blank_uses_builtin" },
     { "type": "text", "id": "heading", "label": "t:sections.hero.heading_label", "info": "t:general.blank_uses_builtin" },
     { "type": "text", "id": "text", "label": "t:sections.hero.text_label", "info": "t:general.blank_uses_builtin" }

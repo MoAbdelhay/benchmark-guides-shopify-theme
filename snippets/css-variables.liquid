@@ -1,17 +1,26 @@
-{%- comment -%} Theme-setting colours pushed into CSS custom properties. {%- endcomment -%}
+{%- comment -%} Theme-setting colours pushed into CSS custom properties. --c-* are the raw brand tokens used by colour schemes. {%- endcomment -%}
 <style>
   :root{
-    --bg:{{ settings.color_background }};
+    --c-bg:{{ settings.color_background }};
+    --c-chalk:{{ settings.color_surface }};
+    --c-ink:{{ settings.color_ink }};
+    --c-ink-soft:{{ settings.color_ink_soft }};
+    --c-accent:{{ settings.color_accent }};
+    --c-accent-light:{{ settings.color_accent_light }};
+    --c-flag:{{ settings.color_flag }};
+    --bg:var(--c-bg);
     --bg-deep:{{ settings.color_background | color_darken: 4 }};
-    --chalk:{{ settings.color_surface }};
-    --ink:{{ settings.color_ink }};
-    --ink-soft:{{ settings.color_ink_soft }};
-    --accent:{{ settings.color_accent }};
-    --accent-light:{{ settings.color_accent_light }};
-    --flag:{{ settings.color_flag }};
+    --chalk:var(--c-chalk);
+    --ink:var(--c-ink);
+    --ink-soft:var(--c-ink-soft);
+    --accent:var(--c-accent);
+    --accent-light:var(--c-accent-light);
+    --flag:var(--c-flag);
     --line:{{ settings.color_ink | color_modify: 'alpha', 0.16 }};
     --line-strong:{{ settings.color_ink | color_modify: 'alpha', 0.5 }};
-    --panel:{{ settings.color_background | color_modify: 'alpha', 0.8 }};
+    --grid:{{ settings.color_ink | color_modify: 'alpha', 0.05 }};
+    --grid-major:{{ settings.color_ink | color_modify: 'alpha', 0.10 }};
+    --panel:{{ settings.color_background | color_modify: 'alpha', 0.85 }};
     --disc-gen:{{ settings.color_disc_gen }};
     --disc-civ:{{ settings.color_disc_civ }};
     --disc-str:{{ settings.color_disc_str }};

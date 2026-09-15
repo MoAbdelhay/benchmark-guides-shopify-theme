@@ -23,12 +23,10 @@
   {%- if settings.show_regmarks -%}{% render 'regmarks' %}{%- endif -%}
   <main class="password" role="main">
     <div style="max-width:560px;width:100%">
-      <div class="brand" style="display:flex;flex-direction:column;align-items:center">
-        <span class="mark"><span class="dot" aria-hidden="true"></span>{{ shop.name }}</span>
-        <span class="sub">{{ 'gift_cards.issued.subtext' | t }}</span>
-      </div>
+      <img class="logo" src="{{ 'logo-stacked.svg' | asset_url }}" alt="{{ shop.name | escape }}" width="889" height="400" style="width:200px;margin-inline:auto">
+      <p class="label" style="margin-block-start:12px">{{ 'gift_cards.issued.subtext' | t }}</p>
       <p class="eyebrow" style="margin-block-start:34px">{{ gc_title }}</p>
-      <div class="serial" style="font-size:clamp(48px,10vw,96px);margin-block:12px">{{ gift_card.balance | money }}</div>
+      <div class="display display--xl" style="margin-block:12px">{{ gift_card.balance | money }}</div>
       {%- if gift_card.enabled == false or gift_card.expired -%}
         <p class="form-error">{{ 'gift_cards.issued.disabled' | t }}</p>
       {%- elsif gift_card.expires_on -%}
@@ -38,8 +36,8 @@
       <div class="chip" style="font-size:16px;padding:12px 18px;margin-block:22px">{{ gift_card.code | format_code }}</div>
       <p class="lede" style="margin-inline:auto">{{ 'gift_cards.issued.redeem' | t }}</p>
       <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-block-start:26px">
-        <a class="btn btn--solid" href="{{ shop.url }}"><span>{{ 'gift_cards.issued.shop_link' | t }}</span></a>
-        <button class="btn" type="button" onclick="window.print()"><span>{{ 'gift_cards.issued.print' | t }}</span></button>
+        <a class="btn" href="{{ shop.url }}"><span>{{ 'gift_cards.issued.shop_link' | t }}</span></a>
+        <button class="btn btn--outline" type="button" onclick="window.print()"><span>{{ 'gift_cards.issued.print' | t }}</span></button>
       </div>
       {%- if gift_card.pass_url -%}
         <p style="margin-block-start:22px"><a href="{{ gift_card.pass_url }}"><img src="{{ 'gift-card/add-to-apple-wallet.svg' | shopify_asset_url }}" width="120" height="40" alt="{{ 'gift_cards.issued.add_to_apple_wallet' | t }}" style="margin-inline:auto"></a></p>

@@ -18,8 +18,8 @@
         <input id="ActivatePasswordConfirm" type="password" name="customer[password_confirmation]" autocomplete="new-password" required>
       </div>
       <div style="display:flex;gap:12px;flex-wrap:wrap">
-        <button class="btn btn--solid" type="submit"><span>{{ 'customer.activate_account.submit' | t }}</span></button>
-        <button class="btn" type="submit" name="decline"><span>{{ 'customer.activate_account.cancel' | t }}</span></button>
+        <button class="btn" type="submit"><span>{{ 'customer.activate_account.submit' | t }}</span></button>
+        <button class="btn btn--outline" type="submit" name="decline"><span>{{ 'customer.activate_account.cancel' | t }}</span></button>
       </div>
     {%- endform -%}
   </div>

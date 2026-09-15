@@ -3,10 +3,10 @@
     "main": {
       "type": "main-product",
       "blocks": {
-        "inside": { "type": "collapsible", "settings": { "heading": "What's inside" } }
+        "inside": { "type": "collapsible", "settings": {} }
       },
       "block_order": ["inside"],
-      "settings": { "show_specs": true, "show_quantity": false, "show_related": true }
+      "settings": { "show_stamp": true, "show_specs": true, "show_quantity": false, "show_related": true }
     }
   },
   "order": ["main"]

@@ -19,7 +19,7 @@
         </div>
       {%- endif -%}
       <div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap">
-        <button class="btn btn--solid" type="submit"><span>{{ 'customer.login.submit' | t }}</span></button>
+        <button class="btn" type="submit"><span>{{ 'customer.login.submit' | t }}</span></button>
         <a class="link label" href="#recover">{{ 'customer.login.forgot' | t }}</a>
       </div>
       <p class="form-note" style="margin-block-start:22px">{{ 'customer.login.no_account' | t }} <a class="link" href="{{ routes.account_register_url }}" style="color:var(--ink)">{{ 'customer.login.create_account' | t }}</a></p>

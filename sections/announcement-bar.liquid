@@ -5,7 +5,7 @@
   endif
 -%}
 {%- if section.settings.show -%}
-  <div class="announcement" role="region" aria-label="{{ 'sections.announcement.label' | t }}">
+  <div class="announcement scheme-{{ section.settings.scheme }}" role="region" aria-label="{{ 'sections.announcement.label' | t }}">
     {%- if section.settings.link != blank -%}
       <a href="{{ section.settings.link }}">{{ text }}</a>
     {%- else -%}
@@ -19,8 +19,17 @@
   "name": "t:sections.announcement.name",
   "settings": [
     { "type": "checkbox", "id": "show", "label": "t:sections.announcement.show", "default": true },
-    { "type": "text", "id": "text", "label": "t:sections.announcement.text", "info": "t:general.blank_uses_builtin" },
-    { "type": "url", "id": "link", "label": "t:sections.announcement.link" }
+    { "type": "inline_richtext", "id": "text", "label": "t:sections.announcement.text", "info": "t:sections.announcement.text_info" },
+    { "type": "url", "id": "link", "label": "t:sections.announcement.link" },
+    {
+      "type": "select", "id": "scheme", "label": "t:general.scheme", "default": "ink",
+      "options": [
+        { "value": "vellum", "label": "t:general.scheme_vellum" },
+        { "value": "chalk", "label": "t:general.scheme_chalk" },
+        { "value": "ink", "label": "t:general.scheme_ink" },
+        { "value": "bronze", "label": "t:general.scheme_bronze" }
+      ]
+    }
   ],
   "enabled_on": { "groups": ["header"] }
 }

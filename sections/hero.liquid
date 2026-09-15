@@ -1,18 +1,10 @@
 {%- liquid
-  assign eyebrow = section.settings.eyebrow
   assign heading = section.settings.heading
-  assign quote = section.settings.quote
   assign text = section.settings.text
   assign cta = section.settings.cta_label
   assign cta2 = section.settings.cta2_label
-  if eyebrow == blank
-    assign eyebrow = 'sections.hero.eyebrow' | t
-  endif
   if heading == blank
     assign heading = 'sections.hero.heading' | t
-  endif
-  if quote == blank
-    assign quote = 'sections.hero.quote' | t
   endif
   if text == blank
     assign text = 'sections.hero.text' | t
@@ -27,42 +19,48 @@
   assign cta2_url = section.settings.cta2_url | default: routes.collections_url
   assign guide_count = collections.all.products_count
   assign disc_list = 'gen,civ,str,mec,ele,prc' | split: ','
+  assign sheet_no = section.settings.sheet_no
+  if sheet_no == blank
+    assign sheet_no = settings.guide_code_prefix | default: 'BG' | append: '-WEB-001'
+  endif
 -%}
-<section class="container hero" data-section-id="{{ section.id }}">
-  <div class="hero__copy">
-    <p class="eyebrow reveal">{{ eyebrow }}</p>
-    <h1 class="display h1 hero__title reveal">{{ heading }}</h1>
-    <div class="meta-row hero__meta reveal">
-      {%- if section.settings.show_count -%}
-        <span>{{ 'sections.hero.meta_guides' | t }} <b>{{ guide_count }}</b></span>
-      {%- endif -%}
-      <span>{{ 'sections.hero.meta_language' | t }} <b>{{ 'sections.hero.meta_language_value' | t }}</b></span>
-      <span>{{ 'sections.hero.meta_format' | t }} <b>PDF</b></span>
-      <span>{{ 'sections.hero.meta_updates' | t }} <b>{{ 'sections.hero.meta_updates_value' | t }}</b></span>
-    </div>
-    <div class="hero__actions reveal">
-      <a class="btn btn--solid" href="{{ cta_url }}"><span>{{ cta }}</span></a>
-      <a class="btn" href="{{ cta2_url }}"><span>{{ cta2 }}</span></a>
+{%- comment -%} Identity Standard §5/§7: the hero is a drawing title sheet — frame, zone strip, survey grid, thesis, title block. {%- endcomment -%}
+<section class="container" data-section-id="{{ section.id }}">
+  <div class="title-sheet">
+    <div class="title-sheet__frame">
+      <div class="zones" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span></div>
+      <div class="sheet-body survey-grid">
+        {%- if section.settings.show_logo -%}
+          <img class="hero-logo reveal" src="{{ 'logo-primary.svg' | asset_url }}" alt="{{ shop.name | escape }}" width="1123" height="170">
+        {%- endif -%}
+        <h1 class="thesis reveal">
+          <svg viewBox="0 0 24 16" aria-hidden="true"><path d="M4 1.5 H20 L12 13 Z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M0 14.5 H24" stroke="currentColor" stroke-width="2"/></svg>
+          <span>{{ heading }}</span>
+        </h1>
+        <p class="hero-sub reveal">{{ text }}</p>
+        <div class="hero__actions reveal">
+          <a class="btn" href="{{ cta_url }}">{{ cta }}</a>
+          <a class="btn btn--outline" href="{{ cta2_url }}">{{ cta2 }}</a>
+        </div>
+        {%- if section.settings.show_disciplines -%}
+          <div class="hero__palette reveal" aria-label="{{ 'products.discipline.label' | t }}">
+            {%- for d in disc_list -%}
+              {%- assign d_key = 'products.discipline.' | append: d -%}
+              <a href="{{ routes.all_products_collection_url }}/{{ d }}" style="--disc:var(--disc-{{ d }})"><i></i>{{ d | upcase }} &middot; {{ d_key | t }}</a>
+            {%- endfor -%}
+          </div>
+        {%- endif -%}
+      </div>
+      <div class="title-block">
+        <div class="tb wide"><span class="label">{{ 'sections.hero.tb_client' | t }}</span><b>{{ shop.name }}</b></div>
+        <div class="tb wide"><span class="label">{{ 'sections.hero.tb_title' | t }}</span><b>{{ 'sections.hero.tb_title_value' | t }}</b></div>
+        <div class="tb"><span class="label">{{ 'sections.hero.tb_no' | t }}</span><b class="code">{{ sheet_no }}</b></div>
+        <div class="tb"><span class="label">{{ 'sections.hero.tb_guides' | t }}</span><b class="code">{{ guide_count }}</b></div>
+        <div class="tb"><span class="label">{{ 'sections.hero.tb_language' | t }}</span><b>{{ 'sections.hero.tb_language_value' | t }}</b></div>
+        <div class="tb"><span class="label">{{ 'sections.hero.tb_date' | t }}</span><b class="code">{{ 'now' | date: '%Y-%m' }}</b></div>
+      </div>
     </div>
   </div>
-
-  <aside class="hero__aside">
-    <p class="quote reveal">&ldquo;{{ quote }}&rdquo;</p>
-    <p class="lede reveal">{{ text }}</p>
-    {%- if section.settings.show_disciplines -%}
-      <div class="hero__palette reveal" aria-label="{{ 'products.discipline.label' | t }}">
-        {%- for d in disc_list -%}
-          {%- assign d_key = 'products.discipline.' | append: d -%}
-          {%- assign d_name = d_key | t -%}
-          <a class="pal" href="{{ routes.all_products_collection_url }}/{{ d }}" title="{{ d_name }}" style="--disc:var(--disc-{{ d }})">
-            <i style="background:var(--disc-{{ d }})"></i><i style="background:var(--ink)"></i><i style="background:var(--chalk)"></i><i style="background:var(--accent)"></i>
-            <span class="name">{{ d_name }}</span>
-          </a>
-        {%- endfor -%}
-      </div>
-    {%- endif -%}
-    <span class="hero__stamp reveal">{{ 'sections.hero.stamp' | t: year: 'now' | date: '%Y' }}</span>
-  </aside>
 </section>
 
 {% schema %}
@@ -70,15 +68,14 @@
   "name": "t:sections.hero.name",
   "settings": [
     { "type": "paragraph", "content": "t:general.blank_uses_builtin_long" },
-    { "type": "text", "id": "eyebrow", "label": "t:sections.hero.eyebrow_label" },
+    { "type": "checkbox", "id": "show_logo", "label": "t:sections.hero.show_logo", "default": true },
     { "type": "text", "id": "heading", "label": "t:sections.hero.heading_label" },
-    { "type": "text", "id": "quote", "label": "t:sections.hero.quote_label" },
     { "type": "textarea", "id": "text", "label": "t:sections.hero.text_label" },
     { "type": "text", "id": "cta_label", "label": "t:sections.hero.cta_label" },
     { "type": "url", "id": "cta_url", "label": "t:sections.hero.cta_url" },
     { "type": "text", "id": "cta2_label", "label": "t:sections.hero.cta2_label" },
     { "type": "url", "id": "cta2_url", "label": "t:sections.hero.cta2_url" },
-    { "type": "checkbox", "id": "show_count", "label": "t:sections.hero.show_count", "default": true },
+    { "type": "text", "id": "sheet_no", "label": "t:sections.hero.sheet_no", "info": "t:general.blank_uses_builtin" },
     { "type": "checkbox", "id": "show_disciplines", "label": "t:sections.hero.show_disciplines", "default": true }
   ],
   "presets": [{ "name": "t:sections.hero.name" }]

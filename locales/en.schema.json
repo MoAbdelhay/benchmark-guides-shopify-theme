@@ -1,22 +1,27 @@
 {
   "general": {
-    "blank_uses_builtin": "Leave blank to use the built-in bilingual text (English + Arabic).",
-    "blank_uses_builtin_long": "Leave any field blank to use the built-in bilingual text (English + Arabic). Fill it in to override, then translate the override with Shopify's Translate & Adapt app."
+    "blank_uses_builtin": "Leave blank to use the built-in bilingual text (Arabic + English).",
+    "blank_uses_builtin_long": "Leave any field blank to use the built-in bilingual text (Arabic + English). Fill it in to override, then translate the override with Shopify's Translate & Adapt app.",
+    "scheme": "Colour scheme",
+    "scheme_vellum": "1 · Vellum (default)",
+    "scheme_chalk": "2 · Chalk (cards)",
+    "scheme_ink": "3 · Datum Ink (bands, footer)",
+    "scheme_bronze": "4 · Bronze (launches and sales only)"
   },
   "settings_schema": {
     "colors": {
       "name": "Colors",
       "core": "Core palette",
-      "background": "Background (vellum)",
-      "surface": "Card surface (chalk)",
-      "ink": "Text (datum ink)",
-      "ink_soft": "Secondary text (graphite)",
-      "accent": "Accent (survey bronze)",
-      "accent_light": "Accent on dark",
-      "flag": "Flag (badges)",
-      "flag_info": "Used only for \"New rev\" and sale badges.",
+      "background": "Background (Vellum)",
+      "surface": "Card surface (Chalk)",
+      "ink": "Text (Datum Ink)",
+      "ink_soft": "Secondary text (Graphite)",
+      "accent": "Accent (Survey Bronze)",
+      "accent_light": "Bronze Light (on dark grounds)",
+      "flag": "Flag (Flagging Orange)",
+      "flag_info": "\"New rev\" and sale badges only, always with ink text.",
       "disciplines": "Discipline colours",
-      "disciplines_info": "Cover spine and code chip colour per discipline. Assign a discipline with a product tag (CIV, STR, MEC, ELE, PRC, GEN) or the metafield custom.discipline."
+      "disciplines_info": "Discipline colours only ever appear on Datum Ink: cover stripe, code chip, collection tab. Assign a discipline with a product tag (CIV, STR, MEC, ELE, PRC, GEN) or the metafield custom.discipline."
     },
     "layout": {
       "name": "Layout & texture",
@@ -27,16 +32,16 @@
     },
     "brand": {
       "name": "Brand",
-      "favicon": "Favicon (32×32 px)",
+      "favicon": "Favicon (leave empty to use app-icon.svg from the brand files)",
       "code_prefix": "Guide code prefix",
-      "code_prefix_info": "Used when a product has no SKU or custom.guide_code metafield, e.g. BG-CIV-014.",
+      "code_prefix_info": "Code = brand · discipline · level + sequence, e.g. BG-STR-204. The prefix is used when a product has no SKU or custom.guide_code metafield.",
       "social": "Social links"
     },
     "products": {
       "name": "Products",
       "dynamic_checkout": "Show dynamic checkout button",
-      "trust": "Show trust list (instant delivery, revisions, secure checkout)",
-      "sku": "Show SKU / guide code in cart"
+      "trust": "Show trust list (instant delivery, revisions, refund)",
+      "sku": "Show guide code in cart"
     },
     "custom_css": {
       "name": "Custom CSS",
@@ -52,12 +57,14 @@
       "label": "Announcement",
       "show": "Show announcement",
       "text": "Text",
+      "text_info": "Leave blank to use the built-in text. Bold words render in bronze.",
       "link": "Link"
     },
     "header": {
       "name": "Header",
-      "logo": "Logo",
-      "logo_info": "Leave empty to use the store name as a wordmark.",
+      "logo": "Alternate logo",
+      "logo_info": "Leave empty to use the primary logo from the brand files (primary.svg). Never retype the name in a font.",
+      "show_tagline": "Show tagline under the logo",
       "tagline": "Tagline",
       "menu_label": "Menu",
       "menu": "Menu",
@@ -80,7 +87,8 @@
       "block_newsletter": "Newsletter signup"
     },
     "hero": {
-      "name": "Hero",
+      "name": "Title sheet (hero)",
+      "show_logo": "Show the primary logo inside the sheet",
       "eyebrow_label": "Eyebrow",
       "heading_label": "Heading",
       "quote_label": "Pull quote",
@@ -89,8 +97,8 @@
       "cta_url": "Primary button link",
       "cta2_label": "Secondary button label",
       "cta2_url": "Secondary button link",
-      "show_count": "Show guide count",
-      "show_disciplines": "Show discipline swatches"
+      "sheet_no": "Sheet number",
+      "show_disciplines": "Show discipline chips"
     },
     "featured_collection": {
       "name": "Featured collection",
@@ -99,7 +107,7 @@
       "view_all": "Show \"view all\" link"
     },
     "collection_list": {
-      "name": "Collection list",
+      "name": "Discipline tabs",
       "block": "Collection",
       "discipline": "Discipline colour",
       "auto": "Automatic",
@@ -108,16 +116,16 @@
     "image_with_text": {
       "name": "Image with text",
       "image": "Image",
-      "reverse": "Image on the right"
+      "reverse": "Image on the other side"
     },
     "rich_text": {
       "name": "Rich text",
       "align": "Alignment",
       "center": "Centered",
-      "start": "Left / right aligned",
+      "start": "Start aligned",
       "show_stats": "Show statistics row",
       "stat": "Statistic",
-      "stat_value": "Value",
+      "stat_value": "Value (with units)",
       "stat_label": "Label"
     },
     "testimonials": {
@@ -138,10 +146,14 @@
     "apps": { "name": "Apps" },
     "main_product": {
       "name": "Product",
-      "specs": "Show specification row",
-      "specs_info": "Reads product metafields custom.pages, custom.format, custom.language, custom.revision, custom.guide_code and custom.discipline.",
+      "stamp": "Show revision stamp",
+      "specs": "Show facts row (pages, examples, level, format)",
+      "specs_info": "Reads product metafields custom.pages, custom.examples, custom.level, custom.revision, custom.revision_date, custom.subtitle, custom.datum, custom.guide_code and custom.discipline.",
       "quantity": "Show quantity selector",
       "tax_note": "Show tax note",
+      "preview_url": "Global preview link (all products)",
+      "preview_info": "Or set the metafield custom.preview_url per product.",
+      "preview_pages": "Preview page count",
       "related": "Show related guides",
       "collapsible": "Collapsible row",
       "collapsible_heading": "Heading",

@@ -1,19 +1,32 @@
 {%- comment -%}
-  Usage: {% render 'product-card', product: product, index: forloop.index, lazy: true %}
+  Product card per Identity Standard §7: cover on a #E1E6E1 square, then
+  "CODE · EL level", title, "96 pp · 42 worked examples", price + Add to cart.
+  Usage: {% render 'product-card', product: product, lazy: true %}
 {%- endcomment -%}
 {%- liquid
-  capture disc_css
-    render 'guide-meta', product: product, part: 'css'
-  endcapture
   capture code
     render 'guide-meta', product: product, part: 'code'
   endcapture
-  capture rev
-    render 'guide-meta', product: product, part: 'rev'
+  capture level
+    render 'guide-meta', product: product, part: 'level'
+  endcapture
+  capture pages
+    render 'guide-meta', product: product, part: 'pages'
+  endcapture
+  capture examples
+    render 'guide-meta', product: product, part: 'examples'
+  endcapture
+  capture datum
+    render 'guide-meta', product: product, part: 'datum'
   endcapture
   capture disc_name
     render 'guide-meta', product: product, part: 'name'
   endcapture
+  assign code = code | strip
+  assign level = level | strip
+  assign pages = pages | strip
+  assign examples = examples | strip
+  assign datum = datum | strip
   assign is_new = false
   for tag in product.tags
     assign lt = tag | downcase
@@ -25,16 +38,16 @@
   if product.compare_at_price > product.price
     assign on_sale = true
   endif
+  assign variant = product.selected_or_first_available_variant
 -%}
-<article class="card reveal" style="--disc:{{ disc_css | strip }}" data-product-card>
+<article class="card reveal" data-product-card>
   <div class="card__media">
     {%- if product.featured_image -%}
-      <span class="spine"></span>
       <a href="{{ product.url }}" tabindex="-1" aria-hidden="true">
         <img
           src="{{ product.featured_image | image_url: width: 600 }}"
           srcset="{{ product.featured_image | image_url: width: 400 }} 400w, {{ product.featured_image | image_url: width: 600 }} 600w, {{ product.featured_image | image_url: width: 900 }} 900w"
-          sizes="(max-width:600px) 90vw, (max-width:980px) 45vw, 300px"
+          sizes="(max-width:600px) 60vw, 180px"
           alt="{{ product.featured_image.alt | default: product.title | escape }}"
           width="{{ product.featured_image.width }}" height="{{ product.featured_image.height }}"
           {% if lazy %}loading="lazy"{% endif %}>
@@ -42,21 +55,36 @@
     {%- else -%}
       {% render 'cover', product: product %}
     {%- endif -%}
-    {%- if is_new or on_sale or product.available == false -%}
+    {%- if is_new or on_sale or datum != blank or product.available == false -%}
       <div class="card__badges">
-        {%- if product.available == false -%}<span class="badge">{{ 'products.product.sold_out' | t }}</span>{%- endif -%}
+        {%- if product.available == false -%}<span class="badge badge--ink">{{ 'products.product.sold_out' | t }}</span>{%- endif -%}
         {%- if is_new -%}<span class="badge badge--flag">{{ 'products.product.new_rev' | t }}</span>{%- endif -%}
         {%- if on_sale and product.available -%}<span class="badge badge--flag">{{ 'products.product.sale' | t }}</span>{%- endif -%}
+        {%- if datum != blank -%}<span class="badge badge--line">{{ 'products.product.datum' | t: letter: datum }}</span>{%- endif -%}
       </div>
     {%- endif -%}
   </div>
-  <div class="card__no">
-    <span class="chip"><i></i>{{ code | strip }}</span>
-    <span class="label">{{ rev | strip }}</span>
-  </div>
-  <h3 class="card__title"><a href="{{ product.url }}">{{ product.title }}</a></h3>
-  <div class="card__meta">
-    <span class="label">{{ disc_name | strip }}</span>
-    {% render 'price', product: product %}
+  <div class="card__body">
+    <span class="label">{{ code }}{% if level != blank %} &middot; EL {{ level }}{% else %} &middot; {{ disc_name | strip }}{% endif %}</span>
+    <h3 class="card__title"><a href="{{ product.url }}">{{ product.title }}</a></h3>
+    {%- if pages != blank or examples != blank -%}
+      <p class="card__meta">
+        {%- if pages != blank -%}{{ 'products.product.pp' | t: count: pages }}{%- endif -%}
+        {%- if pages != blank and examples != blank %} &middot; {% endif -%}
+        {%- if examples != blank -%}{{ 'products.product.examples' | t: count: examples }}{%- endif -%}
+      </p>
+    {%- endif -%}
+    <div class="card__foot">
+      {% render 'price', product: product %}
+      {%- if product.available and product.has_only_default_variant -%}
+        {%- form 'product', product, data-product-form: '', class: 'card__form' -%}
+          <input type="hidden" name="id" value="{{ variant.id }}">
+          <input type="hidden" name="quantity" value="1">
+          <button class="btn btn--sm" type="submit" data-add-to-cart><span data-add-to-cart-text>{{ 'products.product.add_to_cart' | t }}</span></button>
+        {%- endform -%}
+      {%- elsif product.available -%}
+        <a class="btn btn--sm btn--outline" href="{{ product.url }}">{{ 'products.product.choose' | t }}</a>
+      {%- endif -%}
+    </div>
   </div>
 </article>

@@ -17,34 +17,35 @@
       <h2 class="display h2">{{ heading }}</h2>
     </div>
     {%- if section.settings.show_view_all and collection.products_count > limit -%}
-      <a class="link arrow-link label" href="{{ collection.url }}">{{ 'collections.general.view_all' | t: count: collection.products_count }} {% render 'icon', name: 'arrow' %}</a>
+      <a class="link arrow-link" href="{{ collection.url }}">{{ 'collections.general.view_all' | t: count: collection.products_count }} {% render 'icon', name: 'arrow' %}</a>
     {%- endif -%}
   </div>
 
   {%- if collection.products.size > 0 -%}
     <div class="grid grid--products">
       {%- for product in collection.products limit: limit -%}
-        {% render 'product-card', product: product, index: forloop.index, lazy: true %}
+        {% render 'product-card', product: product, lazy: true %}
       {%- endfor -%}
     </div>
   {%- else -%}
+    {%- comment -%} Placeholder cards until products exist. Example content per the Identity Standard. {%- endcomment -%}
+    {%- assign codes = 'BG-STR-101,BG-STR-204,BG-STR-310,BG-CIV-112' | split: ',' -%}
+    {%- assign discs = 'str,str,str,civ' | split: ',' -%}
+    {%- assign levels = '100,200,300,100' | split: ',' -%}
     <div class="grid grid--products">
-      {%- for i in (1..4) -%}
-        <article class="card reveal" style="--disc:var(--disc-{{ 'gen,civ,str,mec' | split: ',' | slice: forloop.index0 | first }})">
+      {%- assign ph_title = 'sections.featured_collection.placeholder_title' | t -%}
+      {%- for code in codes -%}
+        {%- assign ph_level = levels[forloop.index0] -%}
+        {%- assign ph_disc = discs[forloop.index0] -%}
+        <article class="card reveal">
           <div class="card__media">
-            <div class="cover" aria-hidden="true">
-              <div class="cover__spine"></div>
-              <div class="cover__body">
-                <div class="cover__rules"></div>
-                <div class="cover__code"><span>BG-XXX-00{{ i }}</span><span>Rev A</span></div>
-                <div class="cover__title">{{ 'sections.featured_collection.placeholder_title' | t }}</div>
-                <div class="cover__foot"><span class="label">GEN</span><span class="serial">00{{ i }}</span></div>
-              </div>
-            </div>
+            {% render 'cover', title: ph_title, code: code, rev: 'A', level: ph_level, disc: ph_disc %}
           </div>
-          <div class="card__no"><span class="chip"><i></i>BG-XXX-00{{ i }}</span><span class="label">Rev A</span></div>
-          <h3 class="card__title">{{ 'sections.featured_collection.placeholder_title' | t }}</h3>
-          <div class="card__meta"><span class="label">{{ 'sections.featured_collection.placeholder_hint' | t }}</span><span class="price"><b>—</b></span></div>
+          <div class="card__body">
+            <span class="label">{{ code }} &middot; EL {{ ph_level }}</span>
+            <h3 class="card__title">{{ ph_title }}</h3>
+            <p class="card__meta">{{ 'sections.featured_collection.placeholder_hint' | t }}</p>
+          </div>
         </article>
       {%- endfor -%}
     </div>
