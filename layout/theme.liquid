@@ -1,12 +1,5 @@
 <!doctype html>
-{%- liquid
-  assign locale = request.locale.iso_code
-  assign dir = 'ltr'
-  if locale contains 'ar' or locale contains 'he' or locale contains 'fa' or locale contains 'ur'
-    assign dir = 'rtl'
-  endif
--%}
-<html lang="{{ locale }}" dir="{{ dir }}" class="no-js">
+<html lang="ar" dir="rtl" class="no-js">
 <head>
   <meta charset="utf-8">
   <meta http-equiv="X-UA-Compatible" content="IE=edge">

@@ -1,7 +1,7 @@
 {
   "general": {
-    "blank_uses_builtin": "Leave blank to use the built-in bilingual text (Arabic + English).",
-    "blank_uses_builtin_long": "Leave any field blank to use the built-in bilingual text (Arabic + English). Fill it in to override, then translate the override with Shopify's Translate & Adapt app.",
+    "blank_uses_builtin": "Leave blank to use the built-in Arabic text.",
+    "blank_uses_builtin_long": "Leave any field blank to use the built-in Arabic text, or fill it in with your own.",
     "scheme": "Colour scheme",
     "scheme_vellum": "1 · Vellum (default)",
     "scheme_chalk": "2 · Chalk (cards)",
@@ -70,8 +70,8 @@
       "menu": "Menu",
       "account": "Account",
       "sticky": "Sticky header",
-      "localization": "Show language / currency switcher",
-      "localization_info": "Publish Arabic and English under Settings → Languages for the switcher to appear.",
+      "localization": "Show country / currency selector",
+      "localization_info": "The country and currency selector appears when Shopify Markets has more than one market.",
       "search": "Show search link",
       "account_toggle": "Show account link"
     },

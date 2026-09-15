@@ -1,19 +1,17 @@
-# Benchmark Guides — Shopify theme (Arabic default · English)
+# Benchmark Guides — Shopify theme (Arabic)
 
-قالب Shopify ثنائي اللغة لبيع أدلة هندسية بصيغة PDF. العربية هي اللغة الافتراضية، والإنجليزية لغة ثانية.
+قالب Shopify عربي لبيع أدلة هندسية بصيغة PDF.
 An Online Store 2.0 theme that implements the **Benchmark Guides Identity Standard** (`brand/brand-guidelines.html`, BG-ID-001 Rev A):
 Vellum ground, Datum Ink text, Survey Bronze datum, Chalk cards, Flagging Orange for badges only; Saira / Source Serif 4 / IBM Plex Mono;
 survey grids, dimension callouts, revision stamps, elevation levels and datum tags.
 
-## Arabic is the default
+## Arabic only
 
-- `locales/ar.default.json` is the theme's default storefront locale, `locales/en.json` the English one
-  (and `ar.default.schema.json` / `en.schema.json` for the theme editor).
-- The page switches to right-to-left automatically whenever the active locale is Arabic. All layout uses logical CSS properties.
-- **In Shopify admin, set Arabic as the store's default language**: Settings → Languages → make Arabic the default, then add English
-  and publish it. The header then shows an `العربية / English` toggle and URLs get `/en` for English.
-- Theme UI strings are translated in both files. For your own content (titles, descriptions, section text you type into the editor),
-  install Shopify's free **Translate & Adapt** app and fill in the English side. Any section field left blank uses the built-in bilingual text.
+- `locales/ar.default.json` is the only storefront locale. Every page renders `lang="ar"` and right-to-left.
+- There is no language switcher. The header selector appears only for country and currency, when Shopify Markets has more than one market.
+- **In Shopify admin**, keep Arabic as the default under Settings → Languages and unpublish any other language, so no `/en` URLs are indexed.
+- `ar.default.schema.json` and `en.schema.json` translate the theme editor labels only. They do not affect the storefront.
+- Write your own content (product titles, descriptions, section text) in Arabic directly in Shopify.
 
 ## Brand identity applied
 
@@ -67,7 +65,7 @@ Install **Digital Downloads** (free, by Shopify) or a similar app, attach the PD
 assets/      base.css, theme.js, logo-*.svg, app-icon.svg
 config/      settings_schema.json, settings_data.json
 layout/      theme.liquid, password.liquid
-locales/     ar.default.json, en.json, ar.default.schema.json, en.schema.json
+locales/     ar.default.json, ar.default.schema.json, en.schema.json (editor labels only)
 sections/    header/footer groups, hero (title sheet), featured-collection, collection-list, image-with-text,
              rich-text, testimonials, faq, newsletter, apps, main-* (product, collection, cart, search, blog,
              article, page, 404, password, customer accounts)

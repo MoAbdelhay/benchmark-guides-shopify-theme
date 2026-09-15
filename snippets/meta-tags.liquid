@@ -11,14 +11,6 @@
   elsif request.page_type == 'password'
     assign og_url = request.origin
   endif
-
-  assign clean_path = request.path
-  if localization.language.root_url != '/'
-    assign clean_path = request.path | remove_first: localization.language.root_url
-  endif
-  if clean_path == blank
-    assign clean_path = '/'
-  endif
 -%}
 <meta property="og:site_name" content="{{ shop.name }}">
 <meta property="og:url" content="{{ og_url }}">
@@ -37,10 +29,3 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="{{ og_title | escape }}">
 <meta name="twitter:description" content="{{ og_description | escape }}">
-{%- for language in localization.available_languages -%}
-  {%- if language.root_url == '/' -%}
-    <link rel="alternate" hreflang="{{ language.iso_code }}" href="{{ request.origin }}{{ clean_path }}">
-  {%- else -%}
-    <link rel="alternate" hreflang="{{ language.iso_code }}" href="{{ request.origin }}{{ language.root_url }}{{ clean_path }}">
-  {%- endif -%}
-{%- endfor -%}
