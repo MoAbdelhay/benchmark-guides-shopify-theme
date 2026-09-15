@@ -1,0 +1,14 @@
+<section class="container notfound" data-section-id="{{ section.id }}">
+  <p class="eyebrow">{{ 'general.404.eyebrow' | t }}</p>
+  <div class="serial" aria-hidden="true">404</div>
+  <h1 class="display h3">{{ 'general.404.title' | t }}</h1>
+  <p class="lede">{{ 'general.404.subtext' | t }}</p>
+  <a class="btn btn--solid" href="{{ routes.root_url }}"><span>{{ 'general.404.link' | t }}</span></a>
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.main_404.name",
+  "settings": []
+}
+{% endschema %}

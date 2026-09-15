@@ -1,0 +1,24 @@
+{%- comment -%} Theme-setting colours pushed into CSS custom properties. {%- endcomment -%}
+<style>
+  :root{
+    --bg:{{ settings.color_background }};
+    --bg-deep:{{ settings.color_background | color_darken: 4 }};
+    --chalk:{{ settings.color_surface }};
+    --ink:{{ settings.color_ink }};
+    --ink-soft:{{ settings.color_ink_soft }};
+    --accent:{{ settings.color_accent }};
+    --accent-light:{{ settings.color_accent_light }};
+    --flag:{{ settings.color_flag }};
+    --line:{{ settings.color_ink | color_modify: 'alpha', 0.16 }};
+    --line-strong:{{ settings.color_ink | color_modify: 'alpha', 0.5 }};
+    --panel:{{ settings.color_background | color_modify: 'alpha', 0.8 }};
+    --disc-gen:{{ settings.color_disc_gen }};
+    --disc-civ:{{ settings.color_disc_civ }};
+    --disc-str:{{ settings.color_disc_str }};
+    --disc-mec:{{ settings.color_disc_mec }};
+    --disc-ele:{{ settings.color_disc_ele }};
+    --disc-prc:{{ settings.color_disc_prc }};
+    --max:{{ settings.page_width }}px;
+  }
+  {%- if settings.custom_css != blank -%}{{ settings.custom_css }}{%- endif -%}
+</style>

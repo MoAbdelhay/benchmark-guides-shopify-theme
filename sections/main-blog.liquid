@@ -1,0 +1,34 @@
+<section class="container" data-section-id="{{ section.id }}">
+  <div class="page-head">
+    <p class="eyebrow">{{ 'blogs.general.eyebrow' | t }}</p>
+    <h1 class="display h2">{{ blog.title }}</h1>
+  </div>
+  {%- paginate blog.articles by 12 -%}
+    <div>
+      {%- for article in blog.articles -%}
+        <article class="post reveal">
+          <span class="label code">{{ article.published_at | date: format: 'abbreviated_date' }}</span>
+          <div>
+            <h2 class="post__title"><a class="link" href="{{ article.url }}">{{ article.title }}</a></h2>
+            {%- if section.settings.show_excerpt -%}
+              <p class="post__excerpt">{{ article.excerpt_or_content | strip_html | truncatewords: 32 }}</p>
+            {%- endif -%}
+          </div>
+          <a class="label arrow-link" href="{{ article.url }}">{{ 'blogs.article.read_more' | t }} {% render 'icon', name: 'arrow' %}</a>
+        </article>
+      {%- else -%}
+        <p class="lede">{{ 'blogs.general.empty' | t }}</p>
+      {%- endfor -%}
+    </div>
+    {% render 'pagination', paginate: paginate %}
+  {%- endpaginate -%}
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.main_blog.name",
+  "settings": [
+    { "type": "checkbox", "id": "show_excerpt", "label": "t:sections.main_blog.excerpt", "default": true }
+  ]
+}
+{% endschema %}

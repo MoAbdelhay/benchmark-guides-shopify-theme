@@ -1,0 +1,21 @@
+{
+  "type": "footer",
+  "name": "t:sections.footer_group.name",
+  "sections": {
+    "footer": {
+      "type": "footer",
+      "blocks": {
+        "guides": { "type": "menu", "settings": { "heading": "", "menu": "footer" } },
+        "company": { "type": "menu", "settings": { "heading": "", "menu": "main-menu" } },
+        "newsletter": { "type": "newsletter", "settings": {} }
+      },
+      "block_order": ["guides", "company", "newsletter"],
+      "settings": {
+        "tagline": "",
+        "show_payment_icons": true,
+        "show_localization": true
+      }
+    }
+  },
+  "order": ["footer"]
+}

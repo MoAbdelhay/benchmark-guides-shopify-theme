@@ -1,0 +1,53 @@
+{%- liquid
+  assign eyebrow = section.settings.eyebrow
+  assign heading = section.settings.heading
+  assign text = section.settings.text
+  assign cta = section.settings.cta_label
+  if eyebrow == blank
+    assign eyebrow = 'sections.image_with_text.eyebrow' | t
+  endif
+  if heading == blank
+    assign heading = 'sections.image_with_text.heading' | t
+  endif
+  if text == blank
+    assign text = 'sections.image_with_text.text' | t
+  endif
+  if cta == blank
+    assign cta = 'sections.image_with_text.cta' | t
+  endif
+-%}
+<section class="container section section--border-top" data-section-id="{{ section.id }}">
+  <div class="iwt{% if section.settings.reverse %} iwt--reverse{% endif %}">
+    <div class="iwt__media reveal">
+      {%- if section.settings.image != blank -%}
+        <img src="{{ section.settings.image | image_url: width: 1000 }}" srcset="{{ section.settings.image | image_url: width: 600 }} 600w, {{ section.settings.image | image_url: width: 1000 }} 1000w" sizes="(max-width:860px) 90vw, 45vw" alt="{{ section.settings.image.alt | escape }}" loading="lazy" width="{{ section.settings.image.width }}" height="{{ section.settings.image.height }}">
+      {%- else -%}
+        {% render 'cover', size: 'lg', title: heading %}
+      {%- endif -%}
+    </div>
+    <div class="iwt__copy">
+      <p class="eyebrow reveal">{{ eyebrow }}</p>
+      <h2 class="display h2 reveal">{{ heading }}</h2>
+      <div class="lede reveal">{{ text }}</div>
+      {%- if section.settings.cta_url != blank or section.settings.cta_label == blank -%}
+        <a class="btn reveal" href="{{ section.settings.cta_url | default: routes.all_products_collection_url }}"><span>{{ cta }}</span></a>
+      {%- endif -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.image_with_text.name",
+  "settings": [
+    { "type": "image_picker", "id": "image", "label": "t:sections.image_with_text.image" },
+    { "type": "checkbox", "id": "reverse", "label": "t:sections.image_with_text.reverse", "default": false },
+    { "type": "text", "id": "eyebrow", "label": "t:sections.hero.eyebrow_label", "info": "t:general.blank_uses_builtin" },
+    { "type": "text", "id": "heading", "label": "t:sections.hero.heading_label", "info": "t:general.blank_uses_builtin" },
+    { "type": "richtext", "id": "text", "label": "t:sections.hero.text_label", "info": "t:general.blank_uses_builtin" },
+    { "type": "text", "id": "cta_label", "label": "t:sections.hero.cta_label", "info": "t:general.blank_uses_builtin" },
+    { "type": "url", "id": "cta_url", "label": "t:sections.hero.cta_url" }
+  ],
+  "presets": [{ "name": "t:sections.image_with_text.name" }]
+}
+{% endschema %}

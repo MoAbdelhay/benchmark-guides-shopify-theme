@@ -1,0 +1,67 @@
+[
+  {
+    "name": "theme_info",
+    "theme_name": "Benchmark Guides",
+    "theme_version": "1.0.0",
+    "theme_author": "Benchmark Guides",
+    "theme_documentation_url": "https://github.com/MoAbdelhay/benchmark-guides-shopify-theme#readme",
+    "theme_support_url": "https://github.com/MoAbdelhay/benchmark-guides-shopify-theme/issues"
+  },
+  {
+    "name": "t:settings_schema.colors.name",
+    "settings": [
+      { "type": "header", "content": "t:settings_schema.colors.core" },
+      { "type": "color", "id": "color_background", "label": "t:settings_schema.colors.background", "default": "#EDEFEA" },
+      { "type": "color", "id": "color_surface", "label": "t:settings_schema.colors.surface", "default": "#FAFBF8" },
+      { "type": "color", "id": "color_ink", "label": "t:settings_schema.colors.ink", "default": "#16212B" },
+      { "type": "color", "id": "color_ink_soft", "label": "t:settings_schema.colors.ink_soft", "default": "#56626B" },
+      { "type": "color", "id": "color_accent", "label": "t:settings_schema.colors.accent", "default": "#8E5A1C" },
+      { "type": "color", "id": "color_accent_light", "label": "t:settings_schema.colors.accent_light", "default": "#C98B3E" },
+      { "type": "color", "id": "color_flag", "label": "t:settings_schema.colors.flag", "info": "t:settings_schema.colors.flag_info", "default": "#EC6435" },
+      { "type": "header", "content": "t:settings_schema.colors.disciplines" },
+      { "type": "paragraph", "content": "t:settings_schema.colors.disciplines_info" },
+      { "type": "color", "id": "color_disc_gen", "label": "GEN", "default": "#7C8A93" },
+      { "type": "color", "id": "color_disc_civ", "label": "CIV", "default": "#B5763A" },
+      { "type": "color", "id": "color_disc_str", "label": "STR", "default": "#5B87A3" },
+      { "type": "color", "id": "color_disc_mec", "label": "MEC", "default": "#5F8A6A" },
+      { "type": "color", "id": "color_disc_ele", "label": "ELE", "default": "#D6A637" },
+      { "type": "color", "id": "color_disc_prc", "label": "PRC", "default": "#8A78AE" }
+    ]
+  },
+  {
+    "name": "t:settings_schema.layout.name",
+    "settings": [
+      { "type": "range", "id": "page_width", "label": "t:settings_schema.layout.page_width", "min": 1100, "max": 1800, "step": 20, "unit": "px", "default": 1440 },
+      { "type": "checkbox", "id": "show_grain", "label": "t:settings_schema.layout.grain", "default": true },
+      { "type": "checkbox", "id": "show_vignette", "label": "t:settings_schema.layout.vignette", "default": true },
+      { "type": "checkbox", "id": "show_regmarks", "label": "t:settings_schema.layout.regmarks", "default": true }
+    ]
+  },
+  {
+    "name": "t:settings_schema.brand.name",
+    "settings": [
+      { "type": "image_picker", "id": "favicon", "label": "t:settings_schema.brand.favicon" },
+      { "type": "text", "id": "guide_code_prefix", "label": "t:settings_schema.brand.code_prefix", "info": "t:settings_schema.brand.code_prefix_info", "default": "BG" },
+      { "type": "header", "content": "t:settings_schema.brand.social" },
+      { "type": "url", "id": "social_instagram", "label": "Instagram" },
+      { "type": "url", "id": "social_x", "label": "X" },
+      { "type": "url", "id": "social_youtube", "label": "YouTube" },
+      { "type": "url", "id": "social_linkedin", "label": "LinkedIn" },
+      { "type": "url", "id": "social_telegram", "label": "Telegram" }
+    ]
+  },
+  {
+    "name": "t:settings_schema.products.name",
+    "settings": [
+      { "type": "checkbox", "id": "show_dynamic_checkout", "label": "t:settings_schema.products.dynamic_checkout", "default": true },
+      { "type": "checkbox", "id": "show_trust", "label": "t:settings_schema.products.trust", "default": true },
+      { "type": "checkbox", "id": "show_sku", "label": "t:settings_schema.products.sku", "default": true }
+    ]
+  },
+  {
+    "name": "t:settings_schema.custom_css.name",
+    "settings": [
+      { "type": "textarea", "id": "custom_css", "label": "t:settings_schema.custom_css.label", "info": "t:settings_schema.custom_css.info" }
+    ]
+  }
+]

@@ -1,0 +1,71 @@
+{%- liquid
+  assign disc_list = 'gen,civ,str,mec,ele,prc' | split: ','
+  assign sort_by = collection.sort_by | default: collection.default_sort_by
+-%}
+<section class="container" data-section-id="{{ section.id }}">
+  <div class="coll-head">
+    <div>
+      <p class="eyebrow">{{ 'collections.general.title' | t }}{% if current_tags %} &middot; {{ current_tags | join: ', ' | upcase }}{% endif %}</p>
+      <h1 class="display h2">{{ collection.title }}</h1>
+      {%- if collection.description != blank and section.settings.show_description -%}
+        <div class="lede">{{ collection.description }}</div>
+      {%- endif -%}
+    </div>
+    <span class="label">{{ 'collections.general.count' | t: count: collection.products_count }}</span>
+  </div>
+
+  <div class="toolbar">
+    {%- if section.settings.show_disciplines -%}
+      <nav class="disc-filter" aria-label="{{ 'products.discipline.label' | t }}">
+        <a href="{{ collection.url }}" {% unless current_tags %}aria-current="true"{% endunless %}>{{ 'collections.general.all' | t }}</a>
+        {%- for d in disc_list -%}
+          {%- assign active = false -%}
+          {%- if current_tags contains d -%}{%- assign active = true -%}{%- endif -%}
+          {%- assign d_key = 'products.discipline.' | append: d -%}
+          <a href="{{ collection.url }}/{{ d }}" style="--disc:var(--disc-{{ d }})" {% if active %}aria-current="true"{% endif %}><i></i>{{ d_key | t }}</a>
+        {%- endfor -%}
+      </nav>
+    {%- endif -%}
+    {%- if section.settings.show_sort -%}
+      <form method="get" action="{{ collection.url }}{% if current_tags %}/{{ current_tags | join: '+' }}{% endif %}">
+        <div class="select-wrap">
+          <label class="label" for="SortBy">{{ 'collections.sorting.title' | t }}</label>
+          <select id="SortBy" name="sort_by" class="input" style="display:inline-block;width:auto;padding:6px 32px 6px 10px;font-family:var(--font-ui);font-size:11px;letter-spacing:var(--track-tight);text-transform:var(--upper)" onchange="this.form.submit()">
+            {%- for option in collection.sort_options -%}
+              <option value="{{ option.value }}" {% if option.value == sort_by %}selected{% endif %}>{{ option.name }}</option>
+            {%- endfor -%}
+          </select>
+          {% render 'icon', name: 'chevron' %}
+        </div>
+      </form>
+    {%- endif -%}
+  </div>
+
+  {%- paginate collection.products by section.settings.per_page -%}
+    {%- if collection.products.size > 0 -%}
+      <div class="grid grid--products">
+        {%- for product in collection.products -%}
+          {% render 'product-card', product: product, index: forloop.index, lazy: true %}
+        {%- endfor -%}
+      </div>
+      {% render 'pagination', paginate: paginate %}
+    {%- else -%}
+      <div class="empty">
+        <h2 class="display h3">{{ 'collections.general.no_products' | t }}</h2>
+        <a class="btn" href="{{ routes.all_products_collection_url }}"><span>{{ 'collections.general.browse' | t }}</span></a>
+      </div>
+    {%- endif -%}
+  {%- endpaginate -%}
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.main_collection.name",
+  "settings": [
+    { "type": "range", "id": "per_page", "label": "t:sections.main_collection.per_page", "min": 8, "max": 48, "step": 4, "default": 24 },
+    { "type": "checkbox", "id": "show_description", "label": "t:sections.main_collection.description", "default": true },
+    { "type": "checkbox", "id": "show_disciplines", "label": "t:sections.main_collection.disciplines", "info": "t:sections.main_collection.disciplines_info", "default": true },
+    { "type": "checkbox", "id": "show_sort", "label": "t:sections.main_collection.sort", "default": true }
+  ]
+}
+{% endschema %}

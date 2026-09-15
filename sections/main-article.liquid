@@ -1,0 +1,28 @@
+<article class="container article" data-section-id="{{ section.id }}">
+  <header class="article__head">
+    <div class="eyebrow">
+      <span>{{ blog.title }}</span>
+      <span class="code">{{ article.published_at | date: format: 'abbreviated_date' }}</span>
+      {%- if section.settings.show_author -%}<span>{{ 'blogs.article.written_by' | t: author: article.author }}</span>{%- endif -%}
+    </div>
+    <h1 class="display h2">{{ article.title }}</h1>
+  </header>
+  {%- if article.image and section.settings.show_image -%}
+    <img class="article__img" src="{{ article.image | image_url: width: 1400 }}" alt="{{ article.image.alt | escape }}" width="{{ article.image.width }}" height="{{ article.image.height }}">
+  {%- endif -%}
+  <div class="rte">{{ article.content }}</div>
+  {%- if article.tags.size > 0 -%}
+    <p class="label" style="margin-block-start:28px">{{ 'blogs.article.tags' | t }}: {{ article.tags | join: ', ' }}</p>
+  {%- endif -%}
+  <p class="article__back"><a class="btn" href="{{ blog.url }}"><span>{{ 'blogs.article.back' | t: blog: blog.title }}</span></a></p>
+</article>
+
+{% schema %}
+{
+  "name": "t:sections.main_article.name",
+  "settings": [
+    { "type": "checkbox", "id": "show_image", "label": "t:sections.main_article.image", "default": true },
+    { "type": "checkbox", "id": "show_author", "label": "t:sections.main_article.author", "default": false }
+  ]
+}
+{% endschema %}

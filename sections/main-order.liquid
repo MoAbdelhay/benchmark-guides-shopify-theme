@@ -1,0 +1,76 @@
+<section class="container" data-section-id="{{ section.id }}">
+  <div class="page-head">
+    <p class="eyebrow"><a class="link" href="{{ routes.account_url }}">{{ 'customer.account.title' | t }}</a> &middot; {{ order.created_at | date: format: 'abbreviated_date' }}</p>
+    <h1 class="display h2">{{ 'customer.order.title' | t: name: order.name }}</h1>
+    {%- if order.cancelled -%}
+      {%- assign cancelled_date = order.cancelled_at | date: format: 'abbreviated_date' -%}
+      <p class="form-error" style="margin-block-start:14px">{{ 'customer.order.cancelled' | t: date: cancelled_date }} &middot; {{ order.cancel_reason_label }}</p>
+    {%- endif -%}
+  </div>
+
+  <div class="grid grid--2" style="grid-template-columns:2fr 1fr;align-items:start">
+    <div style="overflow-x:auto">
+      <table class="table">
+        <thead><tr>
+          <th>{{ 'customer.order.product' | t }}</th>
+          <th>{{ 'customer.order.sku' | t }}</th>
+          <th>{{ 'customer.order.price' | t }}</th>
+          <th>{{ 'customer.order.quantity' | t }}</th>
+          <th>{{ 'customer.order.total' | t }}</th>
+        </tr></thead>
+        <tbody>
+          {%- for line_item in order.line_items -%}
+            <tr>
+              <td>
+                {%- if line_item.product.url -%}<a class="link" href="{{ line_item.product.url }}">{{ line_item.title }}</a>{%- else -%}{{ line_item.title }}{%- endif -%}
+                {%- if line_item.fulfillment -%}
+                  {%- assign fulfilled_date = line_item.fulfillment.created_at | date: format: 'abbreviated_date' -%}
+                  <p class="form-note" style="margin-block-start:6px">{{ 'customer.order.fulfilled_at' | t: date: fulfilled_date }}
+                    {%- if line_item.fulfillment.tracking_url -%} &middot; <a class="link" href="{{ line_item.fulfillment.tracking_url }}">{{ 'customer.order.track' | t }}</a>{%- endif -%}</p>
+                {%- endif -%}
+              </td>
+              <td class="code">{{ line_item.sku }}</td>
+              <td class="code">{{ line_item.final_price | money }}</td>
+              <td class="code">{{ line_item.quantity }}</td>
+              <td class="code">{{ line_item.final_line_price | money }}</td>
+            </tr>
+          {%- endfor -%}
+        </tbody>
+        <tfoot>
+          <tr><td colspan="4" class="label">{{ 'customer.order.subtotal' | t }}</td><td class="code">{{ order.line_items_subtotal_price | money }}</td></tr>
+          {%- for discount in order.cart_level_discount_applications -%}
+            <tr><td colspan="4" class="label">{{ discount.title }}</td><td class="code">&minus;{{ discount.total_allocated_amount | money }}</td></tr>
+          {%- endfor -%}
+          {%- for shipping_method in order.shipping_methods -%}
+            <tr><td colspan="4" class="label">{{ 'customer.order.shipping' | t }} ({{ shipping_method.title }})</td><td class="code">{{ shipping_method.price | money }}</td></tr>
+          {%- endfor -%}
+          {%- for tax_line in order.tax_lines -%}
+            <tr><td colspan="4" class="label">{{ 'customer.order.tax' | t }} ({{ tax_line.title }} {{ tax_line.rate | times: 100 }}%)</td><td class="code">{{ tax_line.price | money }}</td></tr>
+          {%- endfor -%}
+          <tr><td colspan="4" class="label" style="font-weight:600;color:var(--ink)">{{ 'customer.order.total' | t }}</td><td class="code" style="font-weight:600">{{ order.total_price | money }}</td></tr>
+        </tfoot>
+      </table>
+    </div>
+    <div>
+      <div class="address">
+        <h2 class="label" style="margin-block-end:12px">{{ 'customer.order.billing_address' | t }}</h2>
+        <p class="form-note">{{ 'customer.order.payment_status' | t }}: {{ order.financial_status_label }}</p>
+        <div style="margin-block-start:10px">{{ order.billing_address | format_address }}</div>
+      </div>
+      {%- if order.shipping_address -%}
+        <div class="address">
+          <h2 class="label" style="margin-block-end:12px">{{ 'customer.order.shipping_address' | t }}</h2>
+          <p class="form-note">{{ 'customer.order.fulfillment_status' | t }}: {{ order.fulfillment_status_label }}</p>
+          <div style="margin-block-start:10px">{{ order.shipping_address | format_address }}</div>
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.main_order.name",
+  "settings": []
+}
+{% endschema %}

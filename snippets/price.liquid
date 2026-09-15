@@ -1,0 +1,27 @@
+{%- comment -%}
+  Usage: {% render 'price', product: product, variant: variant, size: 'lg', id: 'ProductPrice' %}
+  Pass either a product (uses selected_or_first_available_variant) or a variant.
+{%- endcomment -%}
+{%- liquid
+  assign target = variant | default: product.selected_or_first_available_variant | default: product
+  assign price = target.price | default: 0
+  assign compare = target.compare_at_price
+  assign on_sale = false
+  if compare > price
+    assign on_sale = true
+  endif
+  assign show_from = false
+  if variant == blank and product.price_varies
+    assign show_from = true
+  endif
+-%}
+<div class="price{% if size == 'lg' %} price--lg{% endif %}{% if on_sale %} price--sale{% endif %}"{% if id %} id="{{ id }}"{% endif %} data-price>
+  {%- if show_from -%}<span class="unit">{{ 'products.product.from' | t }}</span>{%- endif -%}
+  <b data-price-current>{{ price | money }}</b>
+  {%- if on_sale -%}
+    <s data-price-compare>{{ compare | money }}</s>
+    <span class="badge badge--flag">{{ 'products.product.sale' | t }}</span>
+  {%- else -%}
+    <s data-price-compare hidden></s>
+  {%- endif -%}
+</div>

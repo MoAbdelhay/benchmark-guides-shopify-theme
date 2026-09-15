@@ -1,0 +1,86 @@
+{%- liquid
+  assign eyebrow = section.settings.eyebrow
+  assign heading = section.settings.heading
+  assign quote = section.settings.quote
+  assign text = section.settings.text
+  assign cta = section.settings.cta_label
+  assign cta2 = section.settings.cta2_label
+  if eyebrow == blank
+    assign eyebrow = 'sections.hero.eyebrow' | t
+  endif
+  if heading == blank
+    assign heading = 'sections.hero.heading' | t
+  endif
+  if quote == blank
+    assign quote = 'sections.hero.quote' | t
+  endif
+  if text == blank
+    assign text = 'sections.hero.text' | t
+  endif
+  if cta == blank
+    assign cta = 'sections.hero.cta' | t
+  endif
+  if cta2 == blank
+    assign cta2 = 'sections.hero.cta2' | t
+  endif
+  assign cta_url = section.settings.cta_url | default: routes.all_products_collection_url
+  assign cta2_url = section.settings.cta2_url | default: routes.collections_url
+  assign guide_count = collections.all.products_count
+  assign disc_list = 'gen,civ,str,mec,ele,prc' | split: ','
+-%}
+<section class="container hero" data-section-id="{{ section.id }}">
+  <div class="hero__copy">
+    <p class="eyebrow reveal">{{ eyebrow }}</p>
+    <h1 class="display h1 hero__title reveal">{{ heading }}</h1>
+    <div class="meta-row hero__meta reveal">
+      {%- if section.settings.show_count -%}
+        <span>{{ 'sections.hero.meta_guides' | t }} <b>{{ guide_count }}</b></span>
+      {%- endif -%}
+      <span>{{ 'sections.hero.meta_language' | t }} <b>{{ 'sections.hero.meta_language_value' | t }}</b></span>
+      <span>{{ 'sections.hero.meta_format' | t }} <b>PDF</b></span>
+      <span>{{ 'sections.hero.meta_updates' | t }} <b>{{ 'sections.hero.meta_updates_value' | t }}</b></span>
+    </div>
+    <div class="hero__actions reveal">
+      <a class="btn btn--solid" href="{{ cta_url }}"><span>{{ cta }}</span></a>
+      <a class="btn" href="{{ cta2_url }}"><span>{{ cta2 }}</span></a>
+    </div>
+  </div>
+
+  <aside class="hero__aside">
+    <p class="quote reveal">&ldquo;{{ quote }}&rdquo;</p>
+    <p class="lede reveal">{{ text }}</p>
+    {%- if section.settings.show_disciplines -%}
+      <div class="hero__palette reveal" aria-label="{{ 'products.discipline.label' | t }}">
+        {%- for d in disc_list -%}
+          {%- assign d_key = 'products.discipline.' | append: d -%}
+          {%- assign d_name = d_key | t -%}
+          <a class="pal" href="{{ routes.all_products_collection_url }}/{{ d }}" title="{{ d_name }}" style="--disc:var(--disc-{{ d }})">
+            <i style="background:var(--disc-{{ d }})"></i><i style="background:var(--ink)"></i><i style="background:var(--chalk)"></i><i style="background:var(--accent)"></i>
+            <span class="name">{{ d_name }}</span>
+          </a>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+    <span class="hero__stamp reveal">{{ 'sections.hero.stamp' | t: year: 'now' | date: '%Y' }}</span>
+  </aside>
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.hero.name",
+  "settings": [
+    { "type": "paragraph", "content": "t:general.blank_uses_builtin_long" },
+    { "type": "text", "id": "eyebrow", "label": "t:sections.hero.eyebrow_label" },
+    { "type": "text", "id": "heading", "label": "t:sections.hero.heading_label" },
+    { "type": "text", "id": "quote", "label": "t:sections.hero.quote_label" },
+    { "type": "textarea", "id": "text", "label": "t:sections.hero.text_label" },
+    { "type": "text", "id": "cta_label", "label": "t:sections.hero.cta_label" },
+    { "type": "url", "id": "cta_url", "label": "t:sections.hero.cta_url" },
+    { "type": "text", "id": "cta2_label", "label": "t:sections.hero.cta2_label" },
+    { "type": "url", "id": "cta2_url", "label": "t:sections.hero.cta2_url" },
+    { "type": "checkbox", "id": "show_count", "label": "t:sections.hero.show_count", "default": true },
+    { "type": "checkbox", "id": "show_disciplines", "label": "t:sections.hero.show_disciplines", "default": true }
+  ],
+  "presets": [{ "name": "t:sections.hero.name" }]
+}
+{% endschema %}

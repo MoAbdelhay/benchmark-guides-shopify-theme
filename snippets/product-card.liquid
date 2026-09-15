@@ -1,0 +1,62 @@
+{%- comment -%}
+  Usage: {% render 'product-card', product: product, index: forloop.index, lazy: true %}
+{%- endcomment -%}
+{%- liquid
+  capture disc_css
+    render 'guide-meta', product: product, part: 'css'
+  endcapture
+  capture code
+    render 'guide-meta', product: product, part: 'code'
+  endcapture
+  capture rev
+    render 'guide-meta', product: product, part: 'rev'
+  endcapture
+  capture disc_name
+    render 'guide-meta', product: product, part: 'name'
+  endcapture
+  assign is_new = false
+  for tag in product.tags
+    assign lt = tag | downcase
+    if lt == 'new' or lt == 'new rev' or lt == 'new-rev'
+      assign is_new = true
+    endif
+  endfor
+  assign on_sale = false
+  if product.compare_at_price > product.price
+    assign on_sale = true
+  endif
+-%}
+<article class="card reveal" style="--disc:{{ disc_css | strip }}" data-product-card>
+  <div class="card__media">
+    {%- if product.featured_image -%}
+      <span class="spine"></span>
+      <a href="{{ product.url }}" tabindex="-1" aria-hidden="true">
+        <img
+          src="{{ product.featured_image | image_url: width: 600 }}"
+          srcset="{{ product.featured_image | image_url: width: 400 }} 400w, {{ product.featured_image | image_url: width: 600 }} 600w, {{ product.featured_image | image_url: width: 900 }} 900w"
+          sizes="(max-width:600px) 90vw, (max-width:980px) 45vw, 300px"
+          alt="{{ product.featured_image.alt | default: product.title | escape }}"
+          width="{{ product.featured_image.width }}" height="{{ product.featured_image.height }}"
+          {% if lazy %}loading="lazy"{% endif %}>
+      </a>
+    {%- else -%}
+      {% render 'cover', product: product %}
+    {%- endif -%}
+    {%- if is_new or on_sale or product.available == false -%}
+      <div class="card__badges">
+        {%- if product.available == false -%}<span class="badge">{{ 'products.product.sold_out' | t }}</span>{%- endif -%}
+        {%- if is_new -%}<span class="badge badge--flag">{{ 'products.product.new_rev' | t }}</span>{%- endif -%}
+        {%- if on_sale and product.available -%}<span class="badge badge--flag">{{ 'products.product.sale' | t }}</span>{%- endif -%}
+      </div>
+    {%- endif -%}
+  </div>
+  <div class="card__no">
+    <span class="chip"><i></i>{{ code | strip }}</span>
+    <span class="label">{{ rev | strip }}</span>
+  </div>
+  <h3 class="card__title"><a href="{{ product.url }}">{{ product.title }}</a></h3>
+  <div class="card__meta">
+    <span class="label">{{ disc_name | strip }}</span>
+    {% render 'price', product: product %}
+  </div>
+</article>

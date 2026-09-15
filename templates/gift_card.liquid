@@ -1,0 +1,50 @@
+{% layout none %}
+<!doctype html>
+{%- liquid
+  assign locale = request.locale.iso_code
+  assign dir = 'ltr'
+  if locale contains 'ar'
+    assign dir = 'rtl'
+  endif
+-%}
+<html lang="{{ locale }}" dir="{{ dir }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  {%- assign gc_value = gift_card.initial_value | money -%}
+  {%- assign gc_title = 'gift_cards.issued.title' | t: value: gc_value, shop: shop.name -%}
+  <title>{{ gc_title }}</title>
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Saira:wdth,wght@100..125,400..700&family=Source+Serif+4:wght@400;600&family=IBM+Plex+Sans+Arabic:wght@400;600&family=Noto+Naskh+Arabic:wght@400;600&display=swap" rel="stylesheet">
+  {{ 'base.css' | asset_url | stylesheet_tag }}
+  {% render 'css-variables' %}
+  {{ content_for_header }}
+</head>
+<body class="template-gift-card">
+  {%- if settings.show_regmarks -%}{% render 'regmarks' %}{%- endif -%}
+  <main class="password" role="main">
+    <div style="max-width:560px;width:100%">
+      <div class="brand" style="display:flex;flex-direction:column;align-items:center">
+        <span class="mark"><span class="dot" aria-hidden="true"></span>{{ shop.name }}</span>
+        <span class="sub">{{ 'gift_cards.issued.subtext' | t }}</span>
+      </div>
+      <p class="eyebrow" style="margin-block-start:34px">{{ gc_title }}</p>
+      <div class="serial" style="font-size:clamp(48px,10vw,96px);margin-block:12px">{{ gift_card.balance | money }}</div>
+      {%- if gift_card.enabled == false or gift_card.expired -%}
+        <p class="form-error">{{ 'gift_cards.issued.disabled' | t }}</p>
+      {%- elsif gift_card.expires_on -%}
+        {%- assign gc_expiry = gift_card.expires_on | date: format: 'abbreviated_date' -%}
+        <p class="form-note">{{ 'gift_cards.issued.expires' | t: expiry: gc_expiry }}</p>
+      {%- endif -%}
+      <div class="chip" style="font-size:16px;padding:12px 18px;margin-block:22px">{{ gift_card.code | format_code }}</div>
+      <p class="lede" style="margin-inline:auto">{{ 'gift_cards.issued.redeem' | t }}</p>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin-block-start:26px">
+        <a class="btn btn--solid" href="{{ shop.url }}"><span>{{ 'gift_cards.issued.shop_link' | t }}</span></a>
+        <button class="btn" type="button" onclick="window.print()"><span>{{ 'gift_cards.issued.print' | t }}</span></button>
+      </div>
+      {%- if gift_card.pass_url -%}
+        <p style="margin-block-start:22px"><a href="{{ gift_card.pass_url }}"><img src="{{ 'gift-card/add-to-apple-wallet.svg' | shopify_asset_url }}" width="120" height="40" alt="{{ 'gift_cards.issued.add_to_apple_wallet' | t }}" style="margin-inline:auto"></a></p>
+      {%- endif -%}
+    </div>
+  </main>
+</body>
+</html>

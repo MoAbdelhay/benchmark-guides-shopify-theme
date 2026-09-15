@@ -1,0 +1,61 @@
+{%- liquid
+  assign heading = section.settings.heading
+  assign eyebrow = section.settings.eyebrow
+  if heading == blank
+    assign heading = 'sections.faq.heading' | t
+  endif
+  if eyebrow == blank
+    assign eyebrow = 'sections.faq.eyebrow' | t
+  endif
+-%}
+<section class="container section section--border-top" data-section-id="{{ section.id }}">
+  <div class="section-head">
+    <div>
+      <p class="eyebrow">{{ eyebrow }}</p>
+      <h2 class="display h2">{{ heading }}</h2>
+    </div>
+  </div>
+  <div class="faq">
+    {%- for block in section.blocks -%}
+      {%- liquid
+        assign q = block.settings.question
+        assign a = block.settings.answer
+        if q == blank
+          assign q_key = 'sections.faq.q_' | append: forloop.index
+          assign q = q_key | t
+        endif
+        if a == blank
+          assign a_key = 'sections.faq.a_' | append: forloop.index
+          assign a = a_key | t
+        endif
+      -%}
+      <details class="reveal" {{ block.shopify_attributes }}{% if forloop.first and section.settings.open_first %} open{% endif %}>
+        <summary>{{ q }}</summary>
+        <div class="rte">{{ a }}</div>
+      </details>
+    {%- endfor -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.faq.name",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "t:sections.hero.eyebrow_label", "info": "t:general.blank_uses_builtin" },
+    { "type": "text", "id": "heading", "label": "t:sections.hero.heading_label", "info": "t:general.blank_uses_builtin" },
+    { "type": "checkbox", "id": "open_first", "label": "t:sections.faq.open_first", "default": true }
+  ],
+  "blocks": [
+    {
+      "type": "question",
+      "name": "t:sections.faq.block",
+      "settings": [
+        { "type": "text", "id": "question", "label": "t:sections.faq.question", "info": "t:general.blank_uses_builtin" },
+        { "type": "richtext", "id": "answer", "label": "t:sections.faq.answer" }
+      ]
+    }
+  ],
+  "max_blocks": 12,
+  "presets": [{ "name": "t:sections.faq.name", "blocks": [{ "type": "question" }, { "type": "question" }, { "type": "question" }, { "type": "question" }] }]
+}
+{% endschema %}

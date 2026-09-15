@@ -1,0 +1,49 @@
+{%- comment -%}
+  Language + currency switcher. Uses Shopify's localization form so it works with
+  Shopify Markets. Languages must be published in Settings → Languages.
+  Usage: {% render 'localization', id: 'header' %}
+{%- endcomment -%}
+{%- if localization.available_languages.size > 1 or localization.available_countries.size > 1 -%}
+  {%- assign form_id = 'LocalizationForm-' | append: id -%}
+  {%- form 'localization', id: form_id, class: 'locale-form', data-localization-form: '' -%}
+    {%- if localization.available_languages.size > 1 -%}
+      {%- if localization.available_languages.size == 2 -%}
+        <div class="lang-toggle" role="group" aria-label="{{ 'general.language.label' | t }}">
+          {%- for language in localization.available_languages -%}
+            <button
+              type="submit"
+              name="locale_code"
+              value="{{ language.iso_code }}"
+              lang="{{ language.iso_code }}"
+              class="{% if language.iso_code contains 'ar' %}ar{% endif %}"
+              {% if language.iso_code == localization.language.iso_code %}aria-current="true"{% endif %}>
+              {{ language.endonym_name }}
+            </button>
+            {%- unless forloop.last -%}<span aria-hidden="true">/</span>{%- endunless -%}
+          {%- endfor -%}
+        </div>
+      {%- else -%}
+        <div class="select-wrap">
+          <label class="visually-hidden" for="LangSelect-{{ id }}">{{ 'general.language.label' | t }}</label>
+          <select id="LangSelect-{{ id }}" name="locale_code" data-auto-submit>
+            {%- for language in localization.available_languages -%}
+              <option value="{{ language.iso_code }}" lang="{{ language.iso_code }}" {% if language.iso_code == localization.language.iso_code %}selected{% endif %}>{{ language.endonym_name }}</option>
+            {%- endfor -%}
+          </select>
+          {% render 'icon', name: 'chevron' %}
+        </div>
+      {%- endif -%}
+    {%- endif -%}
+    {%- if localization.available_countries.size > 1 -%}
+      <div class="select-wrap">
+        <label class="visually-hidden" for="CountrySelect-{{ id }}">{{ 'general.currency.label' | t }}</label>
+        <select id="CountrySelect-{{ id }}" name="country_code" data-auto-submit>
+          {%- for country in localization.available_countries -%}
+            <option value="{{ country.iso_code }}" {% if country.iso_code == localization.country.iso_code %}selected{% endif %}>{{ country.name }} ({{ country.currency.iso_code }})</option>
+          {%- endfor -%}
+        </select>
+        {% render 'icon', name: 'chevron' %}
+      </div>
+    {%- endif -%}
+  {%- endform -%}
+{%- endif -%}

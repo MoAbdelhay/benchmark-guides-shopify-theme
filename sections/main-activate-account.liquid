@@ -1,0 +1,33 @@
+<section class="container" data-section-id="{{ section.id }}">
+  <div class="page-head">
+    <p class="eyebrow">{{ 'customer.account.title' | t }}</p>
+    <h1 class="display h2">{{ 'customer.activate_account.title' | t }}</h1>
+    <p class="lede">{{ 'customer.activate_account.subtext' | t }}</p>
+  </div>
+  <div class="account">
+    {%- form 'activate_customer_password' -%}
+      {%- if form.errors -%}
+        <div class="form-error"><ul>{%- for field in form.errors -%}<li>{{ form.errors.translated_fields[field] | capitalize }} {{ form.errors.messages[field] }}</li>{%- endfor -%}</ul></div>
+      {%- endif -%}
+      <div class="field">
+        <label for="ActivatePassword">{{ 'customer.activate_account.password' | t }}</label>
+        <input id="ActivatePassword" type="password" name="customer[password]" autocomplete="new-password" required>
+      </div>
+      <div class="field">
+        <label for="ActivatePasswordConfirm">{{ 'customer.activate_account.password_confirm' | t }}</label>
+        <input id="ActivatePasswordConfirm" type="password" name="customer[password_confirmation]" autocomplete="new-password" required>
+      </div>
+      <div style="display:flex;gap:12px;flex-wrap:wrap">
+        <button class="btn btn--solid" type="submit"><span>{{ 'customer.activate_account.submit' | t }}</span></button>
+        <button class="btn" type="submit" name="decline"><span>{{ 'customer.activate_account.cancel' | t }}</span></button>
+      </div>
+    {%- endform -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.main_activate_account.name",
+  "settings": []
+}
+{% endschema %}

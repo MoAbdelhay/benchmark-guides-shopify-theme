@@ -1,0 +1,351 @@
+{
+  "accessibility": {
+    "skip_to_content": "Skip to content",
+    "close": "Close",
+    "previous": "Previous",
+    "next": "Next"
+  },
+  "general": {
+    "meta": {
+      "tags": "Tagged \"{{ tags }}\"",
+      "page": "Page {{ page }}"
+    },
+    "search": {
+      "title": "Search",
+      "heading": "Search the library",
+      "placeholder": "Search guides, codes, topics…",
+      "submit": "Search",
+      "results_for": "Results for \"{{ terms }}\"",
+      "results_count": "{{ count }} results",
+      "no_results": "Nothing found for \"{{ terms }}\""
+    },
+    "cart": {
+      "title": "Cart",
+      "eyebrow": "Your order",
+      "product": "Guide",
+      "qty": "Qty",
+      "total": "Total",
+      "subtotal": "Subtotal",
+      "empty": "Your cart is empty.",
+      "continue": "Browse the guides",
+      "checkout": "Checkout",
+      "taxes_note": "Digital guides are delivered by email after payment. Taxes are calculated at checkout.",
+      "note_label": "Order note",
+      "remove": "Remove",
+      "update": "Update cart",
+      "added": "Added to cart",
+      "view": "View cart",
+      "error": "Something went wrong. Please try again."
+    },
+    "language": { "label": "Language" },
+    "currency": { "label": "Country / currency" },
+    "pagination": {
+      "label": "Pagination",
+      "page": "Page {{ number }}"
+    },
+    "newsletter": {
+      "label": "Field notes",
+      "subtext": "New revisions, new guides, once a month.",
+      "email": "Email address",
+      "button": "Subscribe",
+      "success": "Thanks for subscribing. Check your inbox.",
+      "privacy": "No spam. Unsubscribe any time."
+    },
+    "page": { "eyebrow": "Page" },
+    "404": {
+      "eyebrow": "Sheet not found",
+      "title": "This sheet is not in the set.",
+      "subtext": "The page you're looking for was moved, retired, or never issued.",
+      "link": "Back to the index"
+    },
+    "password": {
+      "heading": "Opening soon.",
+      "text": "The library is being drafted. Enter the password to preview, or subscribe to be notified.",
+      "label": "Password",
+      "submit": "Enter",
+      "powered_by": "This shop will be powered by"
+    },
+    "blank_uses_builtin": "Leave blank to use the built-in bilingual text.",
+    "blank_uses_builtin_long": "Leave any field blank to use the built-in bilingual text (English + Arabic). Fill it in to override, then translate via Translate & Adapt."
+  },
+  "sections": {
+    "announcement": {
+      "label": "Announcement",
+      "default": "Instant PDF delivery · Lifetime revisions · Arabic & English"
+    },
+    "header": {
+      "default_tagline": "Engineering guides · Arabic editions",
+      "menu": "Menu",
+      "account": "Account"
+    },
+    "footer": {
+      "default_tagline": "Practical engineering guides, written in Arabic, revised for the field. Delivered as PDF, updated for life.",
+      "rights": "All rights reserved",
+      "social": "Social",
+      "payment": "Payment methods"
+    },
+    "hero": {
+      "eyebrow": "Engineering guides · Arabic editions · Drafted for the field",
+      "heading": "Guides that read like a <em>good set of drawings</em>.",
+      "quote": "Clear enough to act on. Precise enough to trust.",
+      "text": "Every guide is written in Arabic by working engineers, numbered like a drawing sheet, and revised whenever the code changes. Buy once, keep every revision.",
+      "cta": "Browse the guides",
+      "cta2": "By discipline",
+      "meta_guides": "Guides",
+      "meta_language": "Language",
+      "meta_language_value": "AR / EN",
+      "meta_format": "Format",
+      "meta_updates": "Updates",
+      "meta_updates_value": "Lifetime",
+      "stamp": "Issued for use · {{ year }}"
+    },
+    "featured_collection": {
+      "eyebrow": "The collection",
+      "heading": "Latest revisions",
+      "placeholder_title": "Sample guide title",
+      "placeholder_hint": "Add products to see them here"
+    },
+    "collection_list": {
+      "eyebrow": "By discipline",
+      "heading": "Six disciplines, one drawing standard.",
+      "placeholder": "Choose a collection"
+    },
+    "image_with_text": {
+      "eyebrow": "How a guide is made",
+      "heading": "Drafted, checked, issued.",
+      "text": "<p>Each guide starts as a field problem, not a textbook chapter. It is written in plain Arabic, checked by a second engineer, and issued with a revision letter. When a standard is updated, so is the guide — and you get the new revision free.</p>",
+      "cta": "Read our method"
+    },
+    "rich_text": {
+      "eyebrow": "Why Benchmark",
+      "heading": "Built for engineers who work in Arabic.",
+      "text": "<p>Most technical references reach the region late and in translation. Benchmark guides are written in Arabic first, with English terms kept where the site uses them, so what you read is what you'll see on the drawing.</p>",
+      "stat_guides": "Guides issued",
+      "stat_disciplines": "Disciplines",
+      "stat_languages": "Languages",
+      "stat_updates": "Free revisions",
+      "align": "Alignment",
+      "center": "Centered",
+      "start": "Start"
+    },
+    "testimonials": {
+      "eyebrow": "From the field",
+      "heading": "What engineers say",
+      "quote_1": "The first Arabic reference I've used that matches what the consultant actually asks for on site.",
+      "name_1": "Site engineer",
+      "role_1": "Riyadh · Structural",
+      "quote_2": "Bought one guide, got three revisions in a year. That alone paid for it.",
+      "name_2": "Project engineer",
+      "role_2": "Dubai · MEP",
+      "quote_3": "Clear numbering, clear diagrams, no fluff. Reads like a well-kept set of drawings.",
+      "name_3": "Junior engineer",
+      "role_3": "Cairo · Civil"
+    },
+    "faq": {
+      "eyebrow": "Questions",
+      "heading": "Before you buy",
+      "q_1": "How do I receive the guide?",
+      "a_1": "<p>Immediately after payment you'll get an email with a secure download link. The guide is a PDF that opens on any device.</p>",
+      "q_2": "Are the guides in Arabic or English?",
+      "a_2": "<p>Guides are written in Arabic. Technical terms, codes and drawing labels are kept in English where that's what you'll see on site.</p>",
+      "q_3": "What happens when a standard changes?",
+      "a_3": "<p>We issue a new revision and email it to every previous buyer at no cost. The revision letter on the cover tells you which version you have.</p>",
+      "q_4": "Can I get a refund?",
+      "a_4": "<p>Because guides are digital, we can't take them back — but if a guide isn't what you expected, write to us within 14 days and we'll make it right.</p>"
+    },
+    "newsletter": {
+      "eyebrow": "Field notes",
+      "heading": "One email a month. New guides, new revisions.",
+      "text": "No marketing, just the changelog."
+    }
+  },
+  "products": {
+    "product": {
+      "add_to_cart": "Add to cart",
+      "adding": "Adding…",
+      "sold_out": "Sold out",
+      "unavailable": "Unavailable",
+      "quantity": "Quantity",
+      "decrease": "Decrease quantity",
+      "increase": "Increase quantity",
+      "from": "From",
+      "sale": "Sale",
+      "new_rev": "New rev",
+      "rev": "Rev",
+      "pages": "Pages",
+      "format": "Format",
+      "language": "Language",
+      "language_default": "Arabic",
+      "delivery": "Delivery",
+      "delivery_value": "Instant",
+      "description": "About this guide",
+      "tax_note": "Tax included where applicable.",
+      "media": "Image {{ index }}",
+      "trust_instant": "Instant PDF download after payment",
+      "trust_updates": "Free revisions for life",
+      "trust_secure": "Secure checkout via Shopify",
+      "related_eyebrow": "Same shelf",
+      "related": "Related guides"
+    },
+    "discipline": {
+      "label": "Discipline",
+      "gen": "General",
+      "civ": "Civil",
+      "str": "Structural",
+      "mec": "Mechanical",
+      "ele": "Electrical",
+      "prc": "Process"
+    }
+  },
+  "collections": {
+    "general": {
+      "title": "Collection",
+      "all": "All",
+      "index_eyebrow": "Index",
+      "index_title": "All collections",
+      "no_products": "No guides here yet.",
+      "count": {
+        "one": "{{ count }} guide",
+        "other": "{{ count }} guides"
+      },
+      "view_all": "View all {{ count }}",
+      "browse": "Browse all guides"
+    },
+    "sorting": { "title": "Sort" }
+  },
+  "blogs": {
+    "general": {
+      "eyebrow": "Journal",
+      "empty": "No posts yet."
+    },
+    "article": {
+      "label": "Article",
+      "written_by": "By {{ author }}",
+      "read_more": "Read",
+      "tags": "Tags",
+      "back": "Back to {{ blog }}"
+    }
+  },
+  "contact": {
+    "form": {
+      "eyebrow": "Contact",
+      "heading": "Write to us",
+      "name": "Name",
+      "email": "Email",
+      "phone": "Phone",
+      "message": "Message",
+      "send": "Send",
+      "post_success": "Thanks. We'll reply within one working day.",
+      "post_error": "Please correct the following:"
+    }
+  },
+  "customer": {
+    "login": {
+      "eyebrow": "Account",
+      "title": "Sign in",
+      "email": "Email",
+      "password": "Password",
+      "forgot": "Forgot your password?",
+      "submit": "Sign in",
+      "no_account": "New here?",
+      "create_account": "Create an account",
+      "guest_title": "Continue as guest",
+      "guest_continue": "Continue"
+    },
+    "recover_password": {
+      "title": "Reset your password",
+      "subtext": "We'll email you a link to reset it.",
+      "submit": "Send reset link",
+      "success": "If that email exists, a reset link is on its way."
+    },
+    "reset_password": {
+      "title": "Choose a new password",
+      "subtext": "For {{ email }}",
+      "password": "New password",
+      "password_confirm": "Confirm password",
+      "submit": "Save password"
+    },
+    "activate_account": {
+      "title": "Activate your account",
+      "subtext": "Set a password to finish.",
+      "password": "Password",
+      "password_confirm": "Confirm password",
+      "submit": "Activate",
+      "cancel": "Decline"
+    },
+    "register": {
+      "eyebrow": "Account",
+      "title": "Create an account",
+      "first_name": "First name",
+      "last_name": "Last name",
+      "submit": "Create account",
+      "have_account": "Already have an account?"
+    },
+    "account": {
+      "eyebrow": "Account",
+      "title": "My account",
+      "details": "Account details",
+      "orders": "Orders",
+      "addresses": "Addresses",
+      "logout": "Sign out",
+      "view_addresses": "Manage addresses",
+      "order_number": "Order",
+      "date": "Date",
+      "payment_status": "Payment",
+      "fulfillment_status": "Delivery",
+      "total": "Total",
+      "no_orders": "You haven't ordered any guides yet."
+    },
+    "order": {
+      "title": "Order {{ name }}",
+      "cancelled": "Cancelled on {{ date }}",
+      "product": "Guide",
+      "sku": "Code",
+      "price": "Price",
+      "quantity": "Qty",
+      "total": "Total",
+      "subtotal": "Subtotal",
+      "shipping": "Shipping",
+      "tax": "Tax",
+      "fulfilled_at": "Delivered {{ date }}",
+      "track": "Track",
+      "payment_status": "Payment",
+      "fulfillment_status": "Delivery",
+      "billing_address": "Billing address",
+      "shipping_address": "Shipping address"
+    },
+    "addresses": {
+      "title": "Addresses",
+      "add_new": "Add address",
+      "default": "Default",
+      "edit": "Edit",
+      "delete": "Delete",
+      "delete_confirm": "Delete this address?",
+      "first_name": "First name",
+      "last_name": "Last name",
+      "company": "Company",
+      "address1": "Address",
+      "address2": "Apartment, suite, etc.",
+      "city": "City",
+      "country": "Country",
+      "province": "Province",
+      "zip": "Postal code",
+      "phone": "Phone",
+      "set_default": "Set as default address",
+      "save": "Save",
+      "cancel": "Cancel"
+    }
+  },
+  "gift_cards": {
+    "issued": {
+      "title": "Here's your {{ value }} gift card for {{ shop }}",
+      "subtext": "Gift card",
+      "disabled": "This gift card is disabled.",
+      "expires": "Expires {{ expiry }}",
+      "redeem": "Use this code at checkout to redeem your gift card.",
+      "shop_link": "Start shopping",
+      "print": "Print",
+      "add_to_apple_wallet": "Add to Apple Wallet"
+    }
+  }
+}

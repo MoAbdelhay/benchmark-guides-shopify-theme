@@ -1,0 +1,70 @@
+{%- comment -%}
+  Resolves a product's discipline (GEN / CIV / STR / MEC / ELE / PRC) and outputs one piece of it.
+  Usage: {% render 'guide-meta', product: product, part: 'code' %}
+  part:
+    'disc'   → discipline key, e.g. "civ"
+    'css'    → CSS variable string, e.g. "var(--disc-civ)"
+    'name'   → localized discipline name
+    'code'   → guide code (metafield custom.guide_code → variant sku → "BG-CIV-###")
+    'rev'    → revision label (metafield custom.revision → "Rev A")
+    'pages'  → page count (metafield custom.pages)
+    'format' → file format (metafield custom.format → "PDF")
+    'lang'   → guide language (metafield custom.language → localized default)
+  Discipline is read from metafield custom.discipline, then from product tags
+  (tag "CIV", "civil", "disc:civ" all work), then defaults to GEN.
+{%- endcomment -%}
+{%- liquid
+  assign disc = product.metafields.custom.discipline.value | default: product.metafields.custom.discipline | downcase | strip
+  if disc == blank
+    for tag in product.tags
+      assign t = tag | downcase | remove: 'disc:' | strip
+      case t
+        when 'gen', 'general'
+          assign disc = 'gen'
+        when 'civ', 'civil'
+          assign disc = 'civ'
+        when 'str', 'structural', 'structures'
+          assign disc = 'str'
+        when 'mec', 'mech', 'mechanical'
+          assign disc = 'mec'
+        when 'ele', 'elec', 'electrical'
+          assign disc = 'ele'
+        when 'prc', 'process', 'chemical'
+          assign disc = 'prc'
+      endcase
+      if disc != blank
+        break
+      endif
+    endfor
+  endif
+  unless disc == 'gen' or disc == 'civ' or disc == 'str' or disc == 'mec' or disc == 'ele' or disc == 'prc'
+    assign disc = 'gen'
+  endunless
+  assign disc_upper = disc | upcase
+-%}
+{%- case part -%}
+  {%- when 'disc' -%}{{ disc }}
+  {%- when 'css' -%}var(--disc-{{ disc }})
+  {%- when 'name' -%}{%- assign name_key = 'products.discipline.' | append: disc -%}{{ name_key | t }}
+  {%- when 'code' -%}
+    {%- liquid
+      assign code = product.metafields.custom.guide_code.value | default: product.metafields.custom.guide_code
+      if code == blank
+        assign code = product.selected_or_first_available_variant.sku
+      endif
+      if code == blank
+        assign padded = product.id | modulo: 1000 | prepend: '000' | slice: -3, 3
+        assign code = settings.guide_code_prefix | default: 'BG' | append: '-' | append: disc_upper | append: '-' | append: padded
+      endif
+    -%}{{ code }}
+  {%- when 'rev' -%}
+    {%- assign rev = product.metafields.custom.revision.value | default: product.metafields.custom.revision -%}
+    {%- if rev != blank -%}{{ 'products.product.rev' | t }} {{ rev }}{%- else -%}{{ 'products.product.rev' | t }} A{%- endif -%}
+  {%- when 'pages' -%}
+    {{- product.metafields.custom.pages.value | default: product.metafields.custom.pages -}}
+  {%- when 'format' -%}
+    {{- product.metafields.custom.format.value | default: product.metafields.custom.format | default: 'PDF' -}}
+  {%- when 'lang' -%}
+    {%- assign l = product.metafields.custom.language.value | default: product.metafields.custom.language -%}
+    {%- if l != blank -%}{{ l }}{%- else -%}{{ 'products.product.language_default' | t }}{%- endif -%}
+{%- endcase -%}

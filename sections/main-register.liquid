@@ -1,0 +1,40 @@
+<section class="container" data-section-id="{{ section.id }}">
+  <div class="page-head">
+    <p class="eyebrow">{{ 'customer.register.eyebrow' | t }}</p>
+    <h1 class="display h2">{{ 'customer.register.title' | t }}</h1>
+  </div>
+  <div class="account">
+    {%- form 'create_customer', id: 'RegisterForm', novalidate: 'novalidate' -%}
+      {%- if form.errors -%}
+        <div class="form-error"><ul>{%- for field in form.errors -%}<li>{{ form.errors.translated_fields[field] | capitalize }} {{ form.errors.messages[field] }}</li>{%- endfor -%}</ul></div>
+      {%- endif -%}
+      <div class="two-col">
+        <div class="field">
+          <label for="RegisterFirstName">{{ 'customer.register.first_name' | t }}</label>
+          <input id="RegisterFirstName" type="text" name="customer[first_name]" value="{{ form.first_name }}" autocomplete="given-name">
+        </div>
+        <div class="field">
+          <label for="RegisterLastName">{{ 'customer.register.last_name' | t }}</label>
+          <input id="RegisterLastName" type="text" name="customer[last_name]" value="{{ form.last_name }}" autocomplete="family-name">
+        </div>
+      </div>
+      <div class="field">
+        <label for="RegisterEmail">{{ 'customer.login.email' | t }}</label>
+        <input id="RegisterEmail" type="email" name="customer[email]" value="{{ form.email }}" autocomplete="email" required>
+      </div>
+      <div class="field">
+        <label for="RegisterPassword">{{ 'customer.login.password' | t }}</label>
+        <input id="RegisterPassword" type="password" name="customer[password]" autocomplete="new-password" required>
+      </div>
+      <button class="btn btn--solid" type="submit"><span>{{ 'customer.register.submit' | t }}</span></button>
+      <p class="form-note" style="margin-block-start:22px">{{ 'customer.register.have_account' | t }} <a class="link" href="{{ routes.account_login_url }}" style="color:var(--ink)">{{ 'customer.login.submit' | t }}</a></p>
+    {%- endform -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.main_register.name",
+  "settings": []
+}
+{% endschema %}

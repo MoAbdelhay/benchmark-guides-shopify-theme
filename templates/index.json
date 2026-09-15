@@ -1,0 +1,44 @@
+{
+  "sections": {
+    "hero": { "type": "hero", "settings": {} },
+    "featured": { "type": "featured-collection", "settings": { "limit": 8 } },
+    "disciplines": {
+      "type": "collection-list",
+      "blocks": {
+        "c1": { "type": "collection", "settings": { "discipline": "civ" } },
+        "c2": { "type": "collection", "settings": { "discipline": "str" } },
+        "c3": { "type": "collection", "settings": { "discipline": "mec" } },
+        "c4": { "type": "collection", "settings": { "discipline": "ele" } },
+        "c5": { "type": "collection", "settings": { "discipline": "prc" } },
+        "c6": { "type": "collection", "settings": { "discipline": "gen" } }
+      },
+      "block_order": ["c1", "c2", "c3", "c4", "c5", "c6"],
+      "settings": {}
+    },
+    "about": { "type": "image-with-text", "settings": {} },
+    "why": { "type": "rich-text", "settings": { "show_stats": true } },
+    "testimonials": {
+      "type": "testimonials",
+      "blocks": {
+        "t1": { "type": "testimonial", "settings": {} },
+        "t2": { "type": "testimonial", "settings": {} },
+        "t3": { "type": "testimonial", "settings": {} }
+      },
+      "block_order": ["t1", "t2", "t3"],
+      "settings": {}
+    },
+    "faq": {
+      "type": "faq",
+      "blocks": {
+        "q1": { "type": "question", "settings": {} },
+        "q2": { "type": "question", "settings": {} },
+        "q3": { "type": "question", "settings": {} },
+        "q4": { "type": "question", "settings": {} }
+      },
+      "block_order": ["q1", "q2", "q3", "q4"],
+      "settings": {}
+    },
+    "newsletter": { "type": "newsletter", "settings": {} }
+  },
+  "order": ["hero", "featured", "disciplines", "about", "why", "testimonials", "faq", "newsletter"]
+}

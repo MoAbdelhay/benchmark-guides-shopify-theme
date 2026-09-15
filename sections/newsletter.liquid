@@ -1,0 +1,50 @@
+{%- liquid
+  assign heading = section.settings.heading
+  assign eyebrow = section.settings.eyebrow
+  assign text = section.settings.text
+  if heading == blank
+    assign heading = 'sections.newsletter.heading' | t
+  endif
+  if eyebrow == blank
+    assign eyebrow = 'sections.newsletter.eyebrow' | t
+  endif
+  if text == blank
+    assign text = 'sections.newsletter.text' | t
+  endif
+-%}
+<section class="container section--tight" data-section-id="{{ section.id }}">
+  <div class="news reveal">
+    <div>
+      <p class="eyebrow">{{ eyebrow }}</p>
+      <h2 class="display h3">{{ heading }}</h2>
+      <p class="lede" style="margin-block-start:12px;font-size:15px">{{ text }}</p>
+    </div>
+    <div>
+      {%- assign form_id = 'SectionNewsletter-' | append: section.id -%}
+      {%- form 'customer', id: form_id -%}
+        {%- if form.posted_successfully? -%}
+          <p class="form-success">{{ 'general.newsletter.success' | t }}</p>
+        {%- elsif form.errors -%}
+          <p class="form-error">{{ form.errors.translated_fields.email | capitalize }} {{ form.errors.messages.email }}</p>
+        {%- endif -%}
+        <input type="hidden" name="contact[tags]" value="newsletter">
+        <label class="visually-hidden" for="NewsletterEmail-{{ section.id }}">{{ 'general.newsletter.email' | t }}</label>
+        <input id="NewsletterEmail-{{ section.id }}" type="email" name="contact[email]" value="{{ form.email }}" placeholder="{{ 'general.newsletter.email' | t }}" required autocomplete="email">
+        <button class="btn" type="submit"><span>{{ 'general.newsletter.button' | t }}</span></button>
+      {%- endform -%}
+      <p class="form-note" style="margin-block-start:10px">{{ 'general.newsletter.privacy' | t }}</p>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.newsletter.name",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "t:sections.hero.eyebrow_label", "info": "t:general.blank_uses_builtin" },
+    { "type": "text", "id": "heading", "label": "t:sections.hero.heading_label", "info": "t:general.blank_uses_builtin" },
+    { "type": "text", "id": "text", "label": "t:sections.hero.text_label", "info": "t:general.blank_uses_builtin" }
+  ],
+  "presets": [{ "name": "t:sections.newsletter.name" }]
+}
+{% endschema %}

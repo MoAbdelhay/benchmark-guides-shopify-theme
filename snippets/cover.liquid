@@ -1,0 +1,40 @@
+{%- comment -%}
+  Generated document cover, used when a product has no image (and as the password/404 art).
+  Usage: {% render 'cover', product: product, size: 'lg' %}
+{%- endcomment -%}
+{%- liquid
+  assign disc_css = 'var(--disc-gen)'
+  assign code = ''
+  assign rev = ''
+  assign name = ''
+  if product
+    capture disc_css
+      render 'guide-meta', product: product, part: 'css'
+    endcapture
+    capture code
+      render 'guide-meta', product: product, part: 'code'
+    endcapture
+    capture rev
+      render 'guide-meta', product: product, part: 'rev'
+    endcapture
+    capture name
+      render 'guide-meta', product: product, part: 'name'
+    endcapture
+  endif
+  assign number = code | split: '-' | last
+-%}
+<div class="cover{% if size == 'lg' %} cover--lg{% endif %}" style="--disc:{{ disc_css | strip }}" aria-hidden="true">
+  <div class="cover__spine"></div>
+  <div class="cover__body">
+    <div class="cover__rules"></div>
+    <div class="cover__code">
+      <span>{{ code | strip }}</span>
+      <span>{{ rev | strip }}</span>
+    </div>
+    <div class="cover__title">{{ title | default: product.title | default: shop.name }}</div>
+    <div class="cover__foot">
+      <span class="label">{{ name | strip }}</span>
+      <span class="serial">{{ number | strip }}</span>
+    </div>
+  </div>
+</div>

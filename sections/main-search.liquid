@@ -1,0 +1,59 @@
+<section class="container" data-section-id="{{ section.id }}">
+  <div class="page-head">
+    <p class="eyebrow">{{ 'general.search.title' | t }}</p>
+    <h1 class="display h2">
+      {%- if search.performed -%}
+        {{ 'general.search.results_for' | t: terms: search.terms }}
+      {%- else -%}
+        {{ 'general.search.heading' | t }}
+      {%- endif -%}
+    </h1>
+    <form action="{{ routes.search_url }}" method="get" role="search" class="search-form" style="margin-block-start:24px">
+      <label class="visually-hidden" for="SearchInput">{{ 'general.search.placeholder' | t }}</label>
+      <input id="SearchInput" type="search" name="q" value="{{ search.terms | escape }}" placeholder="{{ 'general.search.placeholder' | t }}" autocomplete="off">
+      <input type="hidden" name="options[prefix]" value="last">
+      <button class="btn" type="submit"><span>{{ 'general.search.submit' | t }}</span></button>
+    </form>
+  </div>
+
+  {%- if search.performed -%}
+    {%- paginate search.results by 24 -%}
+      {%- if search.results_count == 0 -%}
+        <div class="empty">
+          <h2 class="display h3">{{ 'general.search.no_results' | t: terms: search.terms }}</h2>
+          <a class="btn" href="{{ routes.all_products_collection_url }}"><span>{{ 'collections.general.browse' | t }}</span></a>
+        </div>
+      {%- else -%}
+        <p class="label" style="margin-block-end:22px">{{ 'general.search.results_count' | t: count: search.results_count }}</p>
+        <div class="grid grid--products">
+          {%- for item in search.results -%}
+            {%- case item.object_type -%}
+              {%- when 'product' -%}
+                {% render 'product-card', product: item, index: forloop.index, lazy: true %}
+              {%- when 'article' -%}
+                <article class="card reveal">
+                  <span class="label">{{ 'blogs.article.label' | t }} &middot; {{ item.published_at | date: format: 'abbreviated_date' }}</span>
+                  <h3 class="card__title"><a href="{{ item.url }}">{{ item.title }}</a></h3>
+                  <p class="muted" style="font-size:14px">{{ item.excerpt_or_content | strip_html | truncatewords: 24 }}</p>
+                </article>
+              {%- when 'page' -%}
+                <article class="card reveal">
+                  <span class="label">{{ 'general.page.eyebrow' | t }}</span>
+                  <h3 class="card__title"><a href="{{ item.url }}">{{ item.title }}</a></h3>
+                  <p class="muted" style="font-size:14px">{{ item.content | strip_html | truncatewords: 24 }}</p>
+                </article>
+            {%- endcase -%}
+          {%- endfor -%}
+        </div>
+        {% render 'pagination', paginate: paginate %}
+      {%- endif -%}
+    {%- endpaginate -%}
+  {%- endif -%}
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.main_search.name",
+  "settings": []
+}
+{% endschema %}

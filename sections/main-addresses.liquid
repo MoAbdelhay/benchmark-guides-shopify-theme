@@ -1,0 +1,56 @@
+<section class="container" data-section-id="{{ section.id }}">
+  <div class="page-head">
+    <p class="eyebrow"><a class="link" href="{{ routes.account_url }}">{{ 'customer.account.title' | t }}</a></p>
+    <h1 class="display h2">{{ 'customer.addresses.title' | t }}</h1>
+  </div>
+
+  <div class="account">
+    <button class="btn btn--solid" type="button" data-address-toggle="AddressNew" aria-expanded="false" aria-controls="AddressNew"><span>{{ 'customer.addresses.add_new' | t }}</span></button>
+
+    <div id="AddressNew" class="address-form">
+      {%- form 'customer_address', customer.new_address, id: 'AddressFormNew' -%}
+        <h2 class="display h4" style="margin-block:24px 18px">{{ 'customer.addresses.add_new' | t }}</h2>
+        {% render 'address-fields', form: form, prefix: 'New' %}
+        <div class="actions" style="display:flex;gap:12px">
+          <button class="btn btn--solid" type="submit"><span>{{ 'customer.addresses.save' | t }}</span></button>
+          <button class="btn" type="button" data-address-toggle="AddressNew"><span>{{ 'customer.addresses.cancel' | t }}</span></button>
+        </div>
+      {%- endform -%}
+    </div>
+
+    {%- paginate customer.addresses by 10 -%}
+      <div style="margin-block-start:32px">
+        {%- for address in customer.addresses -%}
+          <div class="address">
+            {%- if address == customer.default_address -%}<span class="badge badge--outline" style="margin-block-end:10px">{{ 'customer.addresses.default' | t }}</span>{%- endif -%}
+            {{ address | format_address }}
+            <div class="actions">
+              <button class="link label" type="button" data-address-toggle="AddressEdit-{{ address.id }}" aria-expanded="false">{{ 'customer.addresses.edit' | t }}</button>
+              <button class="link label" type="button" style="color:var(--flag)" data-address-delete data-target="{{ address.url }}" data-confirm="{{ 'customer.addresses.delete_confirm' | t }}">{{ 'customer.addresses.delete' | t }}</button>
+            </div>
+            <div id="AddressEdit-{{ address.id }}" class="address-form">
+              {%- assign form_id = 'AddressForm-' | append: address.id -%}
+              {%- form 'customer_address', address, id: form_id -%}
+                {% render 'address-fields', form: form, prefix: address.id, address: address %}
+                <div class="actions" style="display:flex;gap:12px">
+                  <button class="btn btn--solid" type="submit"><span>{{ 'customer.addresses.save' | t }}</span></button>
+                  <button class="btn" type="button" data-address-toggle="AddressEdit-{{ address.id }}"><span>{{ 'customer.addresses.cancel' | t }}</span></button>
+                </div>
+              {%- endform -%}
+            </div>
+          </div>
+        {%- endfor -%}
+      </div>
+      {% render 'pagination', paginate: paginate %}
+    {%- endpaginate -%}
+  </div>
+</section>
+
+<script src="{{ 'shopify_common.js' | shopify_asset_url }}" defer></script>
+
+{% schema %}
+{
+  "name": "t:sections.main_addresses.name",
+  "settings": []
+}
+{% endschema %}

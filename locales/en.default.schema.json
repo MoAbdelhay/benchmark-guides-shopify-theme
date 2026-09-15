@@ -1,0 +1,180 @@
+{
+  "general": {
+    "blank_uses_builtin": "Leave blank to use the built-in bilingual text (English + Arabic).",
+    "blank_uses_builtin_long": "Leave any field blank to use the built-in bilingual text (English + Arabic). Fill it in to override, then translate the override with Shopify's Translate & Adapt app."
+  },
+  "settings_schema": {
+    "colors": {
+      "name": "Colors",
+      "core": "Core palette",
+      "background": "Background (vellum)",
+      "surface": "Card surface (chalk)",
+      "ink": "Text (datum ink)",
+      "ink_soft": "Secondary text (graphite)",
+      "accent": "Accent (survey bronze)",
+      "accent_light": "Accent on dark",
+      "flag": "Flag (badges)",
+      "flag_info": "Used only for \"New rev\" and sale badges.",
+      "disciplines": "Discipline colours",
+      "disciplines_info": "Cover spine and code chip colour per discipline. Assign a discipline with a product tag (CIV, STR, MEC, ELE, PRC, GEN) or the metafield custom.discipline."
+    },
+    "layout": {
+      "name": "Layout & texture",
+      "page_width": "Page width",
+      "grain": "Show paper grain",
+      "vignette": "Show vignette",
+      "regmarks": "Show registration marks"
+    },
+    "brand": {
+      "name": "Brand",
+      "favicon": "Favicon (32×32 px)",
+      "code_prefix": "Guide code prefix",
+      "code_prefix_info": "Used when a product has no SKU or custom.guide_code metafield, e.g. BG-CIV-014.",
+      "social": "Social links"
+    },
+    "products": {
+      "name": "Products",
+      "dynamic_checkout": "Show dynamic checkout button",
+      "trust": "Show trust list (instant delivery, revisions, secure checkout)",
+      "sku": "Show SKU / guide code in cart"
+    },
+    "custom_css": {
+      "name": "Custom CSS",
+      "label": "Custom CSS",
+      "info": "Injected after the theme stylesheet."
+    }
+  },
+  "sections": {
+    "header_group": { "name": "Header" },
+    "footer_group": { "name": "Footer" },
+    "announcement": {
+      "name": "Announcement bar",
+      "label": "Announcement",
+      "show": "Show announcement",
+      "text": "Text",
+      "link": "Link"
+    },
+    "header": {
+      "name": "Header",
+      "logo": "Logo",
+      "logo_info": "Leave empty to use the store name as a wordmark.",
+      "tagline": "Tagline",
+      "menu_label": "Menu",
+      "menu": "Menu",
+      "account": "Account",
+      "sticky": "Sticky header",
+      "localization": "Show language / currency switcher",
+      "localization_info": "Publish Arabic and English under Settings → Languages for the switcher to appear.",
+      "search": "Show search link",
+      "account_toggle": "Show account link"
+    },
+    "footer": {
+      "name": "Footer",
+      "tagline": "Tagline",
+      "payment_icons": "Show payment icons",
+      "powered": "Show \"Powered by Shopify\"",
+      "block_menu": "Menu",
+      "block_heading": "Heading",
+      "block_heading_info": "Leave blank to use the menu title.",
+      "block_text": "Text",
+      "block_newsletter": "Newsletter signup"
+    },
+    "hero": {
+      "name": "Hero",
+      "eyebrow_label": "Eyebrow",
+      "heading_label": "Heading",
+      "quote_label": "Pull quote",
+      "text_label": "Text",
+      "cta_label": "Primary button label",
+      "cta_url": "Primary button link",
+      "cta2_label": "Secondary button label",
+      "cta2_url": "Secondary button link",
+      "show_count": "Show guide count",
+      "show_disciplines": "Show discipline swatches"
+    },
+    "featured_collection": {
+      "name": "Featured collection",
+      "collection": "Collection",
+      "limit": "Guides to show",
+      "view_all": "Show \"view all\" link"
+    },
+    "collection_list": {
+      "name": "Collection list",
+      "block": "Collection",
+      "discipline": "Discipline colour",
+      "auto": "Automatic",
+      "show_images": "Show collection images"
+    },
+    "image_with_text": {
+      "name": "Image with text",
+      "image": "Image",
+      "reverse": "Image on the right"
+    },
+    "rich_text": {
+      "name": "Rich text",
+      "align": "Alignment",
+      "center": "Centered",
+      "start": "Left / right aligned",
+      "show_stats": "Show statistics row",
+      "stat": "Statistic",
+      "stat_value": "Value",
+      "stat_label": "Label"
+    },
+    "testimonials": {
+      "name": "Testimonials",
+      "block": "Testimonial",
+      "quote": "Quote",
+      "author": "Name",
+      "role": "Role / location"
+    },
+    "faq": {
+      "name": "FAQ",
+      "block": "Question",
+      "question": "Question",
+      "answer": "Answer",
+      "open_first": "Open the first question by default"
+    },
+    "newsletter": { "name": "Newsletter" },
+    "apps": { "name": "Apps" },
+    "main_product": {
+      "name": "Product",
+      "specs": "Show specification row",
+      "specs_info": "Reads product metafields custom.pages, custom.format, custom.language, custom.revision, custom.guide_code and custom.discipline.",
+      "quantity": "Show quantity selector",
+      "tax_note": "Show tax note",
+      "related": "Show related guides",
+      "collapsible": "Collapsible row",
+      "collapsible_heading": "Heading",
+      "collapsible_content": "Content",
+      "collapsible_page": "Or content from a page"
+    },
+    "main_collection": {
+      "name": "Collection",
+      "per_page": "Guides per page",
+      "description": "Show collection description",
+      "disciplines": "Show discipline filter",
+      "disciplines_info": "Filters by product tag (gen, civ, str, mec, ele, prc).",
+      "sort": "Show sort"
+    },
+    "main_list_collections": { "name": "Collections index" },
+    "main_cart": {
+      "name": "Cart",
+      "note": "Show order note",
+      "additional": "Show additional checkout buttons"
+    },
+    "main_page": { "name": "Page" },
+    "main_404": { "name": "404" },
+    "main_search": { "name": "Search" },
+    "main_blog": { "name": "Blog", "excerpt": "Show excerpts" },
+    "main_article": { "name": "Article", "image": "Show featured image", "author": "Show author" },
+    "main_password": { "name": "Password page" },
+    "contact_form": { "name": "Contact form" },
+    "main_login": { "name": "Login" },
+    "main_register": { "name": "Register" },
+    "main_account": { "name": "Account" },
+    "main_order": { "name": "Order" },
+    "main_addresses": { "name": "Addresses" },
+    "main_reset_password": { "name": "Reset password" },
+    "main_activate_account": { "name": "Activate account" }
+  }
+}

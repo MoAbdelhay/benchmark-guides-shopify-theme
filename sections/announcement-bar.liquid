@@ -1,0 +1,27 @@
+{%- liquid
+  assign text = section.settings.text
+  if text == blank
+    assign text = 'sections.announcement.default' | t
+  endif
+-%}
+{%- if section.settings.show -%}
+  <div class="announcement" role="region" aria-label="{{ 'sections.announcement.label' | t }}">
+    {%- if section.settings.link != blank -%}
+      <a href="{{ section.settings.link }}">{{ text }}</a>
+    {%- else -%}
+      {{ text }}
+    {%- endif -%}
+  </div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "t:sections.announcement.name",
+  "settings": [
+    { "type": "checkbox", "id": "show", "label": "t:sections.announcement.show", "default": true },
+    { "type": "text", "id": "text", "label": "t:sections.announcement.text", "info": "t:general.blank_uses_builtin" },
+    { "type": "url", "id": "link", "label": "t:sections.announcement.link" }
+  ],
+  "enabled_on": { "groups": ["header"] }
+}
+{% endschema %}

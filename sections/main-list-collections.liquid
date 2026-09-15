@@ -1,0 +1,32 @@
+{%- assign disc_list = 'gen,civ,str,mec,ele,prc' | split: ',' -%}
+<section class="container" data-section-id="{{ section.id }}">
+  <div class="page-head">
+    <p class="eyebrow">{{ 'collections.general.index_eyebrow' | t }}</p>
+    <h1 class="display h2">{{ 'collections.general.index_title' | t }}</h1>
+  </div>
+  {%- paginate collections by 24 -%}
+    <div class="grid grid--3">
+      {%- for c in collections -%}
+        {%- assign d = disc_list[forloop.index0] | default: 'gen' -%}
+        <a class="coll reveal" href="{{ c.url }}" style="--disc:var(--disc-{{ d }})">
+          <span class="spine"></span>
+          {%- if c.image and section.settings.show_images -%}
+            <img src="{{ c.image | image_url: width: 600 }}" alt="" loading="lazy" width="600" height="338">
+          {%- endif -%}
+          <span class="coll__count">{{ 'collections.general.count' | t: count: c.products_count }}</span>
+          <span class="coll__title">{{ c.title }}</span>
+        </a>
+      {%- endfor -%}
+    </div>
+    {% render 'pagination', paginate: paginate %}
+  {%- endpaginate -%}
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.main_list_collections.name",
+  "settings": [
+    { "type": "checkbox", "id": "show_images", "label": "t:sections.collection_list.show_images", "default": false }
+  ]
+}
+{% endschema %}

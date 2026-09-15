@@ -1,0 +1,180 @@
+{
+  "general": {
+    "blank_uses_builtin": "اتركه فارغًا لاستخدام النص المدمج ثنائي اللغة (إنجليزي + عربي).",
+    "blank_uses_builtin_long": "اترك أي حقل فارغًا لاستخدام النص المدمج ثنائي اللغة (إنجليزي + عربي). املأه لتجاوزه، ثم ترجم النص الجديد عبر تطبيق Translate & Adapt."
+  },
+  "settings_schema": {
+    "colors": {
+      "name": "الألوان",
+      "core": "اللوحة الأساسية",
+      "background": "الخلفية (رَقّ)",
+      "surface": "سطح البطاقات (طباشيري)",
+      "ink": "النص (حبر)",
+      "ink_soft": "النص الثانوي (غرافيت)",
+      "accent": "اللون المميز (برونز)",
+      "accent_light": "اللون المميز على الداكن",
+      "flag": "لون التنبيه (الشارات)",
+      "flag_info": "يُستخدم فقط لشارات \"مراجعة جديدة\" والتخفيض.",
+      "disciplines": "ألوان التخصصات",
+      "disciplines_info": "لون كعب الغلاف ورقاقة الكود لكل تخصص. حدّد التخصص بوسم المنتج (CIV, STR, MEC, ELE, PRC, GEN) أو بالحقل الوصفي custom.discipline."
+    },
+    "layout": {
+      "name": "التخطيط والملمس",
+      "page_width": "عرض الصفحة",
+      "grain": "إظهار حبيبات الورق",
+      "vignette": "إظهار التظليل الطرفي",
+      "regmarks": "إظهار علامات التسجيل"
+    },
+    "brand": {
+      "name": "العلامة",
+      "favicon": "أيقونة الموقع (32×32 بكسل)",
+      "code_prefix": "بادئة كود الدليل",
+      "code_prefix_info": "تُستخدم عندما لا يملك المنتج SKU أو حقل custom.guide_code، مثل BG-CIV-014.",
+      "social": "روابط التواصل"
+    },
+    "products": {
+      "name": "المنتجات",
+      "dynamic_checkout": "إظهار زر الشراء السريع",
+      "trust": "إظهار قائمة الثقة (تسليم فوري، مراجعات، دفع آمن)",
+      "sku": "إظهار كود الدليل في السلة"
+    },
+    "custom_css": {
+      "name": "CSS مخصص",
+      "label": "CSS مخصص",
+      "info": "يُضاف بعد ملف أنماط القالب."
+    }
+  },
+  "sections": {
+    "header_group": { "name": "الترويسة" },
+    "footer_group": { "name": "التذييل" },
+    "announcement": {
+      "name": "شريط الإعلان",
+      "label": "إعلان",
+      "show": "إظهار الإعلان",
+      "text": "النص",
+      "link": "الرابط"
+    },
+    "header": {
+      "name": "الترويسة",
+      "logo": "الشعار",
+      "logo_info": "اتركه فارغًا لاستخدام اسم المتجر كعلامة نصية.",
+      "tagline": "الشعار النصي",
+      "menu_label": "القائمة",
+      "menu": "القائمة",
+      "account": "الحساب",
+      "sticky": "ترويسة ثابتة",
+      "localization": "إظهار مبدّل اللغة / العملة",
+      "localization_info": "انشر العربية والإنجليزية من الإعدادات ← اللغات ليظهر المبدّل.",
+      "search": "إظهار رابط البحث",
+      "account_toggle": "إظهار رابط الحساب"
+    },
+    "footer": {
+      "name": "التذييل",
+      "tagline": "الشعار النصي",
+      "payment_icons": "إظهار أيقونات الدفع",
+      "powered": "إظهار \"Powered by Shopify\"",
+      "block_menu": "قائمة",
+      "block_heading": "العنوان",
+      "block_heading_info": "اتركه فارغًا لاستخدام عنوان القائمة.",
+      "block_text": "نص",
+      "block_newsletter": "الاشتراك في النشرة"
+    },
+    "hero": {
+      "name": "الواجهة الرئيسية",
+      "eyebrow_label": "السطر العلوي",
+      "heading_label": "العنوان",
+      "quote_label": "اقتباس",
+      "text_label": "النص",
+      "cta_label": "نص الزر الرئيسي",
+      "cta_url": "رابط الزر الرئيسي",
+      "cta2_label": "نص الزر الثانوي",
+      "cta2_url": "رابط الزر الثانوي",
+      "show_count": "إظهار عدد الأدلة",
+      "show_disciplines": "إظهار عيّنات التخصصات"
+    },
+    "featured_collection": {
+      "name": "مجموعة مميزة",
+      "collection": "المجموعة",
+      "limit": "عدد الأدلة",
+      "view_all": "إظهار رابط \"عرض الكل\""
+    },
+    "collection_list": {
+      "name": "قائمة المجموعات",
+      "block": "مجموعة",
+      "discipline": "لون التخصص",
+      "auto": "تلقائي",
+      "show_images": "إظهار صور المجموعات"
+    },
+    "image_with_text": {
+      "name": "صورة مع نص",
+      "image": "الصورة",
+      "reverse": "الصورة على اليمين"
+    },
+    "rich_text": {
+      "name": "نص منسّق",
+      "align": "المحاذاة",
+      "center": "توسيط",
+      "start": "محاذاة للبداية",
+      "show_stats": "إظهار صف الإحصاءات",
+      "stat": "إحصاء",
+      "stat_value": "القيمة",
+      "stat_label": "التسمية"
+    },
+    "testimonials": {
+      "name": "آراء العملاء",
+      "block": "رأي",
+      "quote": "الاقتباس",
+      "author": "الاسم",
+      "role": "الدور / الموقع"
+    },
+    "faq": {
+      "name": "الأسئلة الشائعة",
+      "block": "سؤال",
+      "question": "السؤال",
+      "answer": "الإجابة",
+      "open_first": "فتح السؤال الأول افتراضيًا"
+    },
+    "newsletter": { "name": "النشرة البريدية" },
+    "apps": { "name": "التطبيقات" },
+    "main_product": {
+      "name": "المنتج",
+      "specs": "إظهار صف المواصفات",
+      "specs_info": "يقرأ الحقول الوصفية custom.pages وcustom.format وcustom.language وcustom.revision وcustom.guide_code وcustom.discipline.",
+      "quantity": "إظهار محدد الكمية",
+      "tax_note": "إظهار ملاحظة الضريبة",
+      "related": "إظهار الأدلة ذات الصلة",
+      "collapsible": "صف قابل للطي",
+      "collapsible_heading": "العنوان",
+      "collapsible_content": "المحتوى",
+      "collapsible_page": "أو محتوى من صفحة"
+    },
+    "main_collection": {
+      "name": "المجموعة",
+      "per_page": "عدد الأدلة في الصفحة",
+      "description": "إظهار وصف المجموعة",
+      "disciplines": "إظهار فلتر التخصصات",
+      "disciplines_info": "يفلتر حسب وسم المنتج (gen, civ, str, mec, ele, prc).",
+      "sort": "إظهار الترتيب"
+    },
+    "main_list_collections": { "name": "فهرس المجموعات" },
+    "main_cart": {
+      "name": "السلة",
+      "note": "إظهار ملاحظة الطلب",
+      "additional": "إظهار أزرار الدفع الإضافية"
+    },
+    "main_page": { "name": "صفحة" },
+    "main_404": { "name": "404" },
+    "main_search": { "name": "البحث" },
+    "main_blog": { "name": "المدوّنة", "excerpt": "إظهار المقتطفات" },
+    "main_article": { "name": "المقال", "image": "إظهار الصورة البارزة", "author": "إظهار الكاتب" },
+    "main_password": { "name": "صفحة كلمة المرور" },
+    "contact_form": { "name": "نموذج التواصل" },
+    "main_login": { "name": "تسجيل الدخول" },
+    "main_register": { "name": "إنشاء حساب" },
+    "main_account": { "name": "الحساب" },
+    "main_order": { "name": "الطلب" },
+    "main_addresses": { "name": "العناوين" },
+    "main_reset_password": { "name": "إعادة تعيين كلمة المرور" },
+    "main_activate_account": { "name": "تفعيل الحساب" }
+  }
+}

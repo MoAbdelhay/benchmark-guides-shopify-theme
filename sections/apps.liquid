@@ -1,0 +1,14 @@
+<div class="container section--tight" data-section-id="{{ section.id }}">
+  {%- for block in section.blocks -%}
+    {% render block %}
+  {%- endfor -%}
+</div>
+
+{% schema %}
+{
+  "name": "t:sections.apps.name",
+  "settings": [],
+  "blocks": [{ "type": "@app" }],
+  "presets": [{ "name": "t:sections.apps.name" }]
+}
+{% endschema %}

@@ -1,0 +1,66 @@
+{%- liquid
+  assign heading = section.settings.heading
+  assign eyebrow = section.settings.eyebrow
+  if heading == blank
+    assign heading = 'sections.testimonials.heading' | t
+  endif
+  if eyebrow == blank
+    assign eyebrow = 'sections.testimonials.eyebrow' | t
+  endif
+-%}
+<section class="container section section--border-top" data-section-id="{{ section.id }}">
+  <div class="section-head">
+    <div>
+      <p class="eyebrow">{{ eyebrow }}</p>
+      <h2 class="display h2">{{ heading }}</h2>
+    </div>
+  </div>
+  <div class="grid grid--3">
+    {%- for block in section.blocks -%}
+      {%- liquid
+        assign q = block.settings.quote
+        assign who = block.settings.name
+        assign role = block.settings.role
+        if q == blank
+          assign q_key = 'sections.testimonials.quote_' | append: forloop.index
+          assign q = q_key | t
+        endif
+        if who == blank
+          assign who_key = 'sections.testimonials.name_' | append: forloop.index
+          assign who = who_key | t
+        endif
+        if role == blank
+          assign role_key = 'sections.testimonials.role_' | append: forloop.index
+          assign role = role_key | t
+        endif
+      -%}
+      <blockquote class="testi reveal" {{ block.shopify_attributes }}>
+        <p class="quote">{{ q }}</p>
+        <footer class="testi__who"><b>{{ who }}</b>{{ role }}</footer>
+      </blockquote>
+    {%- endfor -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.testimonials.name",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "t:sections.hero.eyebrow_label", "info": "t:general.blank_uses_builtin" },
+    { "type": "text", "id": "heading", "label": "t:sections.hero.heading_label", "info": "t:general.blank_uses_builtin" }
+  ],
+  "blocks": [
+    {
+      "type": "testimonial",
+      "name": "t:sections.testimonials.block",
+      "settings": [
+        { "type": "textarea", "id": "quote", "label": "t:sections.testimonials.quote", "info": "t:general.blank_uses_builtin" },
+        { "type": "text", "id": "name", "label": "t:sections.testimonials.author" },
+        { "type": "text", "id": "role", "label": "t:sections.testimonials.role" }
+      ]
+    }
+  ],
+  "max_blocks": 6,
+  "presets": [{ "name": "t:sections.testimonials.name", "blocks": [{ "type": "testimonial" }, { "type": "testimonial" }, { "type": "testimonial" }] }]
+}
+{% endschema %}

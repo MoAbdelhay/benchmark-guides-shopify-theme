@@ -1,0 +1,825 @@
+<title>Benchmark Guides Identity Standard</title>
+<meta name="description" content="Brand identity standard for Benchmark Guides: logo, color, type, graphic language, voice and Shopify application.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=Saira:wdth,wght@100..125,400..700&family=Source+Serif+4:ital,opsz,wght@0,8..60,400..600;1,8..60,400&display=swap">
+<style>
+:root{
+  --ground:#EDEFEA; --surface:#F7F8F4; --surface-2:#E1E6E1; --text:#16212B; --muted:#56626B;
+  --rule:#C6CECC; --rule-strong:#16212B; --grid:rgba(22,33,43,.05); --grid-major:rgba(22,33,43,.10);
+  --datum:#8E5A1C; --link:#8E5A1C; --flag:#EC6435; --on-flag:#16212B;
+  --btn-bg:#16212B; --btn-fg:#EDEFEA; --btn-hover:#8E5A1C;
+  --shadow:0 12px 28px -16px rgba(22,33,43,.55);
+  --f-display:"Saira","Segoe UI",system-ui,sans-serif;
+  --f-body:"Source Serif 4",Georgia,"Times New Roman",serif;
+  --f-mono:"IBM Plex Mono",ui-monospace,Consolas,"Courier New",monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --ground:#0F161C; --surface:#152028; --surface-2:#1B2831; --text:#E3E7E2; --muted:#9BA8AF;
+    --rule:#2A3843; --rule-strong:#AEB8B6; --grid:rgba(227,231,226,.035); --grid-major:rgba(227,231,226,.075);
+    --datum:#C98B3E; --link:#DDA35C; --btn-bg:#C98B3E; --btn-fg:#16212B; --btn-hover:#E3E7E2;
+    --shadow:0 12px 28px -14px rgba(0,0,0,.8);
+  }
+}
+:root[data-theme="dark"]{
+  --ground:#0F161C; --surface:#152028; --surface-2:#1B2831; --text:#E3E7E2; --muted:#9BA8AF;
+  --rule:#2A3843; --rule-strong:#AEB8B6; --grid:rgba(227,231,226,.035); --grid-major:rgba(227,231,226,.075);
+  --datum:#C98B3E; --link:#DDA35C; --btn-bg:#C98B3E; --btn-fg:#16212B; --btn-hover:#E3E7E2;
+  --shadow:0 12px 28px -14px rgba(0,0,0,.8);
+}
+
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}*{transition:none!important}}
+body{background:var(--ground);color:var(--text);font-family:var(--f-body);font-size:17px;line-height:1.6;
+  padding-inline:clamp(16px,4vw,48px);padding-block:clamp(16px,3vw,40px);font-optical-sizing:auto}
+a{color:var(--link);text-underline-offset:3px}
+:focus-visible{outline:2px solid var(--datum);outline-offset:3px}
+p{margin:0 0 1em;max-width:65ch}
+.wrap{max-width:1240px;margin:0 auto}
+
+/* type roles */
+h1,h2,h3,h4{font-family:var(--f-display);text-wrap:balance;margin:0}
+h2{font-stretch:118%;font-weight:700;font-size:clamp(31px,4.2vw,49px);line-height:1.02;letter-spacing:-.012em}
+h3{font-stretch:112%;font-weight:600;font-size:20px;line-height:1.25;margin-bottom:10px}
+h4{font-stretch:108%;font-weight:600;font-size:17px;line-height:1.3}
+.label{font-family:var(--f-mono);font-size:11.5px;line-height:1.4;text-transform:uppercase;letter-spacing:.09em;color:var(--muted)}
+.mono{font-family:var(--f-mono);font-variant-numeric:tabular-nums}
+.muted{color:var(--muted)}
+.small{font-size:14px}
+
+/* ---------- title sheet ---------- */
+.title-sheet{border:1.5px solid var(--rule-strong);padding:8px}
+.frame{border:1px solid var(--rule-strong);display:grid}
+.zones{display:grid;grid-template-columns:repeat(6,1fr);font-family:var(--f-mono);font-size:10px;color:var(--muted);border-bottom:1px solid var(--rule)}
+.zones span{text-align:center;padding:2px 0;border-left:1px solid var(--rule)}
+.zones span:first-child{border-left:0}
+.sheet-body{padding:clamp(28px,6vw,84px) clamp(20px,5.5vw,80px) clamp(28px,4vw,56px);
+  background-image:linear-gradient(var(--grid-major) 1px,transparent 1px),linear-gradient(90deg,var(--grid-major) 1px,transparent 1px),linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:50px 50px,50px 50px,10px 10px,10px 10px;background-position:-1px -1px}
+.hero-logo{display:block;width:min(100%,780px);height:auto;color:var(--text)}
+.thesis{font-family:var(--f-display);font-stretch:125%;font-weight:600;font-size:clamp(25px,3.6vw,41px);line-height:1.1;margin:clamp(32px,5vw,56px) 0 12px;display:flex;align-items:center;gap:.45em;max-width:none}
+.thesis svg{width:.9em;height:.6em;flex:none;color:var(--datum)}
+.hero-sub{color:var(--muted);max-width:58ch;margin:0}
+.title-block{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));border-top:1px solid var(--rule-strong)}
+.tb{padding:8px 12px 10px;border-left:1px solid var(--rule);border-bottom:1px solid var(--rule);min-width:0}
+.tb:nth-child(1),.tb:nth-child(3){border-left:0}
+.tb.wide{grid-column:span 2}
+.tb:nth-child(n+3){border-bottom:0}
+.tb b{display:block;font-family:var(--f-display);font-stretch:108%;font-weight:600;font-size:15px;line-height:1.3;overflow-wrap:anywhere}
+.tb .label{font-size:9.5px}
+@media (min-width:900px){.title-block{margin-left:auto;width:62%;border-left:1px solid var(--rule-strong)}}
+@media (max-width:560px){.title-block{grid-template-columns:repeat(2,minmax(0,1fr))}.tb.wide{grid-column:span 2}.tb:nth-child(n+3){border-bottom:1px solid var(--rule)}.tb:nth-child(3),.tb:nth-child(5){border-left:0}.tb:nth-child(4),.tb:nth-child(6){border-left:1px solid var(--rule)}}
+
+/* ---------- layout ---------- */
+.layout{display:grid;grid-template-columns:190px minmax(0,1fr);gap:56px;margin-top:48px}
+.index{position:sticky;top:20px;align-self:start}
+.index ol{list-style:none;margin:8px 0 0;padding:0;display:grid}
+.index a{display:grid;grid-template-columns:30px 1fr;padding:7px 0;border-bottom:1px solid var(--rule);color:var(--muted);text-decoration:none;font-family:var(--f-display);font-stretch:108%;font-size:14.5px}
+.index a span{font-family:var(--f-mono);font-size:11px;color:var(--datum);padding-top:3px}
+.index a:hover{color:var(--text)}
+main{min-width:0}
+@media (max-width:980px){.layout{grid-template-columns:minmax(0,1fr);gap:8px;margin-top:28px}.index{position:static}.index ol{display:flex;flex-wrap:wrap;gap:0 18px}.index a{border:0;grid-template-columns:auto auto;gap:6px}}
+
+section.std{padding-block:56px 72px;border-top:1.5px solid var(--rule-strong)}
+section.std:first-child{border-top:0;padding-top:0}
+.sec-head{display:grid;grid-template-columns:64px minmax(0,1fr);align-items:baseline;margin-bottom:40px}
+.clause{font-family:var(--f-mono);font-size:13px;color:var(--datum)}
+.lede{grid-column:2;color:var(--muted);margin:16px 0 0;font-size:18.5px}
+@media (max-width:560px){.sec-head{grid-template-columns:minmax(0,1fr)}.lede{grid-column:1}}
+.sub{margin-top:56px}
+.sub-head{display:flex;justify-content:space-between;align-items:baseline;gap:8px 20px;flex-wrap:wrap;border-bottom:1px solid var(--rule);padding-bottom:10px;margin-bottom:22px}
+.sub-head h3{margin:0}
+.cols-2{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:24px 40px}
+.cols-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:20px}
+.cols-4{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:16px}
+@media (max-width:900px){.cols-3,.cols-4{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media (max-width:620px){.cols-2,.cols-3,.cols-4{grid-template-columns:minmax(0,1fr)}}
+.scroll{overflow-x:auto}
+
+/* ---------- foundation ---------- */
+.definition{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:40px;align-items:start}
+.term{font-family:var(--f-display);font-stretch:118%;font-weight:600;font-size:clamp(25px,3vw,31px);line-height:1.1;margin-bottom:6px}
+.term i{font-family:var(--f-body);font-style:italic;font-weight:400;font-size:.62em;color:var(--muted);font-stretch:100%;margin-left:8px}
+.def-body{font-size:19px;line-height:1.55}
+.bm-disk{background:var(--surface);border:1px solid var(--rule);padding:22px;display:grid;gap:14px}
+.bm-disk svg{width:100%;height:auto;display:block}
+.positioning{margin-top:48px;padding:28px 0;border-block:1px solid var(--rule);font-size:clamp(19px,2.1vw,23px);line-height:1.5;max-width:none}
+.positioning p{max-width:70ch;margin:0}
+.positioning b{font-family:var(--f-display);font-stretch:110%;font-weight:600}
+.audience dt{font-family:var(--f-display);font-stretch:110%;font-weight:600;font-size:17px}
+.audience dd{margin:2px 0 0;color:var(--muted);font-size:15.5px}
+.audience div{border-top:1px solid var(--rule-strong);padding-top:12px}
+.values{counter-reset:none}
+.value{padding-top:14px;border-top:1px solid var(--rule)}
+.value h4{font-size:19px;margin-bottom:6px;display:flex;gap:10px;align-items:baseline}
+.value h4 .mono{font-size:11px;color:var(--datum);font-weight:500}
+.value p{font-size:15.5px;color:var(--muted);margin:0}
+table.plain{border-collapse:collapse;width:100%;font-size:15.5px}
+table.plain th,table.plain td{text-align:left;padding:10px 14px 10px 0;border-bottom:1px solid var(--rule);vertical-align:top}
+table.plain th{font-family:var(--f-mono);font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);border-bottom:1px solid var(--rule-strong)}
+table.plain td:first-child{font-family:var(--f-display);font-stretch:110%;font-weight:600;white-space:nowrap}
+
+/* ---------- logo ---------- */
+.plates{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
+.plate{padding:clamp(24px,4.5vw,52px) clamp(20px,4vw,44px);display:grid;gap:28px;align-content:space-between}
+.plate svg{display:block;width:100%;height:auto}
+.plate .label{color:inherit;opacity:.72}
+.plate.light{background:#EDEFEA;color:#16212B;border:1px solid var(--rule)}
+.plate.dark{background:#16212B;color:#EDEFEA;border:1px solid #16212B}
+.plate.chalk{background:#FAFBF8;color:#16212B;border:1px solid var(--rule)}
+.plate .fig{display:grid;place-items:center;min-height:150px}
+.plate .fig svg.stk{width:min(100%,260px)}
+.plate .fig svg.mk{width:96px}
+.plate .fig svg.icon{width:112px;border-radius:0}
+@media (max-width:720px){.plates{grid-template-columns:minmax(0,1fr)}}
+.construct{display:grid;grid-template-columns:minmax(0,1.25fr) minmax(0,1fr);gap:40px;align-items:start}
+.construction{width:100%;height:auto;display:block;background:var(--surface);border:1px solid var(--rule)}
+.construction .cx-grid{stroke:var(--rule)}
+.construction .cx-cl{stroke:var(--link)}
+.construction .cx-d{stroke:var(--muted)}
+.construction .cx-t{fill:var(--muted);font-family:var(--f-mono);font-size:4.4px}
+.rules{list-style:none;padding:0;margin:0;display:grid;gap:0}
+.rules li{padding:12px 0;border-bottom:1px solid var(--rule);font-size:15.5px}
+.rules li b{font-family:var(--f-display);font-stretch:110%;font-weight:600;display:block;font-size:15px}
+@media (max-width:820px){.construct,.definition{grid-template-columns:minmax(0,1fr)}}
+.clearspace{width:100%;height:auto;display:block;color:var(--text)}
+.clearspace .cs-zone{fill:rgba(142,90,28,.07);stroke:var(--datum);stroke-width:2;stroke-dasharray:10 7}
+.clearspace .cs-edge{fill:none;stroke:var(--rule);stroke-width:1.5}
+.clearspace .cs-x path{stroke:var(--datum);stroke-width:2.5;fill:none}
+.clearspace .cs-t{fill:var(--datum);font-family:var(--f-mono);font-size:26px}
+.cs-wrap{background:var(--surface);border:1px solid var(--rule);padding:clamp(16px,4vw,40px)}
+.misuse .tile{display:grid;place-items:center;aspect-ratio:16/9;max-width:100%;background:#EDEFEA;border:1px solid var(--rule);overflow:hidden;position:relative;padding:14px}
+.misuse .tile::after{content:"";position:absolute;inset:0;background:linear-gradient(to top right,transparent calc(50% - 1px),var(--flag) calc(50% - 1px),var(--flag) calc(50% + 1px),transparent calc(50% + 1px))}
+.misuse .tile svg{width:88%;height:auto}
+.misuse .t-stretch svg{width:92%;height:34px}
+.misuse .t-low{background:#8E5A1C}
+.misuse .t-type{gap:10px;grid-auto-flow:column;color:#16212B}
+.misuse .t-type svg{width:30px}
+.misuse .t-type span{font-family:Georgia,serif;font-style:italic;font-size:22px;white-space:nowrap}
+.misuse figcaption{margin-top:10px;font-size:15px}
+.misuse figcaption .label{display:block;color:var(--flag);margin-bottom:2px}
+figure{margin:0}
+
+/* ---------- color ---------- */
+.swatch{display:grid;grid-template-rows:auto 1fr}
+.chip{height:132px;display:flex;align-items:flex-end;justify-content:space-between;padding:12px 14px;font-family:var(--f-mono);font-size:11px;letter-spacing:.06em}
+.chip.tall{height:180px}
+.sw-meta{padding:14px 0 0;display:grid;gap:4px}
+.sw-meta h4{font-size:17px}
+.sw-meta p{font-size:14.5px;color:var(--muted);margin:0 0 6px}
+.codes{display:grid;grid-template-columns:auto 1fr;gap:2px 12px;font-family:var(--f-mono);font-size:12px;font-variant-numeric:tabular-nums}
+.codes dt{color:var(--muted)}
+.codes dd{margin:0}
+.ratio-bar{display:flex;height:64px;border:1px solid var(--rule)}
+.ratio-bar div{display:flex;align-items:flex-end;padding:6px 8px;font-family:var(--f-mono);font-size:11px;min-width:0;overflow:hidden;white-space:nowrap}
+.pairs{display:grid;gap:0}
+.pair{display:grid;grid-template-columns:72px minmax(0,1fr) auto auto;gap:16px;align-items:center;padding:10px 0;border-bottom:1px solid var(--rule)}
+.pair .aa{height:44px;display:grid;place-items:center;font-family:var(--f-display);font-stretch:112%;font-weight:600;font-size:19px}
+.pair .r{font-family:var(--f-mono);font-variant-numeric:tabular-nums;font-size:15px}
+.pill{font-family:var(--f-mono);font-size:10.5px;letter-spacing:.08em;padding:3px 7px;border:1px solid currentColor;border-radius:2px;white-space:nowrap}
+.pill.pass{color:var(--text)}
+.pill.limit{color:var(--muted)}
+@media (max-width:520px){.pair{grid-template-columns:56px minmax(0,1fr) auto}.pair .pill{display:none}}
+.disc{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.disc div{background:#16212B;color:#E6EAE5;border-left:10px solid var(--c);padding:14px 16px;display:grid;gap:2px}
+.disc b{font-family:var(--f-mono);font-weight:500;font-size:13px;letter-spacing:.08em;color:var(--c)}
+.disc span{font-family:var(--f-display);font-stretch:110%;font-weight:600;font-size:15.5px}
+.disc i{font-style:normal;font-family:var(--f-mono);font-size:11px;opacity:.65}
+@media (max-width:720px){.disc{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+/* ---------- type ---------- */
+.specimen{display:grid;grid-template-columns:220px minmax(0,1fr);gap:24px 40px;padding:28px 0;border-bottom:1px solid var(--rule)}
+.specimen:first-of-type{border-top:1px solid var(--rule-strong)}
+.specimen .meta h4{font-size:20px}
+.specimen .meta p{font-size:14.5px;color:var(--muted);margin:6px 0 0}
+.sp-display{font-family:var(--f-display);font-stretch:125%;font-weight:700;font-size:clamp(36px,6vw,68px);line-height:.98;letter-spacing:-.015em;margin:0;max-width:none}
+.sp-widths{display:flex;flex-wrap:wrap;gap:4px 22px;margin-top:14px;font-family:var(--f-display);font-size:22px;font-weight:600}
+.sp-widths span:nth-child(1){font-stretch:100%}
+.sp-widths span:nth-child(2){font-stretch:112%}
+.sp-widths span:nth-child(3){font-stretch:125%}
+.sp-body{font-size:19px;line-height:1.6;max-width:60ch;margin:0}
+.sp-mono{font-family:var(--f-mono);font-size:17px;line-height:1.8;font-variant-numeric:tabular-nums;margin:0;max-width:none}
+@media (max-width:760px){.specimen{grid-template-columns:minmax(0,1fr)}}
+table.scale{border-collapse:collapse;width:100%;min-width:720px}
+table.scale th,table.scale td{text-align:left;padding:12px 16px 12px 0;border-bottom:1px solid var(--rule);vertical-align:baseline}
+table.scale th{font-family:var(--f-mono);font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);border-bottom:1px solid var(--rule-strong)}
+table.scale td.m{font-family:var(--f-mono);font-size:13px;color:var(--muted);white-space:nowrap;font-variant-numeric:tabular-nums}
+
+/* ---------- graphic language ---------- */
+.gl-tile{background:var(--surface);border:1px solid var(--rule);display:grid;grid-template-rows:170px auto}
+.gl-fig{display:grid;place-items:center;border-bottom:1px solid var(--rule);padding:18px;color:var(--text)}
+.gl-cap{padding:14px 16px 16px}
+.gl-cap h4{margin-bottom:4px}
+.gl-cap p{font-size:14.5px;color:var(--muted);margin:0}
+.gridpaper{width:100%;height:100%;background-image:linear-gradient(var(--grid-major) 1px,transparent 1px),linear-gradient(90deg,var(--grid-major) 1px,transparent 1px),linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:40px 40px,40px 40px,8px 8px,8px 8px;border:1px solid var(--rule)}
+.dim{display:grid;grid-template-columns:2px 9px 1fr auto 1fr 9px 2px;align-items:center;column-gap:0;color:var(--text);width:100%}
+.dim .tk{height:22px;background:currentColor}
+.dim .ar{height:9px;background:currentColor;clip-path:polygon(0 50%,100% 0,100% 100%)}
+.dim .ar.r{clip-path:polygon(100% 50%,0 0,0 100%)}
+.dim .ln{height:1.5px;background:currentColor}
+.dim .tx{font-family:var(--f-mono);font-size:12.5px;padding:0 10px;letter-spacing:.04em;white-space:nowrap}
+.dim-demo{width:100%;display:grid;gap:10px}
+.dim-demo .block{height:74px;border:1.5px solid var(--text);display:flex;align-items:center;padding:0 14px;font-family:var(--f-display);font-stretch:112%;font-weight:600}
+.datum{display:inline-grid;justify-items:center;color:var(--text)}
+.datum svg{width:58px;height:auto}
+.datum text{font-family:var(--f-display);font-weight:600}
+.rev{display:inline-grid;grid-template-columns:auto auto auto;border:1.5px solid var(--text);font-family:var(--f-mono);font-size:12.5px;letter-spacing:.06em}
+.rev span{padding:6px 10px}
+.rev span+span{border-left:1.5px solid var(--text)}
+.rev b{font-family:var(--f-display);font-stretch:112%;font-weight:700;font-size:15px}
+.levels{width:100%;display:grid;gap:8px}
+.lvl{display:grid;grid-template-columns:22px 64px 1fr;align-items:center;gap:8px;font-size:14px}
+.lvl svg{width:22px;height:14px;color:var(--datum)}
+.lvl .mono{font-size:12.5px}
+.lvl b{font-family:var(--f-display);font-stretch:110%;font-weight:600}
+.page-mock{margin-top:16px;background:#FAFBF8;color:#16212B;border:1px solid var(--rule);box-shadow:var(--shadow);max-width:780px;padding:clamp(20px,4vw,44px)}
+.pm-head{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;color:#56626B;border-bottom:1.5px solid #16212B;padding-bottom:8px;margin-bottom:22px}
+.page-mock h4{font-size:21px;margin-bottom:18px;color:#16212B}
+.page-mock h4 span{font-family:var(--f-mono);font-weight:500;font-size:13px;color:#8E5A1C;margin-right:10px;font-stretch:100%}
+.gfs{display:grid;grid-template-columns:92px minmax(0,1fr);margin:0;font-size:16.5px}
+.gfs dt{font-family:var(--f-mono);font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:#56626B;padding:12px 0;border-top:1px solid #C6CECC}
+.gfs dd{margin:0;padding:10px 0;border-top:1px solid #C6CECC}
+.eq{font-family:var(--f-mono);font-size:15px;font-variant-numeric:tabular-nums;display:block;margin:4px 0;overflow-x:auto}
+.eq b{font-weight:500;background:#EDE3D5;padding:1px 5px}
+.ok{color:#2E6B4A;font-family:var(--f-mono);font-size:13px}
+@media (max-width:520px){.gfs{grid-template-columns:1fr}.gfs dd{border-top:0;padding-top:0}}
+
+/* ---------- voice ---------- */
+.principle{border-top:1.5px solid var(--rule-strong);padding-top:14px}
+.principle h4{font-size:21px;margin-bottom:6px}
+.principle > p{font-size:15.5px;color:var(--muted)}
+.say{display:grid;gap:8px;margin-top:12px}
+.say div{display:grid;grid-template-columns:52px minmax(0,1fr);gap:10px;font-size:15.5px;align-items:baseline}
+.say .label{font-size:10.5px}
+.say .yes .label{color:var(--text)}
+.say .no{color:var(--muted)}
+.say .no q{text-decoration:line-through;text-decoration-color:var(--flag);text-decoration-thickness:1.5px}
+q{quotes:"\201C" "\201D"}
+.taglines{list-style:none;padding:0;margin:0}
+.taglines li{display:flex;justify-content:space-between;align-items:baseline;gap:8px 20px;flex-wrap:wrap;padding:14px 0;border-bottom:1px solid var(--rule)}
+.taglines li b{font-family:var(--f-display);font-stretch:120%;font-weight:600;font-size:clamp(19px,2.4vw,25px);line-height:1.15}
+.taglines li:first-child b{font-size:clamp(25px,3.2vw,34px)}
+.copy-sheet{background:var(--surface);border:1px solid var(--rule);padding:clamp(20px,3.5vw,36px)}
+.copy-sheet h4{font-size:23px;margin:6px 0 12px}
+.copy-sheet ul{margin:0 0 1em;padding-left:20px}
+.copy-sheet li{margin-bottom:4px}
+.annot{font-family:var(--f-mono);font-size:11.5px;color:var(--datum);letter-spacing:.04em}
+
+/* ---------- shopify ---------- */
+.store{border:1.5px solid var(--rule-strong);background:var(--ground);overflow:hidden}
+.announce{background:#16212B;color:#EDEFEA;font-family:var(--f-display);font-stretch:110%;font-size:13.5px;text-align:center;padding:9px 16px}
+.announce em{font-style:normal;color:#C98B3E}
+.store-head{display:flex;align-items:center;gap:14px 32px;flex-wrap:wrap;padding:18px clamp(16px,3vw,32px);border-bottom:1px solid var(--rule)}
+.store-logo{width:210px;height:auto;display:block;color:var(--text)}
+.store-nav{display:flex;gap:6px 22px;flex-wrap:wrap;font-family:var(--f-display);font-stretch:110%;font-weight:500;font-size:15px;flex:1}
+.store-nav a{color:var(--text);text-decoration:none;padding:4px 0;border-bottom:1.5px solid transparent}
+.store-nav a:hover,.store-nav a[aria-current]{border-bottom-color:var(--datum)}
+.cart{font-family:var(--f-display);font-stretch:110%;font-size:15px}
+.cart b{font-family:var(--f-mono);font-weight:500;font-size:12px;background:var(--text);color:var(--ground);padding:1px 6px;margin-left:6px}
+.store-body{padding:clamp(18px,3vw,32px)}
+.coll-head{display:flex;justify-content:space-between;align-items:end;gap:8px 20px;flex-wrap:wrap;margin-bottom:20px}
+.coll-head h3{font-size:clamp(25px,3vw,31px);font-stretch:118%;font-weight:700;margin:2px 0 0}
+.products{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+@media (max-width:860px){.products{grid-template-columns:repeat(2,minmax(0,1fr))}.products article:last-child{display:none}}
+@media (max-width:520px){.products{grid-template-columns:minmax(0,1fr)}.products article:last-child{display:grid}}
+.product{background:var(--surface);border:1px solid var(--rule);display:grid;grid-template-rows:auto 1fr}
+.p-media{aspect-ratio:1;max-width:100%;background:var(--surface-2);display:grid;place-items:center;position:relative}
+.p-media .badge{position:absolute;top:12px;left:12px}
+.p-body{padding:14px 16px 16px;display:grid;gap:4px;align-content:start}
+.p-body h4{font-size:18px}
+.p-meta{font-family:var(--f-mono);font-size:12px;color:var(--muted);margin:0}
+.p-foot{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap;margin-top:12px}
+.price{font-family:var(--f-display);font-stretch:112%;font-weight:600;font-size:19px;font-variant-numeric:tabular-nums}
+.btn{font-family:var(--f-display);font-stretch:112%;font-weight:600;font-size:13.5px;letter-spacing:.07em;text-transform:uppercase;border-radius:2px;padding:10px 16px;cursor:pointer;border:1.5px solid var(--btn-bg);background:var(--btn-bg);color:var(--btn-fg);transition:background .15s,border-color .15s,color .15s}
+.btn:hover{background:var(--btn-hover);border-color:var(--btn-hover);color:var(--ground)}
+.btn.outline{background:transparent;color:var(--text);border-color:var(--text)}
+.btn.outline:hover{background:var(--text);color:var(--ground)}
+.badge{font-family:var(--f-mono);font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;padding:4px 8px;border-radius:2px;line-height:1.2}
+.badge.flag{background:var(--flag);color:var(--on-flag)}
+.badge.line{background:var(--ground);color:var(--text);border:1px solid var(--text)}
+.cover{--disc:#5B87A3;container-type:inline-size;position:relative;width:60%;aspect-ratio:3/4;max-width:100%;background-color:#16212B;color:#E6EAE5;
+  background-image:linear-gradient(rgba(230,234,229,.055) 1px,transparent 1px),linear-gradient(90deg,rgba(230,234,229,.055) 1px,transparent 1px);background-size:9% 6.75%;
+  display:flex;flex-direction:column;justify-content:space-between;padding:10% 9% 9% 15%;box-shadow:var(--shadow)}
+.cover::before{content:"";position:absolute;left:0;top:0;bottom:0;width:6%;background:var(--disc)}
+.cv-top{display:flex;justify-content:space-between;font-family:var(--f-mono);font-size:6.4cqi;letter-spacing:.05em;opacity:.8}
+.cv-title{font-family:var(--f-display);font-stretch:112%;font-weight:600;font-size:11.5cqi;line-height:1.04;margin:0;text-wrap:balance}
+.cv-title small{display:block;font-family:var(--f-body);font-style:italic;font-weight:400;font-stretch:100%;font-size:6.6cqi;line-height:1.3;opacity:.7;margin-top:4cqi}
+.cv-foot{display:flex;align-items:center;justify-content:space-between;font-family:var(--f-mono);font-size:5.6cqi;letter-spacing:.06em}
+.cv-foot svg{width:13cqi;height:13cqi;color:#E6EAE5;--mk-datum:#C98B3E}
+.components{display:flex;flex-wrap:wrap;align-items:center;gap:16px 22px;padding:22px;background:var(--surface);border:1px solid var(--rule)}
+.components .sep{width:1px;align-self:stretch;background:var(--rule)}
+.swatchline{display:inline-block;width:12px;height:12px;border:1px solid var(--rule);vertical-align:-1px;margin-right:6px}
+.social{display:grid;grid-template-columns:minmax(0,360px) minmax(0,1fr);gap:40px;align-items:start}
+@media (max-width:760px){.social{grid-template-columns:minmax(0,1fr)}}
+.tile-ig{container-type:inline-size;aspect-ratio:1;max-width:100%;background-color:#16212B;color:#EDEFEA;padding:9cqi;display:flex;flex-direction:column;justify-content:space-between;
+  background-image:linear-gradient(rgba(237,239,234,.06) 1px,transparent 1px),linear-gradient(90deg,rgba(237,239,234,.06) 1px,transparent 1px);background-size:10% 10%;box-shadow:var(--shadow)}
+.tile-ig .t1{font-family:var(--f-mono);font-size:4.2cqi;letter-spacing:.08em;display:flex;justify-content:space-between;color:#C98B3E}
+.tile-ig .t2{font-family:var(--f-display);font-stretch:118%;font-weight:600;font-size:8.6cqi;line-height:1.08;margin:0;text-wrap:balance}
+.tile-ig .t2 span{color:#C98B3E}
+.tile-ig .t3{display:flex;align-items:center;gap:3cqi;font-family:var(--f-display);font-stretch:112%;font-size:4.4cqi;font-weight:500}
+.tile-ig .t3 svg{width:8cqi;height:8cqi;color:#EDEFEA;--mk-datum:#C98B3E}
+.subjects{list-style:none;padding:0;margin:0}
+.subjects li{padding:10px 0;border-bottom:1px solid var(--rule);font-size:16px}
+.subjects li .mono{font-size:11px;color:var(--muted);display:block}
+
+/* files + revisions */
+.filelist td:first-child{font-family:var(--f-mono);font-weight:400;font-size:13.5px}
+.footer-block{margin-top:24px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;font-family:var(--f-mono);font-size:11px;color:var(--muted);letter-spacing:.06em;border-top:1.5px solid var(--rule-strong);padding-top:12px}
+</style>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false"><defs><clipPath id="symc"><rect x="-300" y="0" width="4000" height="100"/></clipPath><symbol id="bg-mark" viewBox="0 0 100 100"><g clip-path="url(#symc)" fill="none" stroke-width="12" stroke-miterlimit="10"><path d="M0 6 H100" style="stroke:var(--mk-datum,#C98B3E)"/><path d="M1.15 112 L50 37.36 L98.85 112 M50 37.36 V112" style="stroke:currentColor"/></g></symbol></defs></svg>
+
+<div class="wrap">
+
+<header class="title-sheet">
+  <div class="frame">
+    <div class="zones" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span></div>
+    <div class="sheet-body">
+      <p class="label" style="margin-bottom:28px">Brand identity standard · Benchmark Guides</p>
+      <h1 style="position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)">Benchmark Guides brand identity standard</h1>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1123 170" role="img" aria-label="Benchmark Guides" class="hero-logo"><defs><clipPath id="i2c"><rect x="-300" y="0" width="4000" height="100"/></clipPath></defs><g transform="scale(1.7)"><g clip-path="url(#i2c)" fill="none" stroke-width="12" stroke-miterlimit="10"><path d="M0 6 H100" style="stroke:var(--datum)"/><path d="M1.15 112 L50 37.36 L98.85 112 M50 37.36 V112" style="stroke:currentColor"/></g></g><g transform="translate(241 0)"><g clip-path="url(#i2c)" fill="none" stroke-width="14" stroke-miterlimit="10" style="stroke:currentColor"><path d="M0 50 H50 A20 20 0 0 1 70 70 V73 A20 20 0 0 1 50 93 H0 V7 H44 A20 20 0 0 1 64 27 V30 A20 20 0 0 1 44 50 H0" transform="translate(0 0)"/><path d="M62 7 H0 V93 H62 M0 50 H54" transform="translate(100 0)"/><path d="M0 102 V7 L72 93 V-2" transform="translate(186 0)"/><path d="M70 7 H24 A24 24 0 0 0 0 31 V69 A24 24 0 0 0 24 93 H70" transform="translate(284 0)"/><path d="M0 -2 V102 M72 -2 V102 M0 50 H72" transform="translate(374 0)"/><path d="M0 102 V7 L42 74 L84 7 V102" transform="translate(476 0)"/><path d="M-4 102 L38 7 L80 102 M11.9 66 H64.1" transform="translate(590 0)"/><path d="M0 102 V7 H48 A22 22 0 0 1 70 29 V31 A22 22 0 0 1 48 53 H0 M38 53 L75 104" transform="translate(696 0)"/><path d="M0 -2 V102 M2 64 L74 -6 M22.6 44 L78 106" transform="translate(800 0)"/></g></g><g transform="translate(533.08 126) scale(0.44)"><g clip-path="url(#i2c)" fill="none" stroke-width="14" stroke-miterlimit="10" style="stroke:currentColor"><path d="M72 7 H24 A24 24 0 0 0 0 31 V69 A24 24 0 0 0 24 93 H72 V52 H42" transform="translate(0 0)"/><path d="M0 -2 V69 A24 24 0 0 0 24 93 H48 A24 24 0 0 0 72 69 V-2" transform="translate(136 0)"/><path d="M0 -2 V102" transform="translate(272 0)"/><path d="M0 7 H48 A24 24 0 0 1 72 31 V69 A24 24 0 0 1 48 93 H0 Z" transform="translate(336 0)"/><path d="M62 7 H0 V93 H62 M0 50 H54" transform="translate(472 0)"/><path d="M70 7 H20 A20 20 0 0 0 0 27 V30 A20 20 0 0 0 20 50 H50 A20 20 0 0 1 70 70 V73 A20 20 0 0 1 50 93 H0" transform="translate(591 0)"/></g></g><g fill="none" stroke-width="3" style="stroke:currentColor"><path d="M235.5 128 V168 M1121.5 128 V168 M236 148 H508.00 M849.00 148 H1121"/></g><path style="fill:currentColor" d="M237 148 L257 141.5 V154.5 Z M1120 148 L1100 141.5 V154.5 Z"/></svg>
+      <p class="thesis"><svg viewBox="0 0 24 16" aria-hidden="true"><path d="M4 1.5 H20 L12 13 Z" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="miter"/><path d="M0 14.5 H24" stroke="currentColor" stroke-width="2"/></svg>Measure from here.</p>
+      <p class="hero-sub">Benchmark Guides sells engineering guides on Shopify. Each guide shows every step, unit and code clause. This standard sets how the brand looks, sounds and ships.</p>
+    </div>
+    <div class="title-block">
+      <div class="tb wide"><span class="label">Client</span><b>Benchmark Guides</b></div>
+      <div class="tb wide"><span class="label">Title</span><b>Brand Identity Standard</b></div>
+      <div class="tb"><span class="label">Dwg no.</span><b class="mono">BG-ID-001</b></div>
+      <div class="tb"><span class="label">Rev</span><b>A</b></div>
+      <div class="tb"><span class="label">Date</span><b class="mono">2026-09-15</b></div>
+      <div class="tb"><span class="label">Scale</span><b>NTS</b></div>
+    </div>
+  </div>
+</header>
+
+<div class="layout">
+  <nav class="index" aria-label="Contents">
+    <span class="label">Contents</span>
+    <ol>
+      <li><a href="#foundation"><span>§1</span>Foundation</a></li>
+      <li><a href="#logo"><span>§2</span>Logo</a></li>
+      <li><a href="#color"><span>§3</span>Color</a></li>
+      <li><a href="#type"><span>§4</span>Typography</a></li>
+      <li><a href="#graphics"><span>§5</span>Graphic language</a></li>
+      <li><a href="#voice"><span>§6</span>Voice</a></li>
+      <li><a href="#shopify"><span>§7</span>Shopify</a></li>
+      <li><a href="#files"><span>§8</span>Files &amp; revisions</a></li>
+    </ol>
+  </nav>
+
+  <main>
+
+  <!-- §1 FOUNDATION -->
+  <section class="std" id="foundation">
+    <div class="sec-head">
+      <span class="clause">§1</span><h2>Foundation</h2>
+      <p class="lede">The name already tells the story. Everything else in this standard is built on it.</p>
+    </div>
+
+    <div class="definition">
+      <div>
+        <p class="term">bench·mark <i>noun, surveying</i></p>
+        <p class="def-body">A fixed mark of known elevation, cut into stone or set as a bronze disk, that every other level on a job is measured from.</p>
+        <p>Each guide should work the same way for an engineer: a trusted reference to check their own calculation against. We don't sell shortcuts. We sell the fixed point.</p>
+      </div>
+      <figure class="bm-disk">
+        <svg viewBox="0 0 220 150" role="img" aria-label="Diagram of a surveyor's cut benchmark: a level line above a broad arrow">
+          <rect x="1" y="1" width="218" height="148" fill="none" stroke="var(--rule)"/>
+          <path d="M18 132 H202" stroke="var(--muted)" stroke-width="1" stroke-dasharray="3 3"/>
+          <g transform="translate(70 26) scale(.8)"><use href="#bg-mark" style="color:var(--text);--mk-datum:var(--datum)" width="100" height="100"/></g>
+          <path d="M160 34 H196" stroke="var(--muted)" stroke-width="1"/>
+          <text x="160" y="28" fill="var(--muted)" style="font:9px var(--f-mono)">DATUM</text>
+          <text x="160" y="50" fill="var(--text)" style="font:500 11px var(--f-mono)">EL +100.000</text>
+          <text x="18" y="146" fill="var(--muted)" style="font:9px var(--f-mono)">CUT MARK · ELEVATION VIEW</text>
+        </svg>
+        <figcaption class="small muted">The surveyor's cut mark: a level line with a broad arrow pointing up at it. It's the source of our logo.</figcaption>
+      </figure>
+    </div>
+
+    <div class="positioning">
+      <span class="label">Positioning statement</span>
+      <p style="margin-top:10px">For <b>engineering students and working engineers</b> who need to get a calculation right the first time, Benchmark Guides are <b>compact references built on worked examples</b>. Each one shows every step, unit and code clause, <b>so the answer can be checked, not just copied.</b></p>
+    </div>
+
+    <div class="sub">
+      <div class="sub-head"><h3>Who we write for</h3><span class="label">Primary audiences</span></div>
+      <dl class="audience cols-3" style="margin:0">
+        <div><dt>The candidate</dt><dd>Preparing for licensure exams. Needs structured practice and fast lookups under time pressure.</dd></div>
+        <div><dt>The graduate</dt><dd>In their first three years on the job. Needs to see how design checks are actually done in practice.</dd></div>
+        <div><dt>The practitioner</dt><dd>Needs a reliable check between projects, outside their daily specialty.</dd></div>
+      </dl>
+    </div>
+
+    <div class="sub">
+      <div class="sub-head"><h3>Values</h3><span class="label">What every guide must prove</span></div>
+      <div class="cols-4 values">
+        <div class="value"><h4>Traceable</h4><p>Every number points to its source, whether that's an equation, a table or a code clause.</p></div>
+        <div class="value"><h4>Exact</h4><p>Every value carries units. Significant figures match the input data, no more.</p></div>
+        <div class="value"><h4>Usable</h4><p>You work from a guide at your desk. It isn't a textbook you have to study first.</p></div>
+        <div class="value"><h4>Current</h4><p>Every guide carries a revision letter, and owners get each new revision free.</p></div>
+      </div>
+    </div>
+
+    <div class="sub">
+      <div class="sub-head"><h3>Personality</h3><span class="label">Is · Is not</span></div>
+      <div class="scroll"><table class="plain">
+        <thead><tr><th>Trait</th><th>We are</th><th>We are not</th></tr></thead>
+        <tbody>
+          <tr><td>Authority</td><td>Sure of the method and open about the assumptions behind it</td><td>Academic, or gatekeeping</td></tr>
+          <tr><td>Precision</td><td>Exact where it matters, with units on every value</td><td>Pedantic, or full of jargon for its own sake</td></tr>
+          <tr><td>Clarity</td><td>Plain words, short sentences, one idea per step</td><td>Dumbed down, or skipping the hard part</td></tr>
+          <tr><td>Energy</td><td>Quietly confident, like a senior engineer checking your work</td><td>Hype, countdown timers, "hacks"</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </section>
+
+  <!-- §2 LOGO -->
+  <section class="std" id="logo">
+    <div class="sec-head">
+      <span class="clause">§2</span><h2>Logo</h2>
+      <p class="lede">The mark is the cut benchmark, and it also reads as an instrument on its tripod. The wordmark is custom lettering drawn on a 100-unit grid, and GUIDES is set as its dimension line. The bronze bar is the datum. It's the only part of the logo that ever takes color.</p>
+    </div>
+
+    <div class="plates">
+      <figure class="plate light"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1123 170" role="img" aria-label="Benchmark Guides" ><defs><clipPath id="i3c"><rect x="-300" y="0" width="4000" height="100"/></clipPath></defs><g transform="scale(1.7)"><g clip-path="url(#i3c)" fill="none" stroke-width="12" stroke-miterlimit="10"><path d="M0 6 H100" style="stroke:#8E5A1C"/><path d="M1.15 112 L50 37.36 L98.85 112 M50 37.36 V112" style="stroke:#16212B"/></g></g><g transform="translate(241 0)"><g clip-path="url(#i3c)" fill="none" stroke-width="14" stroke-miterlimit="10" style="stroke:#16212B"><path d="M0 50 H50 A20 20 0 0 1 70 70 V73 A20 20 0 0 1 50 93 H0 V7 H44 A20 20 0 0 1 64 27 V30 A20 20 0 0 1 44 50 H0" transform="translate(0 0)"/><path d="M62 7 H0 V93 H62 M0 50 H54" transform="translate(100 0)"/><path d="M0 102 V7 L72 93 V-2" transform="translate(186 0)"/><path d="M70 7 H24 A24 24 0 0 0 0 31 V69 A24 24 0 0 0 24 93 H70" transform="translate(284 0)"/><path d="M0 -2 V102 M72 -2 V102 M0 50 H72" transform="translate(374 0)"/><path d="M0 102 V7 L42 74 L84 7 V102" transform="translate(476 0)"/><path d="M-4 102 L38 7 L80 102 M11.9 66 H64.1" transform="translate(590 0)"/><path d="M0 102 V7 H48 A22 22 0 0 1 70 29 V31 A22 22 0 0 1 48 53 H0 M38 53 L75 104" transform="translate(696 0)"/><path d="M0 -2 V102 M2 64 L74 -6 M22.6 44 L78 106" transform="translate(800 0)"/></g></g><g transform="translate(533.08 126) scale(0.44)"><g clip-path="url(#i3c)" fill="none" stroke-width="14" stroke-miterlimit="10" style="stroke:#16212B"><path d="M72 7 H24 A24 24 0 0 0 0 31 V69 A24 24 0 0 0 24 93 H72 V52 H42" transform="translate(0 0)"/><path d="M0 -2 V69 A24 24 0 0 0 24 93 H48 A24 24 0 0 0 72 69 V-2" transform="translate(136 0)"/><path d="M0 -2 V102" transform="translate(272 0)"/><path d="M0 7 H48 A24 24 0 0 1 72 31 V69 A24 24 0 0 1 48 93 H0 Z" transform="translate(336 0)"/><path d="M62 7 H0 V93 H62 M0 50 H54" transform="translate(472 0)"/><path d="M70 7 H20 A20 20 0 0 0 0 27 V30 A20 20 0 0 0 20 50 H50 A20 20 0 0 1 70 70 V73 A20 20 0 0 1 50 93 H0" transform="translate(591 0)"/></g></g><g fill="none" stroke-width="3" style="stroke:#16212B"><path d="M235.5 128 V168 M1121.5 128 V168 M236 148 H508.00 M849.00 148 H1121"/></g><path style="fill:#16212B" d="M237 148 L257 141.5 V154.5 Z M1120 148 L1100 141.5 V154.5 Z"/></svg><figcaption class="label">Primary · on Vellum</figcaption></figure>
+      <figure class="plate dark"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1123 170" role="img" aria-label="Benchmark Guides" ><defs><clipPath id="i4c"><rect x="-300" y="0" width="4000" height="100"/></clipPath></defs><g transform="scale(1.7)"><g clip-path="url(#i4c)" fill="none" stroke-width="12" stroke-miterlimit="10"><path d="M0 6 H100" style="stroke:#C98B3E"/><path d="M1.15 112 L50 37.36 L98.85 112 M50 37.36 V112" style="stroke:#EDEFEA"/></g></g><g transform="translate(241 0)"><g clip-path="url(#i4c)" fill="none" stroke-width="14" stroke-miterlimit="10" style="stroke:#EDEFEA"><path d="M0 50 H50 A20 20 0 0 1 70 70 V73 A20 20 0 0 1 50 93 H0 V7 H44 A20 20 0 0 1 64 27 V30 A20 20 0 0 1 44 50 H0" transform="translate(0 0)"/><path d="M62 7 H0 V93 H62 M0 50 H54" transform="translate(100 0)"/><path d="M0 102 V7 L72 93 V-2" transform="translate(186 0)"/><path d="M70 7 H24 A24 24 0 0 0 0 31 V69 A24 24 0 0 0 24 93 H70" transform="translate(284 0)"/><path d="M0 -2 V102 M72 -2 V102 M0 50 H72" transform="translate(374 0)"/><path d="M0 102 V7 L42 74 L84 7 V102" transform="translate(476 0)"/><path d="M-4 102 L38 7 L80 102 M11.9 66 H64.1" transform="translate(590 0)"/><path d="M0 102 V7 H48 A22 22 0 0 1 70 29 V31 A22 22 0 0 1 48 53 H0 M38 53 L75 104" transform="translate(696 0)"/><path d="M0 -2 V102 M2 64 L74 -6 M22.6 44 L78 106" transform="translate(800 0)"/></g></g><g transform="translate(533.08 126) scale(0.44)"><g clip-path="url(#i4c)" fill="none" stroke-width="14" stroke-miterlimit="10" style="stroke:#EDEFEA"><path d="M72 7 H24 A24 24 0 0 0 0 31 V69 A24 24 0 0 0 24 93 H72 V52 H42" transform="translate(0 0)"/><path d="M0 -2 V69 A24 24 0 0 0 24 93 H48 A24 24 0 0 0 72 69 V-2" transform="translate(136 0)"/><path d="M0 -2 V102" transform="translate(272 0)"/><path d="M0 7 H48 A24 24 0 0 1 72 31 V69 A24 24 0 0 1 48 93 H0 Z" transform="translate(336 0)"/><path d="M62 7 H0 V93 H62 M0 50 H54" transform="translate(472 0)"/><path d="M70 7 H20 A20 20 0 0 0 0 27 V30 A20 20 0 0 0 20 50 H50 A20 20 0 0 1 70 70 V73 A20 20 0 0 1 50 93 H0" transform="translate(591 0)"/></g></g><g fill="none" stroke-width="3" style="stroke:#EDEFEA"><path d="M235.5 128 V168 M1121.5 128 V168 M236 148 H508.00 M849.00 148 H1121"/></g><path style="fill:#EDEFEA" d="M237 148 L257 141.5 V154.5 Z M1120 148 L1100 141.5 V154.5 Z"/></svg><figcaption class="label">Primary reversed · on Datum Ink</figcaption></figure>
+    </div>
+    <div class="cols-3" style="margin-top:16px">
+      <figure class="plate chalk"><div class="fig"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 889 400" role="img" aria-label="Benchmark Guides" class="stk"><defs><clipPath id="i5c"><rect x="-300" y="0" width="4000" height="100"/></clipPath></defs><g transform="translate(359.5 0) scale(1.7)"><g clip-path="url(#i5c)" fill="none" stroke-width="12" stroke-miterlimit="10"><path d="M0 6 H100" style="stroke:#8E5A1C"/><path d="M1.15 112 L50 37.36 L98.85 112 M50 37.36 V112" style="stroke:#16212B"/></g></g><g transform="translate(7 230)"><g clip-path="url(#i5c)" fill="none" stroke-width="14" stroke-miterlimit="10" style="stroke:#16212B"><path d="M0 50 H50 A20 20 0 0 1 70 70 V73 A20 20 0 0 1 50 93 H0 V7 H44 A20 20 0 0 1 64 27 V30 A20 20 0 0 1 44 50 H0" transform="translate(0 0)"/><path d="M62 7 H0 V93 H62 M0 50 H54" transform="translate(100 0)"/><path d="M0 102 V7 L72 93 V-2" transform="translate(186 0)"/><path d="M70 7 H24 A24 24 0 0 0 0 31 V69 A24 24 0 0 0 24 93 H70" transform="translate(284 0)"/><path d="M0 -2 V102 M72 -2 V102 M0 50 H72" transform="translate(374 0)"/><path d="M0 102 V7 L42 74 L84 7 V102" transform="translate(476 0)"/><path d="M-4 102 L38 7 L80 102 M11.9 66 H64.1" transform="translate(590 0)"/><path d="M0 102 V7 H48 A22 22 0 0 1 70 29 V31 A22 22 0 0 1 48 53 H0 M38 53 L75 104" transform="translate(696 0)"/><path d="M0 -2 V102 M2 64 L74 -6 M22.6 44 L78 106" transform="translate(800 0)"/></g></g><g transform="translate(299.08 356) scale(0.44)"><g clip-path="url(#i5c)" fill="none" stroke-width="14" stroke-miterlimit="10" style="stroke:#16212B"><path d="M72 7 H24 A24 24 0 0 0 0 31 V69 A24 24 0 0 0 24 93 H72 V52 H42" transform="translate(0 0)"/><path d="M0 -2 V69 A24 24 0 0 0 24 93 H48 A24 24 0 0 0 72 69 V-2" transform="translate(136 0)"/><path d="M0 -2 V102" transform="translate(272 0)"/><path d="M0 7 H48 A24 24 0 0 1 72 31 V69 A24 24 0 0 1 48 93 H0 Z" transform="translate(336 0)"/><path d="M62 7 H0 V93 H62 M0 50 H54" transform="translate(472 0)"/><path d="M70 7 H20 A20 20 0 0 0 0 27 V30 A20 20 0 0 0 20 50 H50 A20 20 0 0 1 70 70 V73 A20 20 0 0 1 50 93 H0" transform="translate(591 0)"/></g></g><g fill="none" stroke-width="3" style="stroke:#16212B"><path d="M1.5 358 V398 M887.5 358 V398 M2 378 H274.00 M615.00 378 H887"/></g><path style="fill:#16212B" d="M3 378 L23 371.5 V384.5 Z M886 378 L866 371.5 V384.5 Z"/></svg></div><figcaption class="label">Stacked · footers, packaging, square spaces</figcaption></figure>
+      <figure class="plate light"><div class="fig"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="Benchmark Guides" class="mk"><defs><clipPath id="i6c"><rect x="-300" y="0" width="4000" height="100"/></clipPath></defs><g clip-path="url(#i6c)" fill="none" stroke-width="12" stroke-miterlimit="10"><path d="M0 6 H100" style="stroke:#8E5A1C"/><path d="M1.15 112 L50 37.36 L98.85 112 M50 37.36 V112" style="stroke:#16212B"/></g></svg></div><figcaption class="label">Mark · covers, stamps, small spaces</figcaption></figure>
+      <figure class="plate chalk"><div class="fig"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Benchmark Guides" class="icon"><defs><clipPath id="i7c"><rect x="-300" y="0" width="4000" height="100"/></clipPath></defs><rect width="512" height="512" fill="#16212B"/><g transform="translate(116 116) scale(2.8)"><g clip-path="url(#i7c)" fill="none" stroke-width="12" stroke-miterlimit="10"><path d="M0 6 H100" style="stroke:#C98B3E"/><path d="M1.15 112 L50 37.36 L98.85 112 M50 37.36 V112" style="stroke:#EDEFEA"/></g></g></svg></div><figcaption class="label">App icon · favicon, social avatar</figcaption></figure>
+    </div>
+
+    <div class="sub">
+      <div class="sub-head"><h3>Construction</h3><span class="label">Mark · S = overall size</span></div>
+      <div class="construct">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="-6 -30 200 150" role="img" aria-label="Benchmark Guides" class="construction"><defs><clipPath id="i8c"><rect x="-300" y="0" width="4000" height="100"/></clipPath></defs><g class="cx-grid" fill="none" stroke-width=".3"><path d="M0 -4 V104"/><path d="M10 -4 V104"/><path d="M20 -4 V104"/><path d="M30 -4 V104"/><path d="M40 -4 V104"/><path d="M50 -4 V104"/><path d="M60 -4 V104"/><path d="M70 -4 V104"/><path d="M80 -4 V104"/><path d="M90 -4 V104"/><path d="M100 -4 V104"/><path d="M-4 0 H104"/><path d="M-4 10 H104"/><path d="M-4 20 H104"/><path d="M-4 30 H104"/><path d="M-4 40 H104"/><path d="M-4 50 H104"/><path d="M-4 60 H104"/><path d="M-4 70 H104"/><path d="M-4 80 H104"/><path d="M-4 90 H104"/><path d="M-4 100 H104"/></g><g clip-path="url(#i8c)" fill="none" stroke-width="12" stroke-miterlimit="10"><path d="M0 6 H100" style="stroke:var(--datum)"/><path d="M1.15 112 L50 37.36 L98.85 112 M50 37.36 V112" style="stroke:var(--text)"/></g><g class="cx-cl" fill="none" stroke-width=".45" stroke-dasharray="2 1.4"><path d="M0 6.0 H100 M9 100 L50 37.36 L91 100 M50 37.36 V100"/></g><g class="cx-d" fill="none" stroke-width=".45"><path d="M0 -16 H100 M0 -19 V-13 M100 -19 V-13"/><path d="M110 0 V12 M107 0 H113 M107 12 H113"/><path d="M110 12 V26.400000000000002 M107 26.400000000000002 H113"/><path d="M130 0 V37.36 M127 37.36 H133 M127 0 H133"/><path d="M0 112 H9 M0 109 V115 M9 109 V115"/></g><text class="cx-t" x="50" y="-20" text-anchor="middle">S = 100</text><text class="cx-t" x="115" y="7.5">t = 0.12 S</text><text class="cx-t" x="115" y="20.700000000000003">gap = 1.2 t</text><text class="cx-t" x="135" y="20.2">apex 0.374 S</text><text class="cx-t" x="13" y="113.5">legs 0.09 S</text></svg>
+        <ul class="rules">
+          <li><b>One stroke weight</b>Bar, arrow and stem share a single stroke of 0.12 S, with square ends cut flat to the baseline.</li>
+          <li><b>The gap is the idea</b>The arrow stops 1.2 stroke-widths below the bar. It points at the datum and never touches it.</li>
+          <li><b>Datum in bronze</b>The bar is Survey Bronze on light grounds and Bronze Light on dark. For one-color use, the whole mark goes one color.</li>
+          <li><b>Lettering, not a font</b>The wordmark is drawn by hand. Never retype it. Use the supplied files.</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="sub">
+      <div class="sub-head"><h3>Clear space &amp; minimum size</h3><span class="label">X = height of the GUIDES dimension row</span></div>
+      <div class="cs-wrap"><svg xmlns="http://www.w3.org/2000/svg" viewBox="-48 -48 1219 266" role="img" aria-label="Benchmark Guides" class="clearspace"><defs><clipPath id="i9c"><rect x="-300" y="0" width="4000" height="100"/></clipPath></defs><rect class="cs-zone" x="-44" y="-44" width="1211" height="258"/><rect class="cs-edge" x="0" y="0" width="1123" height="170"/><g transform="scale(1.7)"><g clip-path="url(#i9c)" fill="none" stroke-width="12" stroke-miterlimit="10"><path d="M0 6 H100" style="stroke:var(--datum)"/><path d="M1.15 112 L50 37.36 L98.85 112 M50 37.36 V112" style="stroke:var(--text)"/></g></g><g transform="translate(241 0)"><g clip-path="url(#i9c)" fill="none" stroke-width="14" stroke-miterlimit="10" style="stroke:var(--text)"><path d="M0 50 H50 A20 20 0 0 1 70 70 V73 A20 20 0 0 1 50 93 H0 V7 H44 A20 20 0 0 1 64 27 V30 A20 20 0 0 1 44 50 H0" transform="translate(0 0)"/><path d="M62 7 H0 V93 H62 M0 50 H54" transform="translate(100 0)"/><path d="M0 102 V7 L72 93 V-2" transform="translate(186 0)"/><path d="M70 7 H24 A24 24 0 0 0 0 31 V69 A24 24 0 0 0 24 93 H70" transform="translate(284 0)"/><path d="M0 -2 V102 M72 -2 V102 M0 50 H72" transform="translate(374 0)"/><path d="M0 102 V7 L42 74 L84 7 V102" transform="translate(476 0)"/><path d="M-4 102 L38 7 L80 102 M11.9 66 H64.1" transform="translate(590 0)"/><path d="M0 102 V7 H48 A22 22 0 0 1 70 29 V31 A22 22 0 0 1 48 53 H0 M38 53 L75 104" transform="translate(696 0)"/><path d="M0 -2 V102 M2 64 L74 -6 M22.6 44 L78 106" transform="translate(800 0)"/></g></g><g transform="translate(533.08 126) scale(0.44)"><g clip-path="url(#i9c)" fill="none" stroke-width="14" stroke-miterlimit="10" style="stroke:var(--text)"><path d="M72 7 H24 A24 24 0 0 0 0 31 V69 A24 24 0 0 0 24 93 H72 V52 H42" transform="translate(0 0)"/><path d="M0 -2 V69 A24 24 0 0 0 24 93 H48 A24 24 0 0 0 72 69 V-2" transform="translate(136 0)"/><path d="M0 -2 V102" transform="translate(272 0)"/><path d="M0 7 H48 A24 24 0 0 1 72 31 V69 A24 24 0 0 1 48 93 H0 Z" transform="translate(336 0)"/><path d="M62 7 H0 V93 H62 M0 50 H54" transform="translate(472 0)"/><path d="M70 7 H20 A20 20 0 0 0 0 27 V30 A20 20 0 0 0 20 50 H50 A20 20 0 0 1 70 70 V73 A20 20 0 0 1 50 93 H0" transform="translate(591 0)"/></g></g><g fill="none" stroke-width="3" style="stroke:var(--text)"><path d="M235.5 128 V168 M1121.5 128 V168 M236 148 H508.00 M849.00 148 H1121"/></g><path style="fill:var(--text)" d="M237 148 L257 141.5 V154.5 Z M1120 148 L1100 141.5 V154.5 Z"/><g class="cs-x"><path d="M561.5 -44 V0 M1167 85.0 H1123 M-44 85.0 H0 M561.5 170 V214"/></g><text class="cs-t" x="569.5" y="-16.0">X</text><text class="cs-t" x="1139.0" y="77.0">X</text></svg></div>
+      <div class="scroll" style="margin-top:20px"><table class="plain">
+        <thead><tr><th>Version</th><th>Clear space</th><th>Min. digital</th><th>Min. print</th></tr></thead>
+        <tbody>
+          <tr><td>Primary</td><td>X on all sides</td><td class="mono">140 px wide</td><td class="mono">35 mm wide</td></tr>
+          <tr><td>Stacked</td><td>X on all sides</td><td class="mono">96 px wide</td><td class="mono">24 mm wide</td></tr>
+          <tr><td>Mark</td><td>0.25 S on all sides</td><td class="mono">16 px</td><td class="mono">5 mm</td></tr>
+        </tbody>
+      </table></div>
+      <p class="small muted" style="margin-top:12px">Below 140 px, GUIDES gets too small to read, so switch to the mark. On Shopify mobile headers, use the primary at 150 px or wider, or the mark alone.</p>
+    </div>
+
+    <div class="sub">
+      <div class="sub-head"><h3>Misuse</h3><span class="label">Not permitted</span></div>
+      <div class="cols-4 misuse">
+        <figure><div class="tile t-stretch"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1123 170" role="img" aria-label="Benchmark Guides" preserveAspectRatio="none"><defs><clipPath id="i10c"><rect x="-300" y="0" width="4000" height="100"/></clipPath></defs><g transform="scale(1.7)"><g clip-path="url(#i10c)" fill="none" stroke-width="12" stroke-miterlimit="10"><path d="M0 6 H100" style="stroke:#8E5A1C"/><path d="M1.15 112 L50 37.36 L98.85 112 M50 37.36 V112" style="stroke:#16212B"/></g></g><g transform="translate(241 0)"><g clip-path="url(#i10c)" fill="none" stroke-width="14" stroke-miterlimit="10" style="stroke:#16212B"><path d="M0 50 H50 A20 20 0 0 1 70 70 V73 A20 20 0 0 1 50 93 H0 V7 H44 A20 20 0 0 1 64 27 V30 A20 20 0 0 1 44 50 H0" transform="translate(0 0)"/><path d="M62 7 H0 V93 H62 M0 50 H54" transform="translate(100 0)"/><path d="M0 102 V7 L72 93 V-2" transform="translate(186 0)"/><path d="M70 7 H24 A24 24 0 0 0 0 31 V69 A24 24 0 0 0 24 93 H70" transform="translate(284 0)"/><path d="M0 -2 V102 M72 -2 V102 M0 50 H72" transform="translate(374 0)"/><path d="M0 102 V7 L42 74 L84 7 V102" transform="translate(476 0)"/><path d="M-4 102 L38 7 L80 102 M11.9 66 H64.1" transform="translate(590 0)"/><path d="M0 102 V7 H48 A22 22 0 0 1 70 29 V31 A22 22 0 0 1 48 53 H0 M38 53 L75 104" transform="translate(696 0)"/><path d="M0 -2 V102 M2 64 L74 -6 M22.6 44 L78 106" transform="translate(800 0)"/></g></g><g transform="translate(533.08 126) scale(0.44)"><g clip-path="url(#i10c)" fill="none" stroke-width="14" stroke-miterlimit="10" style="stroke:#16212B"><path d="M72 7 H24 A24 24 0 0 0 0 31 V69 A24 24 0 0 0 24 93 H72 V52 H42" transform="translate(0 0)"/><path d="M0 -2 V69 A24 24 0 0 0 24 93 H48 A24 24 0 0 0 72 69 V-2" transform="translate(136 0)"/><path d="M0 -2 V102" transform="translate(272 0)"/><path d="M0 7 H48 A24 24 0 0 1 72 31 V69 A24 24 0 0 1 48 93 H0 Z" transform="translate(336 0)"/><path d="M62 7 H0 V93 H62 M0 50 H54" transform="translate(472 0)"/><path d="M70 7 H20 A20 20 0 0 0 0 27 V30 A20 20 0 0 0 20 50 H50 A20 20 0 0 1 70 70 V73 A20 20 0 0 1 50 93 H0" transform="translate(591 0)"/></g></g><g fill="none" stroke-width="3" style="stroke:#16212B"><path d="M235.5 128 V168 M1121.5 128 V168 M236 148 H508.00 M849.00 148 H1121"/></g><path style="fill:#16212B" d="M237 148 L257 141.5 V154.5 Z M1120 148 L1100 141.5 V154.5 Z"/></svg></div><figcaption><span class="label">✕ Distort</span>Never stretch, squash or skew the logo.</figcaption></figure>
+        <figure><div class="tile"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1123 170" role="img" aria-label="Benchmark Guides" ><defs><clipPath id="i11c"><rect x="-300" y="0" width="4000" height="100"/></clipPath></defs><g transform="scale(1.7)"><g clip-path="url(#i11c)" fill="none" stroke-width="12" stroke-miterlimit="10"><path d="M0 6 H100" style="stroke:#EC6435"/><path d="M1.15 112 L50 37.36 L98.85 112 M50 37.36 V112" style="stroke:#EC6435"/></g></g><g transform="translate(241 0)"><g clip-path="url(#i11c)" fill="none" stroke-width="14" stroke-miterlimit="10" style="stroke:#EC6435"><path d="M0 50 H50 A20 20 0 0 1 70 70 V73 A20 20 0 0 1 50 93 H0 V7 H44 A20 20 0 0 1 64 27 V30 A20 20 0 0 1 44 50 H0" transform="translate(0 0)"/><path d="M62 7 H0 V93 H62 M0 50 H54" transform="translate(100 0)"/><path d="M0 102 V7 L72 93 V-2" transform="translate(186 0)"/><path d="M70 7 H24 A24 24 0 0 0 0 31 V69 A24 24 0 0 0 24 93 H70" transform="translate(284 0)"/><path d="M0 -2 V102 M72 -2 V102 M0 50 H72" transform="translate(374 0)"/><path d="M0 102 V7 L42 74 L84 7 V102" transform="translate(476 0)"/><path d="M-4 102 L38 7 L80 102 M11.9 66 H64.1" transform="translate(590 0)"/><path d="M0 102 V7 H48 A22 22 0 0 1 70 29 V31 A22 22 0 0 1 48 53 H0 M38 53 L75 104" transform="translate(696 0)"/><path d="M0 -2 V102 M2 64 L74 -6 M22.6 44 L78 106" transform="translate(800 0)"/></g></g><g transform="translate(533.08 126) scale(0.44)"><g clip-path="url(#i11c)" fill="none" stroke-width="14" stroke-miterlimit="10" style="stroke:#EC6435"><path d="M72 7 H24 A24 24 0 0 0 0 31 V69 A24 24 0 0 0 24 93 H72 V52 H42" transform="translate(0 0)"/><path d="M0 -2 V69 A24 24 0 0 0 24 93 H48 A24 24 0 0 0 72 69 V-2" transform="translate(136 0)"/><path d="M0 -2 V102" transform="translate(272 0)"/><path d="M0 7 H48 A24 24 0 0 1 72 31 V69 A24 24 0 0 1 48 93 H0 Z" transform="translate(336 0)"/><path d="M62 7 H0 V93 H62 M0 50 H54" transform="translate(472 0)"/><path d="M70 7 H20 A20 20 0 0 0 0 27 V30 A20 20 0 0 0 20 50 H50 A20 20 0 0 1 70 70 V73 A20 20 0 0 1 50 93 H0" transform="translate(591 0)"/></g></g><g fill="none" stroke-width="3" style="stroke:#EC6435"><path d="M235.5 128 V168 M1121.5 128 V168 M236 148 H508.00 M849.00 148 H1121"/></g><path style="fill:#EC6435" d="M237 148 L257 141.5 V154.5 Z M1120 148 L1100 141.5 V154.5 Z"/></svg></div><figcaption><span class="label">✕ Recolor</span>Flagging Orange is for badges. It never goes on the logo.</figcaption></figure>
+        <figure><div class="tile t-type"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" role="img" aria-label="Benchmark Guides" ><defs><clipPath id="i12c"><rect x="-300" y="0" width="4000" height="100"/></clipPath></defs><g clip-path="url(#i12c)" fill="none" stroke-width="12" stroke-miterlimit="10"><path d="M0 6 H100" style="stroke:#8E5A1C"/><path d="M1.15 112 L50 37.36 L98.85 112 M50 37.36 V112" style="stroke:#16212B"/></g></svg><span>Benchmark Guides</span></div><figcaption><span class="label">✕ Retype</span>Never set the name in a font next to the mark.</figcaption></figure>
+        <figure><div class="tile t-low"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1123 170" role="img" aria-label="Benchmark Guides" ><defs><clipPath id="i13c"><rect x="-300" y="0" width="4000" height="100"/></clipPath></defs><g transform="scale(1.7)"><g clip-path="url(#i13c)" fill="none" stroke-width="12" stroke-miterlimit="10"><path d="M0 6 H100" style="stroke:#C98B3E"/><path d="M1.15 112 L50 37.36 L98.85 112 M50 37.36 V112" style="stroke:#56626B"/></g></g><g transform="translate(241 0)"><g clip-path="url(#i13c)" fill="none" stroke-width="14" stroke-miterlimit="10" style="stroke:#56626B"><path d="M0 50 H50 A20 20 0 0 1 70 70 V73 A20 20 0 0 1 50 93 H0 V7 H44 A20 20 0 0 1 64 27 V30 A20 20 0 0 1 44 50 H0" transform="translate(0 0)"/><path d="M62 7 H0 V93 H62 M0 50 H54" transform="translate(100 0)"/><path d="M0 102 V7 L72 93 V-2" transform="translate(186 0)"/><path d="M70 7 H24 A24 24 0 0 0 0 31 V69 A24 24 0 0 0 24 93 H70" transform="translate(284 0)"/><path d="M0 -2 V102 M72 -2 V102 M0 50 H72" transform="translate(374 0)"/><path d="M0 102 V7 L42 74 L84 7 V102" transform="translate(476 0)"/><path d="M-4 102 L38 7 L80 102 M11.9 66 H64.1" transform="translate(590 0)"/><path d="M0 102 V7 H48 A22 22 0 0 1 70 29 V31 A22 22 0 0 1 48 53 H0 M38 53 L75 104" transform="translate(696 0)"/><path d="M0 -2 V102 M2 64 L74 -6 M22.6 44 L78 106" transform="translate(800 0)"/></g></g><g transform="translate(533.08 126) scale(0.44)"><g clip-path="url(#i13c)" fill="none" stroke-width="14" stroke-miterlimit="10" style="stroke:#56626B"><path d="M72 7 H24 A24 24 0 0 0 0 31 V69 A24 24 0 0 0 24 93 H72 V52 H42" transform="translate(0 0)"/><path d="M0 -2 V69 A24 24 0 0 0 24 93 H48 A24 24 0 0 0 72 69 V-2" transform="translate(136 0)"/><path d="M0 -2 V102" transform="translate(272 0)"/><path d="M0 7 H48 A24 24 0 0 1 72 31 V69 A24 24 0 0 1 48 93 H0 Z" transform="translate(336 0)"/><path d="M62 7 H0 V93 H62 M0 50 H54" transform="translate(472 0)"/><path d="M70 7 H20 A20 20 0 0 0 0 27 V30 A20 20 0 0 0 20 50 H50 A20 20 0 0 1 70 70 V73 A20 20 0 0 1 50 93 H0" transform="translate(591 0)"/></g></g><g fill="none" stroke-width="3" style="stroke:#56626B"><path d="M235.5 128 V168 M1121.5 128 V168 M236 148 H508.00 M849.00 148 H1121"/></g><path style="fill:#56626B" d="M237 148 L257 141.5 V154.5 Z M1120 148 L1100 141.5 V154.5 Z"/></svg></div><figcaption><span class="label">✕ Low contrast</span>Use Vellum, Chalk or Datum Ink grounds only.</figcaption></figure>
+      </div>
+    </div>
+  </section>
+
+  <!-- §3 COLOR -->
+  <section class="std" id="color">
+    <div class="sec-head">
+      <span class="clause">§3</span><h2>Color</h2>
+      <p class="lede">The palette comes from site survey kit: drafting vellum, the ink on a drawing, a bronze survey disk and orange flagging tape. Mostly paper and ink, with bronze as the one signature color.</p>
+    </div>
+
+    <div class="sub-head"><h3>Core</h3><span class="label">CMYK values are approximate · proof before print</span></div>
+    <div class="cols-4">
+      <div class="swatch"><div class="chip tall" style="background:#16212B;color:#EDEFEA"><span>INK</span><span>01</span></div><div class="sw-meta"><h4>Datum Ink</h4><p>Text, logo, covers, primary buttons.</p><dl class="codes"><dt>HEX</dt><dd>#16212B</dd><dt>RGB</dt><dd>22 33 43</dd><dt>CMYK</dt><dd>49 23 0 83</dd></dl></div></div>
+      <div class="swatch"><div class="chip tall" style="background:#EDEFEA;color:#16212B;border:1px solid var(--rule)"><span>VELLUM</span><span>02</span></div><div class="sw-meta"><h4>Vellum</h4><p>Page ground. The default surface.</p><dl class="codes"><dt>HEX</dt><dd>#EDEFEA</dd><dt>RGB</dt><dd>237 239 234</dd><dt>CMYK</dt><dd>1 0 2 6</dd></dl></div></div>
+      <div class="swatch"><div class="chip tall" style="background:#8E5A1C;color:#EDEFEA"><span>BRONZE</span><span>03</span></div><div class="sw-meta"><h4>Survey Bronze</h4><p>The datum bar, links, key highlights.</p><dl class="codes"><dt>HEX</dt><dd>#8E5A1C</dd><dt>RGB</dt><dd>142 90 28</dd><dt>CMYK</dt><dd>0 37 80 44</dd></dl></div></div>
+      <div class="swatch"><div class="chip tall" style="background:#FAFBF8;color:#16212B;border:1px solid var(--rule)"><span>CHALK</span><span>04</span></div><div class="sw-meta"><h4>Chalk</h4><p>Cards, guide interiors, the cart drawer.</p><dl class="codes"><dt>HEX</dt><dd>#FAFBF8</dd><dt>RGB</dt><dd>250 251 248</dd><dt>CMYK</dt><dd>0 0 1 2</dd></dl></div></div>
+    </div>
+
+    <div class="sub-head" style="margin-top:40px"><h3>Support</h3><span class="label">Use sparingly</span></div>
+    <div class="cols-3">
+      <div class="swatch"><div class="chip" style="background:#C98B3E;color:#16212B"><span>BRONZE LT</span><span>05</span></div><div class="sw-meta"><h4>Bronze Light</h4><p>Bronze on dark grounds. The datum bar on reversed logos.</p><dl class="codes"><dt>HEX</dt><dd>#C98B3E</dd><dt>RGB</dt><dd>201 139 62</dd><dt>CMYK</dt><dd>0 31 69 21</dd></dl></div></div>
+      <div class="swatch"><div class="chip" style="background:#56626B;color:#EDEFEA"><span>GRAPHITE</span><span>06</span></div><div class="sw-meta"><h4>Graphite</h4><p>Secondary text, metadata, captions.</p><dl class="codes"><dt>HEX</dt><dd>#56626B</dd><dt>RGB</dt><dd>86 98 107</dd><dt>CMYK</dt><dd>20 8 0 58</dd></dl></div></div>
+      <div class="swatch"><div class="chip" style="background:#EC6435;color:#16212B"><span>FLAG</span><span>07</span></div><div class="sw-meta"><h4>Flagging Orange</h4><p>"New rev" and sale badges only, always with ink text.</p><dl class="codes"><dt>HEX</dt><dd>#EC6435</dd><dt>RGB</dt><dd>236 100 53</dd><dt>CMYK</dt><dd>0 58 78 7</dd></dl></div></div>
+    </div>
+
+    <div class="sub">
+      <div class="sub-head"><h3>Proportion</h3><span class="label">Share of a typical page</span></div>
+      <div class="ratio-bar" role="img" aria-label="Vellum 60 percent, Datum Ink 25, Chalk 8, Survey Bronze 5, Flagging Orange 2">
+        <div style="flex:60;background:#EDEFEA;color:#16212B">Vellum 60</div>
+        <div style="flex:25;background:#16212B;color:#EDEFEA">Ink 25</div>
+        <div style="flex:8;background:#FAFBF8;color:#16212B">8</div>
+        <div style="flex:5;background:#8E5A1C;color:#EDEFEA">5</div>
+        <div style="flex:2;background:#EC6435"></div>
+      </div>
+    </div>
+
+    <div class="sub cols-2">
+      <div>
+        <div class="sub-head"><h3>Accessible pairings</h3><span class="label">WCAG 2.2 contrast</span></div>
+        <div class="pairs">
+          <div class="pair"><div class="aa" style="background:#EDEFEA;color:#16212B;border:1px solid var(--rule)">Aa</div><span class="small">Datum Ink on Vellum</span><span class="r">14.1:1</span><span class="pill pass">AAA</span></div>
+          <div class="pair"><div class="aa" style="background:#16212B;color:#C98B3E">Aa</div><span class="small">Bronze Light on Datum Ink</span><span class="r">5.6:1</span><span class="pill pass">AA</span></div>
+          <div class="pair"><div class="aa" style="background:#EDEFEA;color:#56626B;border:1px solid var(--rule)">Aa</div><span class="small">Graphite on Vellum</span><span class="r">5.4:1</span><span class="pill pass">AA</span></div>
+          <div class="pair"><div class="aa" style="background:#EDEFEA;color:#8E5A1C;border:1px solid var(--rule)">Aa</div><span class="small">Survey Bronze on Vellum</span><span class="r">5.0:1</span><span class="pill pass">AA</span></div>
+          <div class="pair"><div class="aa" style="background:#EC6435;color:#16212B">Aa</div><span class="small">Datum Ink on Flagging Orange</span><span class="r">5.0:1</span><span class="pill pass">AA</span></div>
+          <div class="pair"><div class="aa" style="background:#EC6435;color:#FFFFFF">Aa</div><span class="small">White on Flagging Orange. Never use this pair.</span><span class="r">3.6:1</span><span class="pill limit">FAIL</span></div>
+        </div>
+      </div>
+      <div>
+        <div class="sub-head"><h3>Discipline codes</h3><span class="label">Cover stripe + code only</span></div>
+        <div class="disc">
+          <div style="--c:#7C8A93"><b>GEN</b><span>Fundamentals</span><i>#7C8A93</i></div>
+          <div style="--c:#B5763A"><b>CIV</b><span>Civil &amp; Geotech</span><i>#B5763A</i></div>
+          <div style="--c:#5B87A3"><b>STR</b><span>Structural</span><i>#5B87A3</i></div>
+          <div style="--c:#5F8A6A"><b>MEC</b><span>Mechanical</span><i>#5F8A6A</i></div>
+          <div style="--c:#D6A637"><b>ELE</b><span>Electrical</span><i>#D6A637</i></div>
+          <div style="--c:#8A78AE"><b>PRC</b><span>Process</span><i>#8A78AE</i></div>
+        </div>
+        <p class="small muted" style="margin-top:14px">Discipline colors only ever appear on Datum Ink, as a cover stripe, a code chip or a collection tab. They never appear in UI, type or the logo. Adjust the list to match your catalog.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- §4 TYPE -->
+  <section class="std" id="type">
+    <div class="sec-head">
+      <span class="clause">§4</span><h2>Typography</h2>
+      <p class="lede">Three faces, each with one job. Saira's width axis echoes the wordmark's extended lettering. Source Serif carries the long explanations. Plex Mono handles anything you would read off an instrument: codes, units and revisions.</p>
+    </div>
+
+    <div class="specimen">
+      <div class="meta"><span class="label">Display &amp; UI</span><h4>Saira</h4><p>Weights 500–700, widths 100–125. Use it for headlines, navigation, buttons and prices. Headlines use mixed case, never all caps.</p></div>
+      <div>
+        <p class="sp-display">Checked to the clause.</p>
+        <div class="sp-widths"><span>Width 100</span><span>Width 112</span><span>Width 125</span></div>
+      </div>
+    </div>
+    <div class="specimen">
+      <div class="meta"><span class="label">Text</span><h4>Source Serif 4</h4><p>Weights 400–600 with italic. Use it for product descriptions, guide body text and emails. Set it at 17 px or larger online.</p></div>
+      <p class="sp-body">A simply supported beam carries its load to two bearings. Before sizing the section, we confirm where that load goes. <em>Every guide starts with the load path, not the formula.</em></p>
+    </div>
+    <div class="specimen">
+      <div class="meta"><span class="label">Data</span><h4>IBM Plex Mono</h4><p>Weights 400–500. Use it for SKUs, revision letters, page counts, units and equations. Numbers use tabular figures.</p></div>
+      <p class="sp-mono">BG-STR-204 · REV C · 96 pp<br>M<sub>max</sub> = wL²/8 = 40.0 kip·ft<br>Δ<sub>allow</sub> = L/360 = 0.667 in</p>
+    </div>
+
+    <div class="sub">
+      <div class="sub-head"><h3>Type scale</h3><span class="label">Ratio ≈ 1.25 · px at 1× · rem at 16 px root</span></div>
+      <div class="scroll"><table class="scale">
+        <thead><tr><th>Role</th><th>Spec</th><th>Size</th><th>Sample</th></tr></thead>
+        <tbody>
+          <tr><td class="m">Display</td><td class="m">Saira 700 · wdth 125 · −1.5%</td><td class="m">61 / 3.8rem</td><td><span style="font:700 40px/1 var(--f-display);font-stretch:125%;letter-spacing:-.015em">Measure</span></td></tr>
+          <tr><td class="m">H1</td><td class="m">Saira 700 · wdth 118</td><td class="m">49 / 3.05rem</td><td><span style="font:700 32px/1.1 var(--f-display);font-stretch:118%">Structural guides</span></td></tr>
+          <tr><td class="m">H2</td><td class="m">Saira 600 · wdth 112</td><td class="m">31 / 1.95rem</td><td><span style="font:600 25px/1.2 var(--f-display);font-stretch:112%">What's inside</span></td></tr>
+          <tr><td class="m">H3</td><td class="m">Saira 600 · wdth 112</td><td class="m">20 / 1.25rem</td><td><span style="font:600 20px/1.3 var(--f-display);font-stretch:112%">Worked example 3.2</span></td></tr>
+          <tr><td class="m">Body</td><td class="m">Source Serif 4 · 400 · lh 1.6</td><td class="m">17 / 1.0625rem</td><td><span style="font:400 17px/1.6 var(--f-body)">Confirm the load path before the formula.</span></td></tr>
+          <tr><td class="m">Small</td><td class="m">Source Serif 4 · 400</td><td class="m">14 / 0.875rem</td><td><span style="font:400 14px/1.5 var(--f-body)">Instant PDF download after checkout.</span></td></tr>
+          <tr><td class="m">Button</td><td class="m">Saira 600 · wdth 112 · caps · +7%</td><td class="m">14 / 0.875rem</td><td><span style="font:600 14px/1 var(--f-display);font-stretch:112%;letter-spacing:.07em;text-transform:uppercase">Add to cart</span></td></tr>
+          <tr><td class="m">Label</td><td class="m">Plex Mono 400 · caps · +9%</td><td class="m">12 / 0.75rem</td><td><span class="label">BG-STR-204 · EL 200</span></td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </section>
+
+  <!-- §5 GRAPHICS -->
+  <section class="std" id="graphics">
+    <div class="sec-head">
+      <span class="clause">§5</span><h2>Graphic language</h2>
+      <p class="lede">We borrow from drawings and survey notes, and every device has to carry real information. A dimension line needs a real measurement. A revision stamp needs a real revision.</p>
+    </div>
+
+    <div class="cols-3">
+      <div class="gl-tile"><div class="gl-fig" style="padding:0"><div class="gridpaper"></div></div><div class="gl-cap"><h4>Survey grid</h4><p>A 5:1 major/minor grid at 5–10% ink. Use it on covers, heroes and social posts, never behind body text.</p></div></div>
+      <div class="gl-tile"><div class="gl-fig"><div class="dim-demo"><div class="block">Steel Connection Design</div><div class="dim" aria-label="96 pages"><i class="tk"></i><i class="ar"></i><i class="ln"></i><span class="tx">96 pp</span><i class="ln"></i><i class="ar r"></i><i class="tk"></i></div></div></div><div class="gl-cap"><h4>Dimension callout</h4><p>Use it for quantities the buyer actually weighs: page count, number of worked examples, study hours.</p></div></div>
+      <div class="gl-tile"><div class="gl-fig"><span class="datum"><svg viewBox="0 0 64 84" aria-label="Datum A"><rect x="12" y="3" width="40" height="40" fill="none" stroke="currentColor" stroke-width="2.5"/><text x="32" y="32" text-anchor="middle" font-size="24" fill="currentColor">A</text><path d="M32 43 V64" stroke="currentColor" stroke-width="2.5"/><path d="M20 80 H44 L32 64 Z" fill="currentColor"/></svg></span></div><div class="gl-cap"><h4>Datum tag</h4><p>From GD&amp;T. It marks the guide a series builds on: "Start with Datum A: Load Paths."</p></div></div>
+      <div class="gl-tile"><div class="gl-fig"><span class="rev"><span>REV</span><span><b>C</b></span><span>2026-08</span></span></div><div class="gl-cap"><h4>Revision stamp</h4><p>Goes on every cover, product page and update email. The revision letter is a promise that the guide is maintained.</p></div></div>
+      <div class="gl-tile"><div class="gl-fig"><div class="levels">
+        <div class="lvl"><svg viewBox="0 0 24 16" aria-hidden="true"><path d="M4 1.5 H20 L12 13 Z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M0 14.5 H24" stroke="currentColor" stroke-width="2"/></svg><span class="mono">EL 100</span><b>Foundation</b></div>
+        <div class="lvl"><svg viewBox="0 0 24 16" aria-hidden="true"><path d="M4 1.5 H20 L12 13 Z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M0 14.5 H24" stroke="currentColor" stroke-width="2"/></svg><span class="mono">EL 200</span><b>Practice</b></div>
+        <div class="lvl"><svg viewBox="0 0 24 16" aria-hidden="true"><path d="M4 1.5 H20 L12 13 Z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M0 14.5 H24" stroke="currentColor" stroke-width="2"/></svg><span class="mono">EL 300</span><b>Specialist</b></div>
+      </div></div><div class="gl-cap"><h4>Elevation levels</h4><p>Difficulty shown as elevation above the datum. The level sets the SKU's hundreds digit: BG-STR-<b>2</b>04.</p></div></div>
+      <div class="gl-tile"><div class="gl-fig"><div style="display:grid;gap:6px;justify-items:start;font-family:var(--f-mono);font-size:13px;letter-spacing:.04em"><span><b style="font-weight:500">BG</b>-<span style="color:var(--datum)">STR</span>-<b style="font-weight:500">2</b>04</span><span class="label" style="font-size:10px">brand · discipline · level + sequence</span></div></div><div class="gl-cap"><h4>Guide codes</h4><p>Every guide has a permanent code. Use it as the Shopify SKU and on the cover, so a buyer can cite it.</p></div></div>
+    </div>
+
+    <div class="sub">
+      <div class="sub-head"><h3>Inside the guide</h3><span class="label">Page convention · example content</span></div>
+      <div class="page-mock">
+        <div class="pm-head"><span>BG-STR-101 · REV B</span><span>Load Paths &amp; Tributary Areas</span><span>p. 23</span></div>
+        <h4><span>WE 3.2</span>Simply supported floor beam</h4>
+        <dl class="gfs">
+          <dt>Given</dt><dd>Uniform live load <span class="eq" style="display:inline">w = 0.80 kip/ft</span>, span <span class="eq" style="display:inline">L = 20 ft</span>, floor member.</dd>
+          <dt>Find</dt><dd>Maximum moment, and the allowable live-load deflection.</dd>
+          <dt>Solution</dt><dd>
+            <span class="eq">M<sub>max</sub> = wL²/8 = (0.80)(20)²/8 = <b>40.0 kip·ft</b></span>
+            <span class="eq">Δ<sub>allow</sub> = L/360 = (240 in)/360 = <b>0.667 in</b></span>
+          </dd>
+          <dt>Check</dt><dd><span class="ok">✓ units</span> kip·ft and in &nbsp; <span class="ok">✓ source</span> IBC Table 1604.3, floor members, live load</dd>
+        </dl>
+      </div>
+      <p class="small muted" style="margin-top:14px">Every worked example follows Given → Find → Solution → Check. Results are highlighted in Bronze tint, and each check names its source.</p>
+    </div>
+  </section>
+
+  <!-- §6 VOICE -->
+  <section class="std" id="voice">
+    <div class="sec-head">
+      <span class="clause">§6</span><h2>Voice</h2>
+      <p class="lede">We write like a senior engineer marking up your calcs: direct, specific and on your side.</p>
+    </div>
+
+    <div class="cols-2">
+      <div class="principle"><h4>Show the working</h4><p>Say how, not just what. If a claim can be checked, show the check.</p>
+        <div class="say"><div class="yes"><span class="label">Write</span><q>42 worked examples, each checked against AISC 360-22.</q></div><div class="no"><span class="label">Not</span><q>The most complete steel guide ever made.</q></div></div></div>
+      <div class="principle"><h4>Units, always</h4><p>A number without units is unfinished, and that includes marketing copy.</p>
+        <div class="say"><div class="yes"><span class="label">Write</span><q>96 pages. About 6 hours of focused study.</q></div><div class="no"><span class="label">Not</span><q>Tons of content to master fast!</q></div></div></div>
+      <div class="principle"><h4>Plain first, then precise</h4><p>Lead with the plain idea, then add the technical term.</p>
+        <div class="say"><div class="yes"><span class="label">Write</span><q>How much a floor may sag under people and furniture: the live-load deflection limit.</q></div><div class="no"><span class="label">Not</span><q>Δ<sub>LL</sub> serviceability criteria per applicable code provisions.</q></div></div></div>
+      <div class="principle"><h4>Confident, never loud</h4><p>No exclamation marks, fake urgency or "hacks". Good references don't shout.</p>
+        <div class="say"><div class="yes"><span class="label">Write</span><q>Rev. C is out. It's free if you own Rev. B.</q></div><div class="no"><span class="label">Not</span><q>🔥 LAST CHANCE!!! Don't miss out!</q></div></div></div>
+    </div>
+
+    <div class="sub cols-2">
+      <div>
+        <div class="sub-head"><h3>Taglines</h3><span class="label">Primary first</span></div>
+        <ul class="taglines">
+          <li><b>Measure from here.</b><span class="label">Primary</span></li>
+          <li><b>Checked. Referenced. Ready to use.</b><span class="label">Product pages</span></li>
+          <li><b>The reference point for working engineers.</b><span class="label">About · ads</span></li>
+          <li><b>Every step. Every unit. Every clause.</b><span class="label">Social</span></li>
+        </ul>
+      </div>
+      <div>
+        <div class="sub-head"><h3>Microcopy</h3><span class="label">Storefront</span></div>
+        <div class="scroll"><table class="plain">
+          <thead><tr><th>Moment</th><th>Write</th></tr></thead>
+          <tbody>
+            <tr><td>Buy button</td><td>Add to cart</td></tr>
+            <tr><td>After purchase</td><td>Your guide is ready. The download link is also in your email.</td></tr>
+            <tr><td>Empty cart</td><td>Your cart is empty. Browse guides by discipline.</td></tr>
+            <tr><td>Update email</td><td>Rev. C is ready: Steel Connection Design</td></tr>
+            <tr><td>Refund policy</td><td>Guide not what you needed? Email us within 14 days for a refund.</td></tr>
+          </tbody>
+        </table></div>
+      </div>
+    </div>
+
+    <div class="sub">
+      <div class="sub-head"><h3>Product description</h3><span class="label">Template · example content</span></div>
+      <div class="copy-sheet">
+        <span class="annot">[Code · level · revision]</span>
+        <p class="label" style="margin:4px 0 0">BG-STR-204 · EL 200 · Rev C</p>
+        <span class="annot">[Title: the task, in the words the buyer searches for]</span>
+        <h4>Steel Connection Design</h4>
+        <span class="annot">[One sentence: who it's for and what they can do after]</span>
+        <p>For engineers designing bolted and welded shear connections. Work through each limit state in order, then check your own design with the same steps.</p>
+        <span class="annot">[What's inside: counts with units]</span>
+        <ul>
+          <li>96 pages · 42 worked examples · 11 design checklists</li>
+          <li>Worked to AISC 360-22, with clause references on every step</li>
+          <li>Rev C (August 2026): new block-shear examples. Free for Rev B owners.</li>
+        </ul>
+        <span class="annot">[Format and delivery, stated plainly]</span>
+        <p style="margin:0">PDF, instant download. Prints on US Letter or A4.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- §7 SHOPIFY -->
+  <section class="std" id="shopify">
+    <div class="sec-head">
+      <span class="clause">§7</span><h2>Shopify application</h2>
+      <p class="lede">How the identity carries into the store: a collection page, core components, theme settings and asset sizes. Products and prices below are examples.</p>
+    </div>
+
+    <div class="store">
+      <div class="announce">Rev. C of <em>Steel Connection Design</em> is live. It's a free update if you own Rev. B.</div>
+      <div class="store-head">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1123 170" role="img" aria-label="Benchmark Guides" class="store-logo"><defs><clipPath id="i14c"><rect x="-300" y="0" width="4000" height="100"/></clipPath></defs><g transform="scale(1.7)"><g clip-path="url(#i14c)" fill="none" stroke-width="12" stroke-miterlimit="10"><path d="M0 6 H100" style="stroke:var(--datum)"/><path d="M1.15 112 L50 37.36 L98.85 112 M50 37.36 V112" style="stroke:currentColor"/></g></g><g transform="translate(241 0)"><g clip-path="url(#i14c)" fill="none" stroke-width="14" stroke-miterlimit="10" style="stroke:currentColor"><path d="M0 50 H50 A20 20 0 0 1 70 70 V73 A20 20 0 0 1 50 93 H0 V7 H44 A20 20 0 0 1 64 27 V30 A20 20 0 0 1 44 50 H0" transform="translate(0 0)"/><path d="M62 7 H0 V93 H62 M0 50 H54" transform="translate(100 0)"/><path d="M0 102 V7 L72 93 V-2" transform="translate(186 0)"/><path d="M70 7 H24 A24 24 0 0 0 0 31 V69 A24 24 0 0 0 24 93 H70" transform="translate(284 0)"/><path d="M0 -2 V102 M72 -2 V102 M0 50 H72" transform="translate(374 0)"/><path d="M0 102 V7 L42 74 L84 7 V102" transform="translate(476 0)"/><path d="M-4 102 L38 7 L80 102 M11.9 66 H64.1" transform="translate(590 0)"/><path d="M0 102 V7 H48 A22 22 0 0 1 70 29 V31 A22 22 0 0 1 48 53 H0 M38 53 L75 104" transform="translate(696 0)"/><path d="M0 -2 V102 M2 64 L74 -6 M22.6 44 L78 106" transform="translate(800 0)"/></g></g><g transform="translate(533.08 126) scale(0.44)"><g clip-path="url(#i14c)" fill="none" stroke-width="14" stroke-miterlimit="10" style="stroke:currentColor"><path d="M72 7 H24 A24 24 0 0 0 0 31 V69 A24 24 0 0 0 24 93 H72 V52 H42" transform="translate(0 0)"/><path d="M0 -2 V69 A24 24 0 0 0 24 93 H48 A24 24 0 0 0 72 69 V-2" transform="translate(136 0)"/><path d="M0 -2 V102" transform="translate(272 0)"/><path d="M0 7 H48 A24 24 0 0 1 72 31 V69 A24 24 0 0 1 48 93 H0 Z" transform="translate(336 0)"/><path d="M62 7 H0 V93 H62 M0 50 H54" transform="translate(472 0)"/><path d="M70 7 H20 A20 20 0 0 0 0 27 V30 A20 20 0 0 0 20 50 H50 A20 20 0 0 1 70 70 V73 A20 20 0 0 1 50 93 H0" transform="translate(591 0)"/></g></g><g fill="none" stroke-width="3" style="stroke:currentColor"><path d="M235.5 128 V168 M1121.5 128 V168 M236 148 H508.00 M849.00 148 H1121"/></g><path style="fill:currentColor" d="M237 148 L257 141.5 V154.5 Z M1120 148 L1100 141.5 V154.5 Z"/></svg>
+        <nav class="store-nav" aria-label="Example store navigation"><a href="#shopify">Guides</a><a href="#shopify" aria-current="page">Disciplines</a><a href="#shopify">Bundles</a><a href="#shopify">Revision log</a></nav>
+        <span class="cart">Cart<b>2</b></span>
+      </div>
+      <div class="store-body">
+        <div class="coll-head"><div><span class="label">Collection · STR</span><h3>Structural</h3></div><span class="label">12 guides · sorted by level</span></div>
+        <div class="products">
+          <article class="product">
+            <div class="p-media"><div class="cover" style="--disc:#5B87A3"><div class="cv-top"><span>BG-STR-101</span><span>REV B</span></div><p class="cv-title">Load Paths &amp; Tributary Areas<small>From roof to footing, one member at a time</small></p><div class="cv-foot"><span>EL 100</span><svg viewBox="0 0 100 100" aria-hidden="true"><use href="#bg-mark"/></svg></div></div><span class="badge line">Datum A</span></div>
+            <div class="p-body"><span class="label">BG-STR-101 · EL 100</span><h4>Load Paths &amp; Tributary Areas</h4><p class="p-meta">64 pp · 28 worked examples</p><div class="p-foot"><span class="price">$24.00</span><button class="btn" type="button">Add to cart</button></div></div>
+          </article>
+          <article class="product">
+            <div class="p-media"><div class="cover" style="--disc:#5B87A3"><div class="cv-top"><span>BG-STR-204</span><span>REV C</span></div><p class="cv-title">Steel Connection Design<small>Bolted and welded shear connections</small></p><div class="cv-foot"><span>EL 200</span><svg viewBox="0 0 100 100" aria-hidden="true"><use href="#bg-mark"/></svg></div></div><span class="badge flag">New rev</span></div>
+            <div class="p-body"><span class="label">BG-STR-204 · EL 200</span><h4>Steel Connection Design</h4><p class="p-meta">96 pp · 42 worked examples</p><div class="p-foot"><span class="price">$34.00</span><button class="btn" type="button">Add to cart</button></div></div>
+          </article>
+          <article class="product">
+            <div class="p-media"><div class="cover" style="--disc:#5B87A3"><div class="cv-top"><span>BG-STR-310</span><span>REV A</span></div><p class="cv-title">Lateral Systems<small>Diaphragms, shear walls and drift</small></p><div class="cv-foot"><span>EL 300</span><svg viewBox="0 0 100 100" aria-hidden="true"><use href="#bg-mark"/></svg></div></div></div>
+            <div class="p-body"><span class="label">BG-STR-310 · EL 300</span><h4>Lateral Systems</h4><p class="p-meta">128 pp · 37 worked examples</p><div class="p-foot"><span class="price">$42.00</span><button class="btn" type="button">Add to cart</button></div></div>
+          </article>
+        </div>
+      </div>
+    </div>
+
+    <div class="sub">
+      <div class="sub-head"><h3>Components</h3><span class="label">Radius 2 px · no drop shadows on UI</span></div>
+      <div class="components">
+        <button class="btn" type="button">Add to cart</button>
+        <button class="btn outline" type="button">Preview 6 pages</button>
+        <a href="#shopify" style="font-family:var(--f-display);font-stretch:110%;font-weight:500">View revision log →</a>
+        <span class="sep" aria-hidden="true"></span>
+        <span class="badge flag">New rev</span>
+        <span class="badge line">Bundle · save 20%</span>
+        <span class="rev"><span>REV</span><span><b>C</b></span><span>2026-08</span></span>
+      </div>
+    </div>
+
+    <div class="sub">
+      <div class="sub-head"><h3>Theme color schemes</h3><span class="label">Maps to Online Store 2.0 theme settings</span></div>
+      <div class="scroll"><table class="plain">
+        <thead><tr><th>Scheme</th><th>Background</th><th>Text</th><th>Solid button</th><th>Button label</th><th>Use for</th></tr></thead>
+        <tbody>
+          <tr><td>1 · Vellum</td><td class="mono"><i class="swatchline" style="background:#EDEFEA"></i>#EDEFEA</td><td class="mono"><i class="swatchline" style="background:#16212B"></i>#16212B</td><td class="mono"><i class="swatchline" style="background:#16212B"></i>#16212B</td><td class="mono"><i class="swatchline" style="background:#EDEFEA"></i>#EDEFEA</td><td>Default pages, collections</td></tr>
+          <tr><td>2 · Chalk</td><td class="mono"><i class="swatchline" style="background:#FAFBF8"></i>#FAFBF8</td><td class="mono"><i class="swatchline" style="background:#16212B"></i>#16212B</td><td class="mono"><i class="swatchline" style="background:#16212B"></i>#16212B</td><td class="mono"><i class="swatchline" style="background:#FAFBF8"></i>#FAFBF8</td><td>Product cards, cart drawer</td></tr>
+          <tr><td>3 · Datum Ink</td><td class="mono"><i class="swatchline" style="background:#16212B"></i>#16212B</td><td class="mono"><i class="swatchline" style="background:#EDEFEA"></i>#EDEFEA</td><td class="mono"><i class="swatchline" style="background:#C98B3E"></i>#C98B3E</td><td class="mono"><i class="swatchline" style="background:#16212B"></i>#16212B</td><td>Announcement bar, footer, feature bands</td></tr>
+          <tr><td>4 · Bronze</td><td class="mono"><i class="swatchline" style="background:#8E5A1C"></i>#8E5A1C</td><td class="mono"><i class="swatchline" style="background:#EDEFEA"></i>#EDEFEA</td><td class="mono"><i class="swatchline" style="background:#EDEFEA"></i>#EDEFEA</td><td class="mono"><i class="swatchline" style="background:#8E5A1C"></i>#8E5A1C</td><td>Launches and sales only</td></tr>
+        </tbody>
+      </table></div>
+      <p class="small muted" style="margin-top:12px">Fonts: set Headings to Saira and Body to Source Serif 4. If one isn't in your theme's font picker, load it from Google Fonts. <span class="mono">brand/tokens.css</span> includes the import, plus overrides that keep buttons, navigation and prices in Saira.</p>
+    </div>
+
+    <div class="sub">
+      <div class="sub-head"><h3>Asset sizes</h3><span class="label">Export PNG from the SVG masters</span></div>
+      <div class="scroll"><table class="plain">
+        <thead><tr><th>Asset</th><th>File</th><th>Size</th><th>Notes</th></tr></thead>
+        <tbody>
+          <tr><td>Header logo</td><td class="mono">primary.svg</td><td class="mono">200–220 px desktop · 150 px mobile</td><td>Upload a PNG at 2× the display width if the theme won't accept SVG</td></tr>
+          <tr><td>Favicon</td><td class="mono">app-icon.svg</td><td class="mono">32 × 32 px PNG</td><td>Mark on Datum Ink, bronze datum bar</td></tr>
+          <tr><td>Social sharing image</td><td class="mono">primary-reversed.svg</td><td class="mono">1200 × 628 px</td><td>Datum Ink ground, survey grid, primary tagline</td></tr>
+          <tr><td>Product images</td><td class="mono">cover per guide</td><td class="mono">2048 × 2048 px</td><td>Cover centered at 60% width on a #E1E6E1 square, with a soft shadow</td></tr>
+          <tr><td>Email header</td><td class="mono">primary.svg</td><td class="mono">200 px in a 600 px layout</td><td>Vellum ground. Revision stamp next to the subject</td></tr>
+          <tr><td>Instagram</td><td class="mono">tip template</td><td class="mono">1080 × 1080 · 1080 × 1350 px</td><td>See below</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+
+    <div class="sub">
+      <div class="sub-head"><h3>Social &amp; email</h3><span class="label">Tip series · update emails</span></div>
+      <div class="social">
+        <div class="tile-ig" role="img" aria-label="Example Instagram tip post">
+          <div class="t1"><span>TIP 014</span><span>STR · EL 100</span></div>
+          <p class="t2">L/360 is a <span>serviceability</span> limit, not a strength check.</p>
+          <div class="t3"><svg viewBox="0 0 100 100" aria-hidden="true"><use href="#bg-mark"/></svg>Benchmark Guides</div>
+        </div>
+        <div>
+          <p>Posts teach one checkable fact, numbered like a series, with the discipline and level in the corner. Use at most one bronze word per post, on the term that matters.</p>
+          <span class="label">Email subject lines</span>
+          <ul class="subjects">
+            <li>Rev. C is ready: Steel Connection Design<span class="mono">Revision update · owners</span></li>
+            <li>Your guide is ready: BG-STR-204<span class="mono">Order confirmation</span></li>
+            <li>Deflection or strength? A 4-minute check<span class="mono">Newsletter · tip</span></li>
+            <li>New at EL 300: Lateral Systems<span class="mono">Launch</span></li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- §8 FILES -->
+  <section class="std" id="files">
+    <div class="sec-head">
+      <span class="clause">§8</span><h2>Files &amp; revisions</h2>
+      <p class="lede">Master files ship with this standard. The logos are pure geometry with no font dependencies, so they render the same everywhere.</p>
+    </div>
+    <div class="scroll"><table class="plain filelist">
+      <thead><tr><th>File</th><th>Use</th></tr></thead>
+      <tbody>
+        <tr><td>brand/logo/primary.svg</td><td>Default logo for headers, email and documents on light grounds</td></tr>
+        <tr><td>brand/logo/primary-reversed.svg</td><td>Logo on Datum Ink or dark photography</td></tr>
+        <tr><td>brand/logo/stacked.svg · stacked-reversed.svg</td><td>Footers, square placements, packaging</td></tr>
+        <tr><td>brand/logo/mark.svg · mark-reversed.svg</td><td>Covers, stamps, small spaces</td></tr>
+        <tr><td>brand/logo/app-icon.svg</td><td>Favicon and social avatar source</td></tr>
+        <tr><td>brand/tokens.css</td><td>Color and font tokens, plus Shopify CSS overrides</td></tr>
+      </tbody>
+    </table></div>
+
+    <div class="sub">
+      <div class="sub-head"><h3>Revision log</h3><span class="label">This standard is revised like a guide</span></div>
+      <div class="scroll"><table class="plain">
+        <thead><tr><th>Rev</th><th>Date</th><th>Description</th></tr></thead>
+        <tbody><tr><td>A</td><td class="mono">2026-09-15</td><td>First issue: foundation, logo, color, typography, graphic language, voice and Shopify application.</td></tr></tbody>
+      </table></div>
+    </div>
+    <div class="footer-block"><span>BG-ID-001 · REV A</span><span>Benchmark Guides · Brand Identity Standard</span><span>SHEET 1 OF 1</span></div>
+  </section>
+
+  </main>
+</div>
+</div>

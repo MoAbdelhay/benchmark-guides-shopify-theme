@@ -1,0 +1,66 @@
+{%- liquid
+  assign collection = section.settings.collection | default: collections.all
+  assign heading = section.settings.heading
+  assign eyebrow = section.settings.eyebrow
+  if heading == blank
+    assign heading = 'sections.featured_collection.heading' | t
+  endif
+  if eyebrow == blank
+    assign eyebrow = 'sections.featured_collection.eyebrow' | t
+  endif
+  assign limit = section.settings.limit
+-%}
+<section class="container section section--border-top" data-section-id="{{ section.id }}">
+  <div class="section-head">
+    <div>
+      <p class="eyebrow">{{ eyebrow }}</p>
+      <h2 class="display h2">{{ heading }}</h2>
+    </div>
+    {%- if section.settings.show_view_all and collection.products_count > limit -%}
+      <a class="link arrow-link label" href="{{ collection.url }}">{{ 'collections.general.view_all' | t: count: collection.products_count }} {% render 'icon', name: 'arrow' %}</a>
+    {%- endif -%}
+  </div>
+
+  {%- if collection.products.size > 0 -%}
+    <div class="grid grid--products">
+      {%- for product in collection.products limit: limit -%}
+        {% render 'product-card', product: product, index: forloop.index, lazy: true %}
+      {%- endfor -%}
+    </div>
+  {%- else -%}
+    <div class="grid grid--products">
+      {%- for i in (1..4) -%}
+        <article class="card reveal" style="--disc:var(--disc-{{ 'gen,civ,str,mec' | split: ',' | slice: forloop.index0 | first }})">
+          <div class="card__media">
+            <div class="cover" aria-hidden="true">
+              <div class="cover__spine"></div>
+              <div class="cover__body">
+                <div class="cover__rules"></div>
+                <div class="cover__code"><span>BG-XXX-00{{ i }}</span><span>Rev A</span></div>
+                <div class="cover__title">{{ 'sections.featured_collection.placeholder_title' | t }}</div>
+                <div class="cover__foot"><span class="label">GEN</span><span class="serial">00{{ i }}</span></div>
+              </div>
+            </div>
+          </div>
+          <div class="card__no"><span class="chip"><i></i>BG-XXX-00{{ i }}</span><span class="label">Rev A</span></div>
+          <h3 class="card__title">{{ 'sections.featured_collection.placeholder_title' | t }}</h3>
+          <div class="card__meta"><span class="label">{{ 'sections.featured_collection.placeholder_hint' | t }}</span><span class="price"><b>—</b></span></div>
+        </article>
+      {%- endfor -%}
+    </div>
+  {%- endif -%}
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.featured_collection.name",
+  "settings": [
+    { "type": "collection", "id": "collection", "label": "t:sections.featured_collection.collection" },
+    { "type": "text", "id": "eyebrow", "label": "t:sections.hero.eyebrow_label", "info": "t:general.blank_uses_builtin" },
+    { "type": "text", "id": "heading", "label": "t:sections.hero.heading_label", "info": "t:general.blank_uses_builtin" },
+    { "type": "range", "id": "limit", "label": "t:sections.featured_collection.limit", "min": 2, "max": 12, "step": 1, "default": 8 },
+    { "type": "checkbox", "id": "show_view_all", "label": "t:sections.featured_collection.view_all", "default": true }
+  ],
+  "presets": [{ "name": "t:sections.featured_collection.name" }]
+}
+{% endschema %}

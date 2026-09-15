@@ -1,0 +1,55 @@
+{%- liquid
+  assign heading = section.settings.heading
+  if heading == blank
+    assign heading = 'contact.form.heading' | t
+  endif
+-%}
+<section class="container" data-section-id="{{ section.id }}">
+  <div class="page-head">
+    <p class="eyebrow">{{ 'contact.form.eyebrow' | t }}</p>
+    <h1 class="display h2">{{ heading }}</h1>
+    {%- if section.settings.text != blank -%}<div class="lede">{{ section.settings.text }}</div>{%- endif -%}
+  </div>
+  <div class="account">
+    {%- form 'contact', id: 'ContactForm' -%}
+      {%- if form.posted_successfully? -%}
+        <p class="form-success">{{ 'contact.form.post_success' | t }}</p>
+      {%- elsif form.errors -%}
+        <div class="form-error">
+          <p>{{ 'contact.form.post_error' | t }}</p>
+          <ul>{%- for field in form.errors -%}<li>{{ form.errors.translated_fields[field] | capitalize }} {{ form.errors.messages[field] }}</li>{%- endfor -%}</ul>
+        </div>
+      {%- endif -%}
+      <div class="two-col">
+        <div class="field">
+          <label for="ContactName">{{ 'contact.form.name' | t }}</label>
+          <input id="ContactName" type="text" name="contact[name]" value="{% if form.name %}{{ form.name }}{% elsif customer %}{{ customer.name }}{% endif %}" autocomplete="name">
+        </div>
+        <div class="field">
+          <label for="ContactEmail">{{ 'contact.form.email' | t }} *</label>
+          <input id="ContactEmail" type="email" name="contact[email]" value="{% if form.email %}{{ form.email }}{% elsif customer %}{{ customer.email }}{% endif %}" autocomplete="email" required>
+        </div>
+      </div>
+      <div class="field">
+        <label for="ContactPhone">{{ 'contact.form.phone' | t }}</label>
+        <input id="ContactPhone" type="tel" name="contact[phone]" value="{{ form.phone }}" autocomplete="tel">
+      </div>
+      <div class="field">
+        <label for="ContactMessage">{{ 'contact.form.message' | t }} *</label>
+        <textarea id="ContactMessage" name="contact[body]" required>{{ form.body }}</textarea>
+      </div>
+      <button class="btn btn--solid" type="submit"><span>{{ 'contact.form.send' | t }}</span></button>
+    {%- endform -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.contact_form.name",
+  "settings": [
+    { "type": "text", "id": "heading", "label": "t:sections.hero.heading_label", "info": "t:general.blank_uses_builtin" },
+    { "type": "richtext", "id": "text", "label": "t:sections.hero.text_label" }
+  ],
+  "presets": [{ "name": "t:sections.contact_form.name" }]
+}
+{% endschema %}
