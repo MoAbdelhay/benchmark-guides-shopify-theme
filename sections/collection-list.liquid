@@ -25,19 +25,29 @@
         {%- assign d = disc_list[forloop.index0] | default: 'gen' -%}
         {%- if block.settings.discipline != blank -%}{%- assign d = block.settings.discipline -%}{%- endif -%}
         {%- assign d_key = 'products.discipline.' | append: d -%}
+        {%- assign desc_key = 'products.discipline_desc.' | append: d -%}
+        {%- assign desc = block.settings.description -%}
+        {%- if desc == blank -%}{%- assign desc = desc_key | t -%}{%- endif -%}
+        {%- assign title = c.title | default: block.settings.title -%}
+        {%- if title == blank -%}{%- assign title = d_key | t -%}{%- endif -%}
         <a class="coll reveal" href="{{ c.url | default: routes.collections_url }}" style="--disc:var(--disc-{{ d }})" {{ block.shopify_attributes }}>
           <span class="coll__code">{{ d | upcase }}</span>
-          <span class="coll__title">{{ c.title | default: block.settings.title | default: d_key | t }}</span>
-          <span class="coll__count">{{ 'collections.general.count' | t: count: c.products_count | default: 0 }}</span>
+          <span class="coll__title">{{ title }}</span>
+          <span class="coll__desc">{{ desc }}</span>
+          {%- if c != blank and c.products_count > 0 -%}<span class="coll__count">{% render 'guide-count', count: c.products_count %}</span>{%- endif -%}
         </a>
       {%- endfor -%}
     {%- else -%}
       {%- for c in collections limit: 6 -%}
         {%- assign d = disc_list[forloop.index0] | default: 'gen' -%}
+        {%- assign desc_key = 'products.discipline_desc.' | append: d -%}
+        {%- assign desc = c.description | strip_html | truncatewords: 22 -%}
+        {%- if desc == blank -%}{%- assign desc = desc_key | t -%}{%- endif -%}
         <a class="coll reveal" href="{{ c.url }}" style="--disc:var(--disc-{{ d }})">
           <span class="coll__code">{{ d | upcase }}</span>
           <span class="coll__title">{{ c.title }}</span>
-          <span class="coll__count">{{ 'collections.general.count' | t: count: c.products_count }}</span>
+          <span class="coll__desc">{{ desc }}</span>
+          {%- if c.products_count > 0 -%}<span class="coll__count">{% render 'guide-count', count: c.products_count %}</span>{%- endif -%}
         </a>
       {%- endfor -%}
     {%- endif -%}
@@ -65,7 +75,8 @@
             { "value": "mec", "label": "MEC" }, { "value": "ele", "label": "ELE" }, { "value": "prc", "label": "PRC" }
           ],
           "default": ""
-        }
+        },
+        { "type": "textarea", "id": "description", "label": "t:sections.collection_list.description", "info": "t:sections.collection_list.description_info" }
       ]
     }
   ],

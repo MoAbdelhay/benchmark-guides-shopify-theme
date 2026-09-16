@@ -339,7 +339,9 @@ main{flex:1}
 .coll:hover{transform:translateY(-3px)}
 .coll__code{font-family:var(--font-mono);font-size:12px;letter-spacing:.08em;color:#C98B3E;font-variant-numeric:tabular-nums}
 .coll__title{font-family:var(--font-display);font-stretch:var(--stretch-wide);font-size:clamp(24px,2.4vw,31px);font-weight:600;line-height:1.05;color:#EDEFEA}
+.coll__desc{font-size:14px;line-height:1.7;color:#B7C1C6;max-width:38ch;margin-top:-10px}
 .coll__count{font-family:var(--font-mono);font-size:12px;color:#9BA8AF}
+[dir="rtl"] .coll__count{font-family:"IBM Plex Sans Arabic",system-ui,sans-serif}
 [dir="rtl"] .coll__code,[dir="rtl"] .coll__count{letter-spacing:0}
 
 /* ---- image with text ---- */

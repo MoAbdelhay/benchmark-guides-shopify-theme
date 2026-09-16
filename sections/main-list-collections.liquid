@@ -13,7 +13,7 @@
           {%- if c.image and section.settings.show_images -%}
             <img src="{{ c.image | image_url: width: 600 }}" alt="" loading="lazy" width="600" height="338">
           {%- endif -%}
-          <span class="coll__count">{{ 'collections.general.count' | t: count: c.products_count }}</span>
+          <span class="coll__count">{% render 'guide-count', count: c.products_count %}</span>
           <span class="coll__title">{{ c.title }}</span>
         </a>
       {%- endfor -%}

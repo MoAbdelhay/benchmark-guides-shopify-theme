@@ -50,8 +50,12 @@
     }
   },
   "sections": {
-    "header_group": { "name": "Header" },
-    "footer_group": { "name": "Footer" },
+    "header_group": {
+      "name": "Header"
+    },
+    "footer_group": {
+      "name": "Footer"
+    },
     "announcement": {
       "name": "Announcement bar",
       "label": "Announcement",
@@ -111,7 +115,9 @@
       "block": "Collection",
       "discipline": "Discipline colour",
       "auto": "Automatic",
-      "show_images": "Show collection images"
+      "show_images": "Show collection images",
+      "description": "Description",
+      "description_info": "Leave blank to use the built-in discipline description."
     },
     "image_with_text": {
       "name": "Image with text",
@@ -142,8 +148,12 @@
       "answer": "Answer",
       "open_first": "Open the first question by default"
     },
-    "newsletter": { "name": "Newsletter" },
-    "apps": { "name": "Apps" },
+    "newsletter": {
+      "name": "Newsletter"
+    },
+    "apps": {
+      "name": "Apps"
+    },
     "main_product": {
       "name": "Product",
       "stamp": "Show revision stamp",
@@ -168,25 +178,58 @@
       "disciplines_info": "Filters by product tag (gen, civ, str, mec, ele, prc).",
       "sort": "Show sort"
     },
-    "main_list_collections": { "name": "Collections index" },
+    "main_list_collections": {
+      "name": "Collections index"
+    },
     "main_cart": {
       "name": "Cart",
       "note": "Show order note",
       "additional": "Show additional checkout buttons"
     },
-    "main_page": { "name": "Page" },
-    "main_404": { "name": "404" },
-    "main_search": { "name": "Search" },
-    "main_blog": { "name": "Blog", "excerpt": "Show excerpts" },
-    "main_article": { "name": "Article", "image": "Show featured image", "author": "Show author" },
-    "main_password": { "name": "Password page" },
-    "contact_form": { "name": "Contact form" },
-    "main_login": { "name": "Login" },
-    "main_register": { "name": "Register" },
-    "main_account": { "name": "Account" },
-    "main_order": { "name": "Order" },
-    "main_addresses": { "name": "Addresses" },
-    "main_reset_password": { "name": "Reset password" },
-    "main_activate_account": { "name": "Activate account" }
+    "main_page": {
+      "name": "Page"
+    },
+    "main_404": {
+      "name": "404"
+    },
+    "main_search": {
+      "name": "Search"
+    },
+    "main_blog": {
+      "name": "Blog",
+      "excerpt": "Show excerpts"
+    },
+    "main_article": {
+      "name": "Article",
+      "image": "Show featured image",
+      "author": "Show author"
+    },
+    "main_password": {
+      "name": "Password page"
+    },
+    "contact_form": {
+      "name": "Contact form"
+    },
+    "main_login": {
+      "name": "Login"
+    },
+    "main_register": {
+      "name": "Register"
+    },
+    "main_account": {
+      "name": "Account"
+    },
+    "main_order": {
+      "name": "Order"
+    },
+    "main_addresses": {
+      "name": "Addresses"
+    },
+    "main_reset_password": {
+      "name": "Reset password"
+    },
+    "main_activate_account": {
+      "name": "Activate account"
+    }
   }
 }

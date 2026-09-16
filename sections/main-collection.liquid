@@ -11,7 +11,7 @@
         <div class="lede">{{ collection.description }}</div>
       {%- endif -%}
     </div>
-    <span class="label">{{ 'collections.general.count' | t: count: collection.products_count }}</span>
+    <span class="label">{% render 'guide-count', count: collection.products_count %}</span>
   </div>
 
   <div class="toolbar">

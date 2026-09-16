@@ -50,8 +50,12 @@
     }
   },
   "sections": {
-    "header_group": { "name": "الترويسة" },
-    "footer_group": { "name": "التذييل" },
+    "header_group": {
+      "name": "الترويسة"
+    },
+    "footer_group": {
+      "name": "التذييل"
+    },
     "announcement": {
       "name": "شريط الإعلان",
       "label": "إعلان",
@@ -111,7 +115,9 @@
       "block": "مجموعة",
       "discipline": "لون التخصص",
       "auto": "تلقائي",
-      "show_images": "إظهار صور المجموعات"
+      "show_images": "إظهار صور المجموعات",
+      "description": "الوصف",
+      "description_info": "اتركه فارغًا لاستخدام وصف التخصص المدمج."
     },
     "image_with_text": {
       "name": "صورة مع نص",
@@ -142,8 +148,12 @@
       "answer": "الإجابة",
       "open_first": "فتح السؤال الأول افتراضيًا"
     },
-    "newsletter": { "name": "النشرة البريدية" },
-    "apps": { "name": "التطبيقات" },
+    "newsletter": {
+      "name": "النشرة البريدية"
+    },
+    "apps": {
+      "name": "التطبيقات"
+    },
     "main_product": {
       "name": "المنتج",
       "stamp": "إظهار ختم المراجعة",
@@ -168,25 +178,58 @@
       "disciplines_info": "يفلتر حسب وسم المنتج (gen, civ, str, mec, ele, prc).",
       "sort": "إظهار الترتيب"
     },
-    "main_list_collections": { "name": "فهرس المجموعات" },
+    "main_list_collections": {
+      "name": "فهرس المجموعات"
+    },
     "main_cart": {
       "name": "السلة",
       "note": "إظهار ملاحظة الطلب",
       "additional": "إظهار أزرار الدفع الإضافية"
     },
-    "main_page": { "name": "صفحة" },
-    "main_404": { "name": "404" },
-    "main_search": { "name": "البحث" },
-    "main_blog": { "name": "المدوّنة", "excerpt": "إظهار المقتطفات" },
-    "main_article": { "name": "المقال", "image": "إظهار الصورة البارزة", "author": "إظهار الكاتب" },
-    "main_password": { "name": "صفحة كلمة المرور" },
-    "contact_form": { "name": "نموذج التواصل" },
-    "main_login": { "name": "تسجيل الدخول" },
-    "main_register": { "name": "إنشاء حساب" },
-    "main_account": { "name": "الحساب" },
-    "main_order": { "name": "الطلب" },
-    "main_addresses": { "name": "العناوين" },
-    "main_reset_password": { "name": "إعادة تعيين كلمة المرور" },
-    "main_activate_account": { "name": "تفعيل الحساب" }
+    "main_page": {
+      "name": "صفحة"
+    },
+    "main_404": {
+      "name": "404"
+    },
+    "main_search": {
+      "name": "البحث"
+    },
+    "main_blog": {
+      "name": "المدوّنة",
+      "excerpt": "إظهار المقتطفات"
+    },
+    "main_article": {
+      "name": "المقال",
+      "image": "إظهار الصورة البارزة",
+      "author": "إظهار الكاتب"
+    },
+    "main_password": {
+      "name": "صفحة كلمة المرور"
+    },
+    "contact_form": {
+      "name": "نموذج التواصل"
+    },
+    "main_login": {
+      "name": "تسجيل الدخول"
+    },
+    "main_register": {
+      "name": "إنشاء حساب"
+    },
+    "main_account": {
+      "name": "الحساب"
+    },
+    "main_order": {
+      "name": "الطلب"
+    },
+    "main_addresses": {
+      "name": "العناوين"
+    },
+    "main_reset_password": {
+      "name": "إعادة تعيين كلمة المرور"
+    },
+    "main_activate_account": {
+      "name": "تفعيل الحساب"
+    }
   }
 }
