@@ -14,7 +14,7 @@
   <div class="section-head">
     <div>
       <p class="eyebrow">{{ eyebrow }}</p>
-      <h2 class="display h2">{{ heading }}</h2>
+      {%- if heading != blank -%}<h2 class="display h2">{{ heading }}</h2>{%- endif -%}
     </div>
     <a class="link arrow-link" href="{{ routes.collections_url }}">{{ 'collections.general.browse' | t }} {% render 'icon', name: 'arrow' %}</a>
   </div>
