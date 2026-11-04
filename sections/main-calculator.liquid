@@ -1,0 +1,50 @@
+{%- comment -%}
+  Engineer's Calculator: 53 calculators (HVAC, plumbing, fire, electrical, structural, geotechnical, site QC).
+  It renders inside the shadow root of <bg-calculator>, so theme CSS cannot change it and its CSS cannot leak
+  into the store. It reads the theme's colour and font tokens (--bg, --ink, --accent, --font-display …) and
+  follows the store language (Arabic → right-to-left).
+
+  assets/bg-calculator.js and assets/bg-calculator.css are GENERATED from
+  "Calculation Sheets BG/MEP Calculator/index.html" by build-shopify.py in that folder.
+  Edit the source there and rebuild; do not edit the assets by hand.
+{%- endcomment -%}
+<section class="container section--tight" data-section-id="{{ section.id }}">
+  <h1 class="visually-hidden">{{ page.title }}</h1>
+  {%- if section.settings.show_content and page.content != blank -%}
+    <div class="rte calculator-intro">{{ page.content }}</div>
+  {%- endif -%}
+  <bg-calculator
+    data-mode="embedded"
+    data-css="{{ 'bg-calculator.css' | asset_url }}"
+    style="--bgc-offset: {{ section.settings.sticky_offset }}px;"
+  >
+    <noscript><p>{{ 'sections.main_calculator.noscript' | t }}</p></noscript>
+  </bg-calculator>
+</section>
+
+<script src="{{ 'bg-calculator.js' | asset_url }}" defer></script>
+
+{% schema %}
+{
+  "name": "t:sections.main_calculator.name",
+  "settings": [
+    {
+      "type": "range",
+      "id": "sticky_offset",
+      "min": 0,
+      "max": 200,
+      "step": 4,
+      "unit": "px",
+      "default": 96,
+      "label": "t:sections.main_calculator.settings.sticky_offset.label",
+      "info": "t:sections.main_calculator.settings.sticky_offset.info"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_content",
+      "default": true,
+      "label": "t:sections.main_calculator.settings.show_content.label"
+    }
+  ]
+}
+{% endschema %}

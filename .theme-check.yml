@@ -5,3 +5,9 @@ extends: theme-check:recommended
 # IBM Plex Sans Arabic / Noto Naskh Arabic are not in Shopify's font library).
 RemoteAsset:
   enabled: false
+
+# The Engineer's Calculator is one self-contained bundle (53 calculators + Arabic text),
+# loaded only on the calculator page template.
+AssetSizeJavaScript:
+  ignore:
+    - sections/main-calculator.liquid

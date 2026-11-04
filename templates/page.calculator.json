@@ -1,0 +1,14 @@
+{
+  "sections": {
+    "main": {
+      "type": "main-calculator",
+      "settings": {
+        "sticky_offset": 96,
+        "show_content": true
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}

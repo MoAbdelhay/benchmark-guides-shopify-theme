@@ -230,6 +230,18 @@
     },
     "main_activate_account": {
       "name": "Activate account"
+    },
+    "main_calculator": {
+      "name": "Engineering calculator",
+      "settings": {
+        "sticky_offset": {
+          "label": "Space for the sticky header",
+          "info": "Keeps the calculator list below the store header while scrolling."
+        },
+        "show_content": {
+          "label": "Show the page content above the calculator"
+        }
+      }
     }
   }
 }

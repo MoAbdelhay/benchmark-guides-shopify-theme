@@ -163,6 +163,9 @@
       "eyebrow": "Revision updates",
       "heading": "One email per new revision.",
       "text": "Just the changelog. No marketing."
+    },
+    "main_calculator": {
+      "noscript": "Turn on JavaScript to use the calculators."
     }
   },
   "products": {
