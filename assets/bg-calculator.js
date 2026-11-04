@@ -994,7 +994,7 @@ const AR={
 "Flow":"التدفق","Length":"الطول","Power & cooling":"القدرة والتبريد","pers":"شخص","Sheet":"الورقة","Discipline":"التخصص","Revision":"المراجعة","{0} °C DB":"{0} °C جاف","no.":"عدد","% of pipe":"% من المواسير","L/pers·day":"L/شخص·يوم","% of pipe ":"% من المواسير"
 };
 
-let LANG='ar';if(STANDALONE){try{LANG=localStorage.getItem('mepcalc.lang')||'ar'}catch(e){}}else{LANG=/^ar/i.test(document.documentElement.lang||'')?'ar':'en'}
+let LANG='ar';if(STANDALONE){try{LANG=localStorage.getItem('mepcalc.lang')||'ar'}catch(e){}}else{const f=(host.dataset.lang||'').toLowerCase();LANG=(f==='ar'||f==='en')?f:(/^ar/i.test(document.documentElement.lang||'')?'ar':'en')}
 function tr(s){
   if(LANG!=='ar'||s===null||s===undefined) return s;
   s=String(s); if(AR[s]!==undefined) return AR[s];

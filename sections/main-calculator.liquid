@@ -16,6 +16,7 @@
   <bg-calculator
     data-mode="embedded"
     data-css="{{ 'bg-calculator.css' | asset_url }}"
+    {% if section.settings.language != 'auto' %}data-lang="{{ section.settings.language }}"{% endif %}
     style="--bgc-offset: {{ section.settings.sticky_offset }}px;"
   >
     <noscript><p>{{ 'sections.main_calculator.noscript' | t }}</p></noscript>
@@ -28,6 +29,18 @@
 {
   "name": "t:sections.main_calculator.name",
   "settings": [
+    {
+      "type": "select",
+      "id": "language",
+      "options": [
+        { "value": "auto", "label": "t:sections.main_calculator.settings.language.options__1.label" },
+        { "value": "ar", "label": "t:sections.main_calculator.settings.language.options__2.label" },
+        { "value": "en", "label": "t:sections.main_calculator.settings.language.options__3.label" }
+      ],
+      "default": "auto",
+      "label": "t:sections.main_calculator.settings.language.label",
+      "info": "t:sections.main_calculator.settings.language.info"
+    },
     {
       "type": "range",
       "id": "sticky_offset",

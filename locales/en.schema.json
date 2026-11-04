@@ -240,6 +240,19 @@
         },
         "show_content": {
           "label": "Show the page content above the calculator"
+        },
+        "language": {
+          "label": "Calculator language",
+          "info": "Follow the store keeps it in step with the store language. Pick Arabic or English to fix it for pages that use this template.",
+          "options__1": {
+            "label": "Follow the store"
+          },
+          "options__2": {
+            "label": "Arabic"
+          },
+          "options__3": {
+            "label": "English"
+          }
         }
       }
     }

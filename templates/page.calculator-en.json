@@ -1,0 +1,15 @@
+{
+  "sections": {
+    "main": {
+      "type": "main-calculator",
+      "settings": {
+        "language": "en",
+        "sticky_offset": 96,
+        "show_content": true
+      }
+    }
+  },
+  "order": [
+    "main"
+  ]
+}
