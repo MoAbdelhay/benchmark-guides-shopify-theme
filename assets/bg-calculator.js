@@ -11,7 +11,7 @@ const MARKUP=`<header class="top">
   <nav id="nav" aria-label="Calculators">
     <div class="search"><input id="q" type="search" placeholder="Search calculators…" aria-label="Search calculators"></div>
     <div id="navlist"></div>
-    <p class="navnote" id="navnote">Every calculator lists the BG sheets it was built from. Values are for preliminary design; check against the governing code and manufacturer data.</p>
+    <p class="navnote" id="navnote">Every calculator lists the BG sheets or code clauses it is based on. Values are for preliminary design; check against the governing code and manufacturer data.</p>
   </nav>
   <main>
     <article class="sheet" id="sheet"></article>
@@ -140,8 +140,8 @@ const CONDUIT=[16,20,25,32,40,50,63,75,100,150];
 const TRAY=[50,100,150,200,300,450,600,750,900];
 
 /* ---------- calculators ---------- */
-const GDISC={HV:'mec',PL:'mec',FP:'mec',EL:'ele',ST:'str',CV:'civ',GN:'gen',OP:'prc'};
-const GROUPS=[['HV','HVAC'],['PL','Plumbing'],['FP','Fire protection'],['EL','Electrical'],['ST','Structural'],['CV','Civil & geotechnical'],['GN','Fundamentals'],['OP','Site & quality control']];
+const GDISC={HV:'mec',PL:'mec',FP:'mec',EL:'ele',ST:'str',CV:'civ',GN:'gen',OP:'prc',AR:'arc'};
+const GROUPS=[['HV','HVAC'],['PL','Plumbing'],['FP','Fire protection'],['EL','Electrical'],['AR','Architecture'],['ST','Structural'],['CV','Civil & geotechnical'],['GN','Fundamentals'],['OP','Site & quality control']];
 const C=[];
 const def=o=>C.push(o);
 
@@ -855,6 +855,302 @@ def({id:'sieve',g:'OP',code:'OP-03',t:'Sieve analysis',
  f:['Passing % = 100 − cumulative retained %','Dx by log-linear interpolation','Cu = D60 ÷ D10,   Cc = D30² ÷ (D10 × D60)']});
 
 
+/* architecture (code-based; ref:1 shows "Based on" with the code clauses) */
+const OLF=[ // name, m² per occupant, basis — IBC 2021 Table 1004.5 (converted from ft²)
+ ['Assembly — chairs only (concentrated)',0.65,'net'],['Assembly — tables and chairs (unconcentrated)',1.4,'net'],['Assembly — standing space',0.46,'net'],
+ ['Prayer hall',0.65,'net'],['Business / office (IBC 2018+)',13.9,'gross'],['Business / office (IBC 2015, SBC 201)',9.3,'gross'],
+ ['Classroom',1.9,'net'],['Shops and vocational rooms',4.6,'net'],['Mercantile / retail',5.6,'gross'],['Residential',18.6,'gross'],
+ ['Hospital — inpatient treatment',22.3,'gross'],['Hospital — sleeping areas',11.1,'gross'],['Outpatient clinic',13.9,'gross'],
+ ['Commercial kitchen',18.6,'gross'],['Library — reading rooms',4.6,'net'],['Library — stack area',9.3,'gross'],['Exercise room / gym',4.6,'gross'],
+ ['Industrial',9.3,'gross'],['Accessory storage / mechanical room',27.9,'gross'],['Warehouse',46.5,'gross'],['Parking garage',18.6,'gross']];
+const exitsFor=n=>n<=0?0:n<50?1:n<=500?2:n<=1000?3:4;
+const TRAVEL=[ // name, travel distance unspr / spr, common path unspr / spr, dead end unspr / spr (m); NaN = not permitted
+ ['Assembly (A)',61,76,23,23,6.1,6.1],['Business / office (B)',61,91,23,30,6.1,15.2],['Educational (E)',61,76,23,23,6.1,15.2],
+ ['Mercantile (M)',61,76,23,23,6.1,15.2],['Residential — apartments (R-2)',61,76,23,38,6.1,15.2],
+ ['Factory / storage — moderate hazard (F-1, S-1)',61,76,23,30,6.1,15.2],['Factory / storage — low hazard (F-2, S-2)',91,122,23,30,6.1,15.2],
+ ['Hospital (I-2)',NaN,61,NaN,30,NaN,6.1]];
+const SPR=[['0','Not sprinklered'],['1','Sprinklered']];
+const WCT=[ // name, WC male 1 per, WC female 1 per, lavatory 1 per, drinking fountain 1 per, urinal share — IPC 2021 Table 2902.1, §424.2
+ ['Assembly — theatres, cinemas (A-1)',125,65,200,500,0.67],['Assembly — restaurants, cafés (A-2)',75,75,200,500,0.67],
+ ['Assembly — halls, museums, libraries (A-3)',125,65,200,500,0.67],['Places of worship (A-3)',150,75,200,1000,0.67],
+ ['Business / office (B)','b','b','b',100,0.5],['Educational (E)',50,50,50,100,0.67],['Mercantile / retail (M)',500,500,750,1000,0.5],
+ ['Factory / industrial (F)',100,100,100,400,0.5],['Storage (S)',100,100,100,1000,0.5]];
+const tier=(n,a,na,b)=>n<=0?0:n<=na?Math.ceil(n/a):Math.ceil(na/a)+Math.ceil((n-na)/b);
+const AREA_CAT=['Net usable area','Circulation (corridors, lobbies, stairs)','Toilets, services and shafts','Walls, columns and structure','Parking and loading','Balconies and terraces'];
+const PARK=[ // name, spaces, per (1 = per unit, 100 = per 100 m²) — typical municipal ratios, edit to suit
+ ['Office — per 100 m²',2.5,100],['Retail / shops — per 100 m²',3.3,100],['Restaurant / café — per 100 m²',6.7,100],['Mall / supermarket — per 100 m²',4,100],
+ ['Apartment — per unit',1.5,1],['Villa — per unit',2,1],['Hotel — per room',0.5,1],['Hospital — per bed',1,1],['Clinic — per 100 m²',3.3,100],
+ ['School — per classroom',2,1],['Mosque — per 100 m² prayer area',5,100],['Event hall — per 100 m²',10,100],['Warehouse — per 100 m²',0.5,100],['Industrial — per 100 m²',1,100]];
+const accPark=n=>n<=0?0:n<=25?1:n<=50?2:n<=75?3:n<=100?4:n<=150?5:n<=200?6:n<=300?7:n<=400?8:n<=500?9:n<=1000?Math.ceil(n*0.02):20+Math.ceil((n-1000)/100);
+const MATS=[ // name, thermal conductivity W/m·K (0 = air gap, R 0.18)
+ ['Reinforced concrete',2.3],['Plain concrete',1.75],['Hollow concrete block (equivalent)',0.9],['Solid concrete block',1.13],['Autoclaved aerated block (AAC)',0.16],
+ ['Clay brick',0.77],['Limestone',1.5],['Granite / marble',2.8],['Cement plaster',0.72],['Gypsum plaster',0.4],['Gypsum board',0.25],['Cement screed',1.4],
+ ['Ceramic / porcelain tile',1.3],['Extruded polystyrene (XPS)',0.034],['Expanded polystyrene (EPS)',0.038],['Polyurethane / PIR foam',0.025],['Mineral / rock wool',0.04],
+ ['Bitumen membrane',0.23],['Timber (softwood)',0.13],['Gravel ballast',2.0],['Unventilated air gap ≥ 25 mm',0]];
+const AIRGAP=MATS.length-1;
+const ORIENT=[['North',150],['East',650],['South',350],['West',650],['Skylight (horizontal)',950]];
+const psat=T=>6.112*Math.exp(17.62*T/(243.12+T));
+const LIFT_T=[['Office — multi-tenant',30,12],['Office — single tenant',25,15],['Hotel',40,12],['Residential',60,6],['Hospital',30,10]];
+const ABS=[ // name, α at 500 Hz
+ ['Concrete / painted plaster',0.02],['Ceramic tile / marble',0.01],['Gypsum board on studs',0.05],['Glass — large panes',0.04],['Timber floor',0.10],
+ ['Carpet on concrete',0.14],['Carpet on underlay',0.40],['Mineral fibre ceiling tile',0.60],['Perforated gypsum ceiling with backing',0.65],
+ ['Fabric-wrapped panel 50 mm',0.85],['Heavy curtains (draped)',0.55],['Timber panelling',0.10],['Upholstered seating (per m²)',0.70],['Open doorway',1.0]];
+const RT_T=[['Classroom',0.6],['Meeting / conference room',0.6],['Open-plan office',0.8],['Lecture hall (speech)',0.9],['Restaurant',1.0],['Prayer hall',1.2],['Multi-purpose hall',1.2],['Concert hall (music)',1.8]];
+
+def({id:'occupant-load',g:'AR',code:'AR-01',t:'Occupant load',ref:1,
+ d:'Design occupant load of a floor or building from the area of each use and the IBC occupant load factors, with the number of exits it needs.',
+ src:[['IBC 2021','Table 1004.5'],['IBC 2021','§1006.3.3'],['SBC 201','Chapter 10']],
+ inp:[{id:'rows',type:'rows',cols:[{id:'u',l:'Use',type:'sel',o:opt(OLF.map(x=>x[0]))},{id:'a',l:'Area m²',v:100}],v:[{u:'4',a:1200},{u:'1',a:180},{u:'18',a:60}]}],
+ calc(v){const r=v.rows.map(x=>{const o=OLF[+x.u]||OLF[0],a=+x.a||0;return {o,a,n:a>0?Math.ceil(a/o[1]-1e-9):0}}),N=r.reduce((s,x)=>s+x.n,0),A=r.reduce((s,x)=>s+x.a,0);
+  return {res:[{l:'Occupant load',v:N,u:'pers',key:1,d:0},{l:'Exits required',v:exitsFor(N),key:1,d:0},{l:'Total area',v:A,u:'m²',d:0},{l:'Average area per person',v:N?A/N:NaN,u:'m²/pers',d:2}],
+   chk:[N<50?{s:'ok',t:'Under 50 occupants: one exit can be enough if the common path of travel is within the limit (AR-03).'}:{s:'ok',t:'50 occupants or more: at least two exits are needed.'}],
+   tbl:{head:['Use','m² per person','Basis','Area m²','Occupants'],rows:r.map(x=>({c:[x.o[0],fmt(x.o[1],2),x.o[2],fmt(x.a,0),fmt(x.n,0)]}))}};},
+ f:['Occupants = ⌈ area ÷ load factor ⌉ for each use, then Σ','Exits: 1–500 → 2,  501–1,000 → 3,  over 1,000 → 4  (IBC §1006.3.3)'],
+ notes:['Gross area includes corridors, stairs, toilets and walls. Net area is the occupied floor only.','Fixed seating is counted by the number of seats, not by area.','SBC 201 and IBC 2015 use 9.3 m² per person for offices; IBC 2018 and later use 13.9 m². Use the edition your authority enforces.']});
+
+def({id:'exit-width',g:'AR',code:'AR-02',t:'Egress width and exits',ref:1,
+ d:'Required stair and door width for an occupant load and the number of exits, with a check of the widths drawn.',
+ src:[['IBC 2021','§1005.3'],['IBC 2021','§1005.5'],['IBC 2021','§1006.3.3'],['IBC 2021','§1010.1.1, §1011.2, §1020.3']],
+ inp:[{id:'N',l:'Occupant load',u:'pers',v:420,hint:'For the floor served (AR-01)'},
+  {id:'sp',l:'Sprinklers and voice alarm',type:'sel',o:[['0','No'],['1','Sprinklered with emergency voice / alarm']],v:'0',wide:1},
+  {h:'As drawn'},{id:'ns',l:'Exit stairs',u:'no.',v:2},{id:'ws',l:'Clear width of each stair',u:'mm',v:1700},
+  {id:'nd',l:'Exit doors',u:'no.',v:2},{id:'wd',l:'Clear width of each door',u:'mm',v:1100}],
+ calc(v){const sp=v.sp==='1',fs=sp?5.1:7.6,fd=sp?3.8:5.1,N=v.N,E=exitsFor(N),minS=N<50?914:1118,minC=N<50?914:1118,
+  Ws=N*fs,Wd=N*fd,perS=Math.max(minS,Ws/Math.max(E,1)),perD=Math.max(813,Wd/Math.max(E,1)),totS=v.ns*v.ws,totD=v.nd*v.wd;
+  return {res:[{l:'Exits required',v:E,key:1,d:0},{l:'Each stair, at least',v:perS,u:'mm',key:1,d:0},{l:'Each door, at least',v:perD,u:'mm',key:1,d:0},
+   {l:'Total stair width',v:Ws,u:'mm',d:0},{l:'Total door width',v:Wd,u:'mm',d:0},{l:'Corridor width, at least',v:minC,u:'mm',d:0},
+   {l:'Stair factor',v:fs,u:'mm/pers',d:1},{l:'Door factor',v:fd,u:'mm/pers',d:1}],
+   chk:[v.ns>=E?{s:'ok',t:'Number of exit stairs meets the requirement.'}:{s:'bad',t:'Not enough exit stairs for this occupant load.'},
+    v.nd>=E?{s:'ok',t:'Number of exit doors meets the requirement.'}:{s:'bad',t:'Not enough exit doors for this occupant load.'},
+    totS>=Ws&&v.ws>=minS?{s:'ok',t:'Stair width is enough.'}:{s:'bad',t:'Stair width is too small.'},
+    totD>=Wd&&v.wd>=813?{s:'ok',t:'Door width is enough.'}:{s:'bad',t:'Door width is too small.'},
+    v.ns>1&&(v.ns-1)*v.ws<0.5*Ws?{s:'bad',t:'Losing one stair leaves less than half the required width (IBC §1005.5).'}:{s:'ok',t:'Losing one stair leaves at least half the required width.'}]};},
+ f:['Stair width = occupants × 7.6 mm  (5.1 mm when sprinklered with voice alarm)','Other egress = occupants × 5.1 mm  (3.8 mm when sprinklered with voice alarm)','Minimums: stair 1,118 mm (914 mm under 50 occupants), door clear 813 mm, corridor 1,118 mm'],
+ notes:['Stair width is measured between handrails; door width is the clear opening with the door open at 90°.','Size each floor for its own occupant load; stairs do not need to widen as they go down unless floors converge.']});
+
+def({id:'travel',g:'AR',code:'AR-03',t:'Travel distance and common path',ref:1,
+ d:'Checks the exit access travel distance, common path of egress travel and dead-end corridors against the IBC limits.',
+ src:[['IBC 2021','Table 1017.2'],['IBC 2021','Table 1006.2.1'],['IBC 2021','§1020.5']],
+ inp:[{id:'o',l:'Occupancy',type:'sel',o:opt(TRAVEL.map(x=>x[0])),v:'1',wide:1},{id:'sp',l:'Sprinklers',type:'sel',o:SPR,v:'1'},
+  {h:'As drawn'},{id:'td',l:'Longest travel distance to an exit',u:'m',v:58},{id:'cp',l:'Common path of travel',u:'m',v:22},{id:'de',l:'Longest dead-end corridor',u:'m',v:8}],
+ calc(v){const t=TRAVEL[+v.o],k=v.sp==='1'?1:0,TD=t[1+k],CP=t[3+k],DE=t[5+k],c=(x,L,ok,bad)=>isNaN(L)?{s:'bad',t:'Not permitted without sprinklers.'}:x<=L?{s:'ok',t:ok}:{s:'bad',t:bad};
+  return {res:[{l:'Travel distance limit',v:TD,u:'m',key:1,d:0},{l:'Common path limit',v:CP,u:'m',key:1,d:0},{l:'Dead-end limit',v:DE,u:'m',d:1},
+   {l:'Travel distance used',v:v.td/TD*100,u:'%',d:0}],
+   chk:[c(v.td,TD,'Travel distance within the limit.','Travel distance exceeds the limit. Add an exit or move one.'),
+    c(v.cp,CP,'Common path within the limit.','Common path exceeds the limit. Provide a second way out sooner.'),
+    c(v.de,DE,'Dead-end corridor within the limit.','Dead-end corridor too long.')],
+   tbl:{head:['Occupancy','Travel m','Travel m (spr.)','Common path m','Common path m (spr.)'],rows:TRAVEL.map((x,i)=>({hl:i==v.o,c:[x[0],fmt(x[1],0),fmt(x[2],0),fmt(x[3],0),fmt(x[4],0)]}))}};},
+ f:['Travel distance is measured along the natural path from the most remote point to the door of an exit (stair, exit passage or outside).','Common path: the part of that route before the occupant has two separate ways to go.'],
+ notes:['Common path limits shown are for spaces with more than 30 occupants (more than 10 in R-2 and some others); smaller rooms get longer limits.','— means not permitted.']});
+
+def({id:'exit-sep',g:'AR',code:'AR-04',t:'Exit separation',ref:1,
+ d:'Minimum distance between two exits: half the diagonal of the area served, or one third when the building is sprinklered.',
+ src:[['IBC 2021','§1007.1.1']],
+ inp:[{id:'L',l:'Length of area served',u:'m',v:60},{id:'W',l:'Width of area served',u:'m',v:25},{id:'sp',l:'Sprinklers',type:'sel',o:SPR,v:'0'},
+  {id:'d',l:'Distance between exits as drawn',u:'m',v:35,hint:'Straight line between the nearest edges of the two exit doors'}],
+ calc(v){const D=Math.hypot(v.L,v.W),k=v.sp==='1'?1/3:1/2,m=D*k;
+  return {res:[{l:'Minimum separation',v:m,u:'m',key:1,d:1},{l:'Overall diagonal',v:D,u:'m',d:1},{l:'Rule',v:v.sp==='1'?'one third of the diagonal':'half the diagonal'}],
+   chk:[v.d>=m?{s:'ok',t:'Exits are far enough apart.'}:{s:'bad',t:'Exits are too close together. Move them apart.'}]};},
+ f:['Separation ≥ diagonal ÷ 2   (not sprinklered)','Separation ≥ diagonal ÷ 3   (sprinklered throughout)'],
+ notes:['With three or more exits, two must meet this rule and the others must be placed so that a single fire is unlikely to block them all.','For exit stairs, the distance can be measured along a fire-rated corridor connecting them.']});
+
+def({id:'stair',g:'AR',code:'AR-05',t:'Stair design',ref:1,
+ d:'Number of risers, riser height and going for a floor-to-floor height, with the comfort rule, pitch, flights and landings.',
+ src:[['IBC 2021','§1011.5'],['IBC 2021','§1011.8'],['SBC 201','§1011']],
+ inp:[{id:'H',l:'Floor-to-floor height',u:'mm',v:3600},{id:'ty',l:'Stair type',type:'sel',o:[['c','Public / commercial'],['r','Inside a dwelling']],v:'c'},
+  {id:'lay',l:'Layout',type:'sel',o:[['1','Straight'],['2','Dog-leg, 2 flights'],['3','U-shape, 3 flights']],v:'2'},
+  {id:'W',l:'Stair clear width',u:'mm',v:1200},{id:'Rt',l:'Target riser',u:'mm',v:0,hint:'0 = highest riser allowed'}],
+ calc(v){const dw=v.ty==='r',Rmax=dw?196:178,Gmin=dw?254:279,tg=v.Rt>0?Math.min(v.Rt,Rmax):Rmax,n=Math.max(2,Math.ceil(v.H/tg-1e-9)),R=v.H/n,
+  G=Math.max(Gmin,Math.ceil((630-2*R)/5-1e-9)*5),fl=Math.max(+v.lay,Math.ceil(v.H/3658-1e-9)),fr=Array.from({length:fl},(_,i)=>Math.floor(n/fl)+(i<n%fl?1:0)),
+  run=(fr[0]-1)*G,land=v.lay==='1'?Math.min(v.W,1219):v.W,pitch=Math.atan(R/G)*180/PI,b=2*R+G;
+  const plan=v.lay==='1'?fmt((n-fl)*G+(fl-1)*land,0)+' × '+fmt(v.W,0):v.lay==='2'?fmt(run+2*land,0)+' × '+fmt(2*v.W+100,0):'—';
+  return {res:[{l:'Risers',v:n,key:1,d:0},{l:'Riser height',v:R,u:'mm',key:1,d:1},{l:'Going (tread)',v:G,u:'mm',key:1,d:0},
+   {l:'2R + G',v:b,u:'mm',d:0},{l:'Pitch',v:pitch,u:'°',d:1},{l:'Flights',v:fl,d:0},{l:'Risers per flight',v:fr.join(' + ')},{l:'Treads',v:n-fl,d:0},
+   {l:'Run of longest flight',v:run,u:'mm',d:0},{l:'Landing depth, at least',v:land,u:'mm',d:0},{l:'Plan size (approx.)',v:plan,u:'mm'}],
+   chk:[R<=Rmax&&R>=102?{s:'ok',t:'Riser between 102 mm and '+Rmax+' mm.'}:{s:'bad',t:'Riser outside 102 – '+Rmax+' mm.'},
+    b>=600&&b<=650?{s:'ok',t:'2R + G is within 600 – 650 mm: a comfortable stair.'}:{s:'warn',t:'2R + G is outside 600 – 650 mm: the stair may feel awkward.'},
+    v.W>=1118?{s:'ok',t:'Width suits 50 occupants or more.'}:v.W>=914?{s:'warn',t:'Width below 1,118 mm: only for fewer than 50 occupants.'}:{s:'bad',t:'Width below the 914 mm minimum.'}]};},
+ f:['n = ⌈ H ÷ Rmax ⌉,   R = H ÷ n','G = max(Gmin, 630 − 2R) rounded up to 5 mm','Pitch = atan(R ÷ G),   one flight rises 3,658 mm at most','Public: R 102–178 mm, G ≥ 279 mm.   Dwelling: R ≤ 196 mm, G ≥ 254 mm'],
+ notes:['Headroom of at least 2,032 mm is needed along the whole stair, measured vertically from the nosing line.','All risers and goings in a flight must match within 9.5 mm.','Plan size for a dog-leg stair includes the half landing, a floor landing and a 100 mm gap between flights.']});
+
+def({id:'ramp',g:'AR',code:'AR-06',t:'Ramp design',ref:1,
+ d:'Length, runs and landings of a ramp for a given rise and slope, with accessibility checks.',
+ src:[['IBC 2021','§1012'],['ICC A117.1','§405'],['ADA 2010','§405']],
+ inp:[{id:'r',l:'Total rise',u:'mm',v:900},{id:'n',l:'Slope 1 :',u:'',v:12,hint:'12 = 1:12 (8.3 %)'},{id:'use',l:'Ramp use',type:'sel',o:[['a','Accessible route'],['e','Other egress']],v:'a'},
+  {id:'W',l:'Clear width between handrails',u:'mm',v:1200},{id:'Ld',l:'Landing length',u:'mm',v:1525}],
+ calc(v){const runs=Math.max(1,Math.ceil(v.r/760-1e-9)),rr=v.r/runs,rl=rr*v.n,hz=v.r*v.n+(runs-1)*v.Ld,all=hz+2*v.Ld,acc=v.use==='a';
+  return {res:[{l:'Ramp length (horizontal)',v:hz/1000,u:'m',key:1,d:2},{l:'Runs',v:runs,key:1,d:0},{l:'Rise of each run',v:rr,u:'mm',d:0},{l:'Length of each run',v:rl/1000,u:'m',d:2},
+   {l:'Intermediate landings',v:runs-1,d:0},{l:'Overall length with top and bottom landings',v:all/1000,u:'m',d:2},{l:'Slope',v:100/v.n,u:'%',d:1},{l:'Angle',v:Math.atan(1/v.n)*180/PI,u:'°',d:1},
+   {l:'Handrails',v:v.r>152?'required on both sides':'not required'}],
+   chk:[acc?(v.n>=12?{s:'ok',t:'Slope 1:12 or flatter, as required on an accessible route.'}:{s:'bad',t:'Slope steeper than 1:12 is not allowed on an accessible route.'})
+     :(v.n>=8?{s:'ok',t:'Slope 1:8 or flatter, as required for an egress ramp.'}:{s:'bad',t:'Slope steeper than 1:8 is not allowed for a means of egress.'}),
+    v.W>=1118?{s:'ok',t:'Width suits an egress ramp.'}:v.W>=915&&acc?{s:'warn',t:'Width meets the accessible minimum (915 mm) but not the 1,118 mm egress minimum.'}:{s:'bad',t:'Ramp too narrow.'},
+    v.Ld>=1525?{s:'ok',t:'Landings are long enough.'}:{s:'bad',t:'Landings must be at least 1,525 mm long.'}]};},
+ f:['Runs = ⌈ rise ÷ 760 mm ⌉','Run length = rise of run × n','Length = rise × n + (runs − 1) × landing'],
+ notes:['Landings are needed at the top and bottom of every run, and wherever the ramp turns (1,525 × 1,525 mm).','Cross slope must not exceed 1:48. Provide edge protection where the side drops off.','Car park ramps for vehicles follow different rules (typically 1:6 to 1:10 with transitions).']});
+
+def({id:'toilets',g:'AR',code:'AR-07',t:'Toilet fixture count',ref:1,
+ d:'Minimum number of water closets, lavatories and drinking fountains for an occupant load, from the IPC table.',
+ src:[['IPC 2021','Table 2902.1'],['IPC 2021','§424.2'],['SBC 701','Chapter 29']],
+ inp:[{id:'o',l:'Occupancy',type:'sel',o:opt(WCT.map(x=>x[0])),v:'4',wide:1},{id:'N',l:'Occupant load',u:'pers',v:420},{id:'pm',l:'Share of men',u:'%',v:50}],
+ calc(v){const t=WCT[+v.o],m=v.N*v.pm/100,w=v.N-m,biz=t[1]==='b',
+  wm=biz?tier(m,25,50,50):Math.ceil(m/t[1]-1e-9),wf=biz?tier(w,25,50,50):Math.ceil(w/t[2]-1e-9),
+  lm=biz?tier(m,40,80,80):Math.ceil(m/t[3]-1e-9),lf=biz?tier(w,40,80,80):Math.ceil(w/t[3]-1e-9),df=Math.ceil(v.N/t[4]-1e-9),ur=Math.floor(wm*t[5]);
+  return {res:[{l:'Water closets — men',v:wm,key:1,d:0},{l:'Water closets — women',v:wf,key:1,d:0},{l:'Lavatories — men',v:lm,d:0},{l:'Lavatories — women',v:lf,d:0},
+   {l:'Urinals can replace up to',v:ur,u:'WC',d:0},{l:'Drinking fountains',v:df,d:0},{l:'Service sinks',v:1,d:0}],
+   chk:[v.N<=15?{s:'ok',t:'15 occupants or fewer: one shared facility is allowed.'}:{s:'ok',t:'Separate facilities for men and women are needed.'}],
+   tbl:{head:['Fixture','Men','Women','Ratio'],rows:[
+    {c:['Water closets',fmt(wm,0),fmt(wf,0),biz?'1:25 for the first 50, then 1:50':'1:'+t[1]+' men,  1:'+t[2]+' women']},
+    {c:['Lavatories',fmt(lm,0),fmt(lf,0),biz?'1:40 for the first 80, then 1:80':'1:'+t[3]]},
+    {c:['Drinking fountains',fmt(df,0),'','1:'+t[4]]}]}};},
+ f:['Occupant load is split by the share of men and women (50 / 50 unless the use justifies otherwise).','Fixtures = ⌈ occupants ÷ ratio ⌉ for each sex','Urinals may replace up to 67 % of men\'s water closets in assembly and educational uses, 50 % elsewhere.'],
+ notes:['Every toilet room needs at least one accessible water closet; with six or more closets, one ambulatory stall too.','Ablution facilities for prayer areas are not covered by this table.','A water cooler or bottle filler can replace up to half of the drinking fountains.']});
+
+def({id:'area-schedule',g:'AR',code:'AR-08',t:'Area schedule and efficiency',ref:1,
+ d:'Gross and net floor areas from a schedule of spaces, with the building efficiency (net-to-gross ratio).',
+ src:[['BOMA / IPMS','Area measurement'],['IBC 2021','§202 Floor area, gross / net']],
+ inp:[{id:'pk',l:'Parking and balconies',type:'sel',o:[['0','Exclude from GFA'],['1','Include in GFA']],v:'0'},
+  {id:'rows',type:'rows',cols:[{id:'k',l:'Category',type:'sel',o:opt(AREA_CAT)},{id:'a',l:'Area per floor m²',v:100},{id:'n',l:'Floors',v:1}],
+  v:[{k:'0',a:820,n:8},{k:'1',a:110,n:8},{k:'2',a:45,n:8},{k:'3',a:45,n:8},{k:'4',a:1800,n:2}]}],
+ calc(v){const tot=AREA_CAT.map(()=>0);v.rows.forEach(r=>{tot[+r.k]+=(+r.a||0)*(+r.n||0)});
+  const inc=v.pk==='1',GFA=tot.reduce((s,x,i)=>s+(i>=4&&!inc?0:x),0),NFA=tot[0],eff=GFA?NFA/GFA:NaN;
+  return {res:[{l:'Gross floor area (GFA)',v:GFA,u:'m²',key:1,d:0},{l:'Efficiency (net ÷ gross)',v:eff*100,u:'%',key:1,d:1},{l:'Net usable area',v:NFA,u:'m²',d:0},
+   {l:'Circulation share',v:GFA?tot[1]/GFA*100:NaN,u:'%',d:1},{l:'Excluded from GFA',v:inc?0:tot[4]+tot[5],u:'m²',d:0}],
+   chk:[eff<0.7?{s:'warn',t:'Efficiency below 70 %: a lot of area goes to circulation and services.'}:eff>0.9?{s:'warn',t:'Efficiency above 90 %: check that circulation, shafts and walls are all counted.'}:{s:'ok',t:'Efficiency in the usual range (offices 75 – 85 %, residential 80 – 88 %).'}],
+   tbl:{head:['Category','Area m²','% of GFA'],rows:AREA_CAT.map((n,i)=>({dim:i>=4&&!inc,c:[n,fmt(tot[i],0),GFA?fmt(tot[i]/GFA*100,1):'—']}))}};},
+ f:['GFA = Σ all areas inside the outer face of external walls','Efficiency = net usable ÷ GFA']});
+
+def({id:'far',g:'AR',code:'AR-09',t:'FAR and site coverage',ref:1,
+ d:'Maximum built-up area and footprint for a plot from the floor-area ratio, site coverage and setbacks, checked against a proposal.',
+ src:[['Local zoning','Building regulations'],['MOMRAH','Building requirements']],
+ inp:[{h:'Plot'},{id:'L',l:'Plot depth',u:'m',v:40},{id:'W',l:'Plot frontage',u:'m',v:30},{id:'sf',l:'Front setback',u:'m',v:6},{id:'sr',l:'Rear setback',u:'m',v:2},{id:'ss',l:'Side setback (each)',u:'m',v:2},
+  {h:'Planning limits'},{id:'far',l:'Floor-area ratio (FAR)',u:'',v:2.4},{id:'cov',l:'Site coverage',u:'%',v:60},{id:'fm',l:'Maximum floors',u:'',v:4,hint:'0 = no limit'},
+  {h:'Proposal'},{id:'fp',l:'Ground floor footprint',u:'m²',v:640},{id:'ty',l:'Typical upper floor',u:'m²',v:700},{id:'nf',l:'Floors including ground',u:'',v:4}],
+ calc(v){const P=v.L*v.W,B=Math.max(0,v.L-v.sf-v.sr)*Math.max(0,v.W-2*v.ss),MF=Math.min(v.cov/100*P,B),MG=v.far*P,G=v.fp+Math.max(0,v.nf-1)*v.ty,
+  fl=v.ty>0?1+Math.floor((MG-Math.min(v.fp,MF))/v.ty+1e-9):NaN;
+  return {res:[{l:'Maximum GFA',v:MG,u:'m²',key:1,d:0},{l:'Maximum footprint',v:MF,u:'m²',key:1,d:0},{l:'Plot area',v:P,u:'m²',d:0},{l:'Buildable area inside setbacks',v:B,u:'m²',d:0},
+   {l:'Proposed GFA',v:G,u:'m²',d:0},{l:'Proposed FAR',v:G/P,d:2},{l:'Proposed coverage',v:v.fp/P*100,u:'%',d:1},{l:'Floors the FAR allows',v:v.fm>0?Math.min(fl,v.fm):fl,d:0},{l:'GFA still available',v:MG-G,u:'m²',d:0}],
+   chk:[v.fp<=MF+1e-9?{s:'ok',t:'Footprint within coverage and setbacks.'}:{s:'bad',t:'Footprint exceeds the coverage limit or the setbacks.'},
+    G<=MG+1e-9?{s:'ok',t:'GFA within the FAR.'}:{s:'bad',t:'GFA exceeds the FAR.'},
+    v.fm<=0||v.nf<=v.fm?{s:'ok',t:'Number of floors within the limit.'}:{s:'bad',t:'Too many floors.'}]};},
+ f:['Plot area = depth × frontage','Buildable = (depth − front − rear) × (frontage − 2 × side)','Max footprint = min(coverage × plot, buildable)','Max GFA = FAR × plot'],
+ notes:['What counts towards FAR varies: basements, parking, roof structures and balconies are often excluded. Use the definitions of your municipality.']});
+
+def({id:'parking',g:'AR',code:'AR-10',t:'Parking requirement',ref:1,
+ d:'Parking spaces required by use, accessible and van spaces, and the parking area needed.',
+ src:[['ADA 2010','§208.2'],['IBC 2021','§1106'],['Local zoning','Parking ratios']],
+ inp:[{id:'rows',type:'rows',cols:[{id:'f',l:'Use',type:'sel',o:opt(PARK.map(x=>x[0])),set:r=>{r.k=PARK[+r.f][1]}},{id:'q',l:'m² or units',v:1000},{id:'k',l:'Spaces each',v:2.5}],
+   v:[{f:'0',q:6000,k:2.5},{f:'1',q:800,k:3.3}]},
+  {id:'ab',l:'Area per space incl. aisles',u:'m²',v:27,hint:'25 – 30 m² for 90° bays'},{id:'lv',l:'Parking levels',u:'',v:2}],
+ calc(v){const r=v.rows.map(x=>{const p=PARK[+x.f]||PARK[0],q=+x.q||0,k=+x.k||0;return {p,q,k,n:Math.ceil(q/p[2]*k-1e-9)}}),N=r.reduce((s,x)=>s+x.n,0),acc=accPark(N),A=N*v.ab;
+  return {res:[{l:'Spaces required',v:N,key:1,d:0},{l:'Accessible spaces',v:acc,key:1,d:0},{l:'of which van-accessible',v:Math.ceil(acc/6),d:0},
+   {l:'Parking area',v:A,u:'m²',d:0},{l:'Area per level',v:v.lv>0?A/v.lv:NaN,u:'m²',d:0}],
+   chk:[{s:'warn',t:'Ratios are typical values. Replace them with the ratios of your municipality.'}],
+   tbl:{head:['Use','Quantity','Spaces each','Spaces'],rows:r.map(x=>({c:[x.p[0],fmt(x.q,0),fmt(x.k,2),fmt(x.n,0)]}))}};},
+ f:['Spaces = ⌈ quantity ÷ basis × ratio ⌉ for each use','Accessible: 1 per 25 up to 100, then a table up to 500, 2 % up to 1,000, then 20 + 1 per 100','Van-accessible = ⌈ accessible ÷ 6 ⌉'],
+ notes:['Typical bay 2.5 × 5.5 m; aisle 6.0 m for 90° bays, 4.5 m for 60°, 3.5 m for 45° (one-way).','Accessible bay 2.5 m plus a 1.5 m access aisle (2.5 m aisle for vans); place them nearest the entrance.']});
+
+def({id:'u-value',g:'AR',code:'AR-11',t:'U-value of a wall or roof',ref:1,
+ d:'Thermal transmittance of a wall, roof or floor build-up from its layers, with a check against the energy code limit.',
+ src:[['ISO 6946','Thermal resistance'],['SBC 601 / 602','Building envelope'],['ASHRAE 90.1','Appendix A']],
+ inp:[{id:'el',l:'Element',type:'sel',o:[['w','Wall'],['r','Roof'],['f','Exposed floor']],v:'w'},
+  {id:'rows',type:'rows',cols:[{id:'m',l:'Material',type:'sel',o:opt(MATS.map(x=>x[0])),set:r=>{r.l=MATS[+r.m][1]}},{id:'d',l:'Thickness mm',v:20},{id:'l',l:'λ W/m·K',v:0.72}],
+   v:[{m:'8',d:15,l:0.72},{m:'2',d:200,l:0.9},{m:'13',d:75,l:0.034},{m:'2',d:100,l:0.9},{m:'8',d:15,l:0.72}]},
+  {id:'lim',l:'U-value limit',u:'W/m²K',v:0.4,hint:'From your energy code'},{id:'dT',l:'Inside–outside temperature difference',u:'K',v:22}],
+ calc(v){const rs={w:[0.13,0.04],r:[0.10,0.04],f:[0.17,0.04]}[v.el]||[0.13,0.04],
+  L=v.rows.map(x=>{const m=+x.m,d=+x.d||0,l=+x.l||0;return {n:MATS[m]?MATS[m][0]:'',d,l,R:m===AIRGAP?0.18:(l>0?d/1000/l:0)}}),
+  Rt=rs[0]+rs[1]+L.reduce((s,x)=>s+x.R,0),U=1/Rt,T=L.reduce((s,x)=>s+x.d,0);
+  return {res:[{l:'U-value',v:U,u:'W/m²K',key:1,d:3},{l:'Total resistance R',v:Rt,u:'m²K/W',key:1,d:2},{l:'Heat flow',v:U*v.dT,u:'W/m²',d:1},{l:'Total thickness',v:T,u:'mm',d:0}],
+   chk:[U<=v.lim?{s:'ok',t:'U-value meets the limit.'}:{s:'bad',t:'U-value exceeds the limit. Add insulation.'}],
+   tbl:{head:['Layer','mm','λ','R m²K/W'],rows:[{c:['Inside surface','','',fmt(rs[0],2)]}].concat(L.map(x=>({c:[x.n,fmt(x.d,0),x.n&&x.R&&x.l?fmt(x.l,3):'—',fmt(x.R,3)]})),[{c:['Outside surface','','',fmt(rs[1],2)]}])}};},
+ f:['R = d ÷ λ for each layer','U = 1 ÷ (Rsi + ΣR + Rse)','Rsi: wall 0.13, roof 0.10, floor 0.17.   Rse 0.04'],
+ notes:['Conductivities are typical design values; use the manufacturer\'s declared λ for insulation and blocks.','Thermal bridges (columns, beams, ties) are ignored here and can raise the real U-value by 10 – 30 %.']});
+
+def({id:'wwr',g:'AR',code:'AR-12',t:'Window-to-wall ratio and solar gain',ref:1,
+ d:'Window-to-wall ratio by facade and overall, with the glazing SHGC check and an estimate of peak solar gain.',
+ src:[['SBC 601','Building envelope'],['ASHRAE 90.1','§5.5.4']],
+ inp:[{id:'rows',type:'rows',cols:[{id:'o',l:'Facade',type:'sel',o:opt(ORIENT.map(x=>x[0]))},{id:'w',l:'Wall area m²',v:200},{id:'g',l:'Glazing m²',v:50}],
+   v:[{o:'0',w:300,g:90},{o:'1',w:200,g:40},{o:'2',w:300,g:90},{o:'3',w:200,g:40}]},
+  {id:'sh',l:'Glass SHGC',u:'',v:0.25},{id:'shl',l:'SHGC limit',u:'',v:0.25},{id:'lim',l:'WWR limit',u:'%',v:40}],
+ calc(v){const r=v.rows.map(x=>{const o=ORIENT[+x.o]||ORIENT[0],w=+x.w||0,g=+x.g||0;return {o,w,g,q:g*v.sh*o[1]}}),
+  Wt=r.filter(x=>x.o!==ORIENT[4]).reduce((s,x)=>s+x.w,0),Gt=r.filter(x=>x.o!==ORIENT[4]).reduce((s,x)=>s+x.g,0),Q=r.reduce((s,x)=>s+x.q,0),wwr=Wt?Gt/Wt*100:NaN,
+  hi=r.filter(x=>x.w>0&&x.g/x.w*100>v.lim+1e-9);
+  return {res:[{l:'Overall WWR',v:wwr,u:'%',key:1,d:1},{l:'Peak solar gain (estimate)',v:Q/1000,u:'kW',key:1,d:1},{l:'Total glazing',v:Gt,u:'m²',d:0},{l:'Glazing allowed at the limit',v:Wt*v.lim/100,u:'m²',d:0}],
+   chk:[wwr<=v.lim?{s:'ok',t:'Overall WWR within the limit.'}:{s:'bad',t:'Overall WWR exceeds the limit.'},
+    hi.length?{s:'warn',t:'Some facades exceed the limit on their own.'}:{s:'ok',t:'Every facade is within the limit.'},
+    v.sh<=v.shl?{s:'ok',t:'Glass SHGC meets the limit.'}:{s:'bad',t:'Glass SHGC exceeds the limit. Use a lower-SHGC glass or add shading.'}],
+   tbl:{head:['Facade','Wall m²','Glazing m²','WWR %','Solar W/m²','Gain kW'],rows:r.map(x=>({hl:x.w>0&&x.g/x.w*100>v.lim,c:[x.o[0],fmt(x.w,0),fmt(x.g,0),x.w?fmt(x.g/x.w*100,1):'—',fmt(x.o[1],0),fmt(x.q/1000,2)]}))}};},
+ f:['WWR = Σ glazing ÷ Σ gross wall area','Solar gain = glazing × SHGC × peak irradiance'],
+ notes:['Peak irradiance values are typical clear-sky figures for latitudes of about 20 – 30° N, for comparing options only.','External shading (fins, overhangs) lowers the effective SHGC; many codes allow credit for it.']});
+
+def({id:'daylight',g:'AR',code:'AR-13',t:'Daylight factor',ref:1,
+ d:'Average daylight factor of a side-lit room, the glazing-to-floor ratio, and the limiting room depth.',
+ src:[['BRE 209 / BS 8206-2','Average daylight factor'],['IBC 2021','§1204.2']],
+ inp:[{id:'Wr',l:'Room width (window wall)',u:'m',v:6},{id:'D',l:'Room depth',u:'m',v:7},{id:'H',l:'Room height',u:'m',v:3},
+  {id:'Aw',l:'Glazed area',u:'m²',v:7.2},{id:'hw',l:'Window head height',u:'m',v:2.7},{id:'T',l:'Glass light transmittance',u:'',v:0.6},
+  {id:'th',l:'Visible sky angle θ',u:'°',v:70,hint:'90° if nothing blocks the view'},{id:'R',l:'Average surface reflectance',u:'',v:0.5},{id:'M',l:'Maintenance (dirt) factor',u:'',v:0.9}],
+ calc(v){const F=v.Wr*v.D,S=2*(v.Wr*v.D+v.Wr*v.H+v.D*v.H),DF=v.Aw*v.T*v.M*v.th/(S*(1-v.R*v.R)),Dm=2/(1-v.R)/(1/v.Wr+1/v.hw),g=v.Aw/F*100;
+  return {res:[{l:'Average daylight factor',v:DF,u:'%',key:1,d:1},{l:'Glazing ÷ floor area',v:g,u:'%',key:1,d:1},{l:'Limiting room depth',v:Dm,u:'m',d:1},
+   {l:'Floor area',v:F,u:'m²',d:1},{l:'Total room surface area',v:S,u:'m²',d:1}],
+   chk:[DF<2?{s:'warn',t:'Below 2 %: the room will look gloomy and need electric light most of the day.'}:DF>5?{s:'warn',t:'Above 5 %: well daylit, but check glare and solar heat gain.'}:{s:'ok',t:'2 – 5 %: a well daylit room.'},
+    g>=8?{s:'ok',t:'Glazing is at least 8 % of the floor area.'}:{s:'bad',t:'Glazing is below 8 % of the floor area.'},
+    v.D<=Dm?{s:'ok',t:'Room is not too deep for side lighting.'}:{s:'warn',t:'Room is deeper than the limit: the back will look dark.'}]};},
+ f:['DF = T × Aw × θ × M ÷ [ A × (1 − R²) ]   (%)','Depth limit:  D/W + D/h ≤ 2 ÷ (1 − Rb)'],
+ notes:['A is the total area of all room surfaces (floor, ceiling and walls, including windows).','Use simulation (Radiance, DIALux) for complex rooms or climate-based daylight metrics.']});
+
+def({id:'condensation',g:'AR',code:'AR-14',t:'Dew point and surface condensation',ref:1,
+ d:'Dew point of the air and the surface temperature of a wall, roof or glass, to check for condensation and mould.',
+ src:[['ISO 13788','Surface temperature'],['ASHRAE Fundamentals','Chapter 25']],
+ inp:[{id:'Ti',l:'Room air temperature',u:'°C',v:21},{id:'RH',l:'Room relative humidity',u:'%',v:60},{id:'To',l:'Outside temperature',u:'°C',v:5},
+  {id:'U',l:'U-value of the element',u:'W/m²K',v:1.2,hint:'From AR-11; glazing 1.5 – 5.8'},
+  {id:'rs',l:'Inside surface resistance',type:'sel',o:[['0.13','0.13 — open wall or glass'],['0.25','0.25 — corner or behind furniture']],v:'0.13',wide:1}],
+ calc(v){const rh=Math.min(Math.max(v.RH,1),100),g=Math.log(rh/100)+17.62*v.Ti/(243.12+v.Ti),Td=243.12*g/(17.62-g),dT=v.Ti-v.To,Rs=+v.rs,
+  Ts=v.Ti-v.U*Rs*dT,pv=rh/100*psat(v.Ti),sRH=Math.min(100,pv/psat(Ts)*100),f=dT?(Ts-v.To)/dT:NaN,Um=dT>0?(v.Ti-Td)/(Rs*dT):NaN;
+  return {res:[{l:'Dew point',v:Td,u:'°C',key:1,d:1},{l:'Inside surface temperature',v:Ts,u:'°C',key:1,d:1},{l:'Margin above dew point',v:Ts-Td,u:'K',d:1},
+   {l:'Relative humidity at the surface',v:sRH,u:'%',d:0},{l:'Temperature factor fRsi',v:f,d:2},{l:'Highest U-value without condensation',v:Um,u:'W/m²K',d:2}],
+   chk:[Ts<=Td?{s:'bad',t:'Surface is at or below the dew point: condensation will form.'}:{s:'ok',t:'Surface stays above the dew point.'},
+    sRH>=80?{s:'warn',t:'Surface humidity of 80 % or more: mould can grow.'}:{s:'ok',t:'Surface humidity below 80 %: low mould risk.'}]};},
+ f:['γ = ln(RH) + 17.62 T ÷ (243.12 + T),   Td = 243.12 γ ÷ (17.62 − γ)','Tsi = Ti − U × Rsi × (Ti − To)','Surface RH = pv ÷ psat(Tsi)'],
+ notes:['In air-conditioned buildings in hot, humid climates the risk is inside the wall: keep the vapour barrier on the outer (warm) side of the insulation.','Use the same check for chilled pipes and ducts: their surface temperature must stay above the room dew point, or insulate them.']});
+
+def({id:'lift',g:'AR',code:'AR-15',t:'Lift traffic analysis',ref:1,
+ d:'Up-peak round trip time, interval and handling capacity of a group of lifts, and the number of lifts needed.',
+ src:[['CIBSE Guide D','Transportation systems'],['BS EN 81-20','Lift sizes']],
+ inp:[{id:'ty',l:'Building type',type:'sel',o:opt(LIFT_T.map(x=>x[0])),v:'0',wide:1},{id:'N',l:'Floors served above the lobby',u:'',v:10},{id:'fh',l:'Floor height',u:'m',v:3.6},
+  {id:'pp',l:'Population per floor',u:'pers',v:80,hint:'Office: net area ÷ 10 m²'},
+  {id:'cc',l:'Car size',type:'sel',o:[['8','8 persons (630 kg)'],['10','10 persons (800 kg)'],['13','13 persons (1,000 kg)'],['16','16 persons (1,275 kg)'],['21','21 persons (1,600 kg)'],['26','26 persons (2,000 kg)']],v:'13'},
+  {id:'v',l:'Rated speed',type:'sel',o:[['1','1.0 m/s'],['1.6','1.6 m/s'],['2','2.0 m/s'],['2.5','2.5 m/s'],['3.5','3.5 m/s'],['5','5.0 m/s']],v:'2'},
+  {id:'L',l:'Number of lifts',u:'',v:5},{id:'ts',l:'Time lost per stop',u:'s',v:10,hint:'Doors plus acceleration'},{id:'tp',l:'Passenger transfer time',u:'s',v:1.2}],
+ calc(v){const T=LIFT_T[+v.ty],N=Math.max(1,Math.round(v.N)),P=0.8*(+v.cc),S=N*(1-Math.pow(1-1/N,P));let H=N;for(let i=1;i<N;i++)H-=Math.pow(i/N,P);
+  const tv=v.fh/(+v.v),RTT=2*H*tv+(S+1)*v.ts+2*P*v.tp,pop=N*v.pp,run=L=>({int:RTT/L,hc:300*P*L/RTT/pop*100}),cur=run(v.L);
+  let need=NaN;for(let L=1;L<=30;L++){const x=run(L);if(x.int<=T[1]&&x.hc>=T[2]){need=L;break}}
+  return {res:[{l:'Interval',v:cur.int,u:'s',key:1,d:1},{l:'5-minute handling capacity',v:cur.hc,u:'%',key:1,d:1},{l:'Lifts needed for the targets',v:need,key:1,d:0},
+   {l:'Round trip time',v:RTT,u:'s',d:1},{l:'Persons moved in 5 minutes',v:300*P*v.L/RTT,u:'pers',d:0},{l:'Building population',v:pop,u:'pers',d:0},
+   {l:'Passengers per trip',v:P,d:1},{l:'Probable stops',v:S,d:1},{l:'Highest reversal floor',v:H,d:1}],
+   chk:[cur.int<=T[1]?{s:'ok',t:'Interval meets the target of '+T[1]+' s.'}:{s:'bad',t:'Interval longer than the target of '+T[1]+' s.'},
+    cur.hc>=T[2]?{s:'ok',t:'Handling capacity meets the target of '+T[2]+' %.'}:{s:'bad',t:'Handling capacity below the target of '+T[2]+' %.'},
+    N*v.fh/(+v.v)>25?{s:'warn',t:'Travel at rated speed takes over 25 s: consider a faster lift or zoning.'}:{s:'ok',t:'Speed suits the travel height.'}]};},
+ f:['P = 0.8 × car capacity','S = N [1 − (1 − 1/N)^P],   H = N − Σ (i/N)^P','RTT = 2 H tv + (S + 1) ts + 2 P tp,   tv = floor height ÷ speed','Interval = RTT ÷ L,   HC5 = 300 P L ÷ RTT'],
+ notes:['This is the classic up-peak calculation for a single lobby. Modern destination control and lunchtime traffic need simulation by the lift supplier.','Add a separate goods or firefighting lift where the code or the building\'s use calls for one.']});
+
+def({id:'reverb',g:'AR',code:'AR-16',t:'Reverberation time',ref:1,
+ d:'Reverberation time of a room from its volume and surface finishes (Sabine and Eyring), compared with the target for its use.',
+ src:[['ISO 3382-2','Reverberation time'],['ANSI S12.60','Classrooms'],['BB93','Acoustic design of schools']],
+ inp:[{id:'L',l:'Length',u:'m',v:12},{id:'W',l:'Width',u:'m',v:8},{id:'H',l:'Height',u:'m',v:3},{id:'use',l:'Room use',type:'sel',o:opt(RT_T.map(x=>x[0])),v:'0',wide:1},
+  {id:'p',l:'People present',u:'pers',v:20},
+  {id:'rows',type:'rows',cols:[{id:'m',l:'Finish',type:'sel',o:opt(ABS.map(x=>x[0]))},{id:'a',l:'Area m²',v:20}],v:[{m:'1',a:96},{m:'7',a:96},{m:'2',a:96},{m:'3',a:24}]}],
+ calc(v){const V=v.L*v.W*v.H,Sr=2*(v.L*v.W+v.L*v.H+v.W*v.H),r=v.rows.map(x=>{const m=ABS[+x.m]||ABS[0],a=+x.a||0;return {m,a,A:a*m[1]}}),
+  Sa=r.reduce((s,x)=>s+x.a,0),As=r.reduce((s,x)=>s+x.A,0),A=As+0.45*v.p,RT=0.161*V/A,ab=Sa?A/Sa:0,RTe=ab>0&&ab<1?0.161*V/(-Sa*Math.log(1-ab)):NaN,tg=RT_T[+v.use][1],need=0.161*V/tg-A;
+  return {res:[{l:'Reverberation time (Sabine)',v:RT,u:'s',key:1,d:2},{l:'Target',v:tg,u:'s',key:1,d:1},{l:'Reverberation time (Eyring)',v:RTe,u:'s',d:2},
+   {l:'Room volume',v:V,u:'m³',d:0},{l:'Total absorption',v:A,u:'m² sabins',d:1},{l:'Mean absorption coefficient',v:ab,d:2},
+   {l:'Extra absorption needed',v:Math.max(0,need),u:'m² sabins',d:1},{l:'≈ area of 0.85 acoustic panel',v:Math.max(0,need)/0.85,u:'m²',d:1}],
+   chk:[RT<=tg*1.1?(RT<tg*0.5?{s:'warn',t:'Much shorter than the target: the room may sound dead.'}:{s:'ok',t:'Reverberation time meets the target.'}):{s:'bad',t:'Reverberation time too long. Add absorption.'},
+    Math.abs(Sa-Sr)>0.1*Sr?{s:'warn',t:'Finish areas do not add up to the room surface area. Check the schedule.'}:{s:'ok',t:'Finish areas match the room surface area.'}],
+   tbl:{head:['Finish','Area m²','α 500 Hz','Absorption m²'],rows:r.map(x=>({c:[x.m[0],fmt(x.a,1),fmt(x.m[1],2),fmt(x.A,1)]})).concat([{c:['People','',fmt(0.45,2)+' each',fmt(0.45*v.p,1)]}])}};},
+ f:['Sabine: RT = 0.161 V ÷ A','Eyring: RT = 0.161 V ÷ [ −S ln(1 − ᾱ) ]','A = Σ α S + 0.45 m² per person'],
+ notes:['Coefficients are at 500 Hz. Check 125 Hz to 4 kHz with product data for final design.','Seats, curtains and people add a lot of absorption: an empty hall sounds more reverberant than a full one.']});
+
+
 /* pipe table builder (defined after use in calc, hoisted function) */
 function pipeTbl(ps){
   const lo=Math.max(0,(ps.sel<0?ps.rows.length:ps.sel)-2),hi=Math.min(ps.rows.length,ps.sel<0?ps.rows.length:ps.sel+3);
@@ -873,6 +1169,102 @@ function num(c,s){const o={};c.inp.forEach(i=>{if(i.h)return;const x=s[i.id];o[i
 
 /* ---------- language ---------- */
 const AR={
+"Architecture":"المعماري","Based on":"المرجع","Every calculator lists the BG sheets or code clauses it is based on. Values are for preliminary design; check against the governing code and manufacturer data.":"كل حاسبة تذكر أوراق BG أو بنود الكود التي بُنيت عليها. القيم للتصميم المبدئي؛ راجعها مع الكود المعتمد وبيانات المصنّعين.",
+"m²/pers":"m²/شخص","mm/pers":"mm/شخص","net":"صافية","gross":"إجمالية","WC":"مرحاض","m² sabins":"m² سابين","No":"لا","Not sprinklered":"بدون رشاشات","Sprinklered":"مزوّد برشاشات","Sprinklers":"الرشاشات","As drawn":"حسب المخططات","Use":"الاستخدام","Area m²":"المساحة m²","Occupancy":"الإشغال","Occupant load":"حمل الإشغال","Exits required":"عدد المخارج المطلوبة",
+"Assembly — chairs only (concentrated)":"تجمّع — كراسي فقط (مركّز)","Assembly — tables and chairs (unconcentrated)":"تجمّع — طاولات وكراسي (غير مركّز)","Assembly — standing space":"تجمّع — وقوف","Prayer hall":"مصلى","Business / office (IBC 2018+)":"أعمال / مكاتب (IBC 2018 وما بعده)","Business / office (IBC 2015, SBC 201)":"أعمال / مكاتب (IBC 2015، SBC 201)",
+"Classroom":"فصل دراسي","Shops and vocational rooms":"ورش وغرف مهنية","Mercantile / retail":"تجاري / محلات","Residential":"سكني","Hospital — inpatient treatment":"مستشفى — علاج المنوّمين","Hospital — sleeping areas":"مستشفى — مناطق النوم","Outpatient clinic":"عيادات خارجية","Commercial kitchen":"مطبخ تجاري","Library — reading rooms":"مكتبة — قاعات القراءة","Library — stack area":"مكتبة — منطقة الرفوف","Exercise room / gym":"صالة رياضية","Industrial":"صناعي","Accessory storage / mechanical room":"مخزن ملحق / غرفة ميكانيكية","Warehouse":"مستودع","Parking garage":"مواقف سيارات",
+"Occupant load":"حمل الإشغال","Design occupant load of a floor or building from the area of each use and the IBC occupant load factors, with the number of exits it needs.":"حمل الإشغال التصميمي لطابق أو مبنى من مساحة كل استخدام ومعاملات حمل الإشغال في IBC، مع عدد المخارج المطلوبة.",
+"Total area":"المساحة الكلية","Average area per person":"متوسط المساحة للشخص","Under 50 occupants: one exit can be enough if the common path of travel is within the limit (AR-03).":"أقل من 50 شاغلًا: قد يكفي مخرج واحد إذا كان المسار المشترك ضمن الحد (AR-03).","50 occupants or more: at least two exits are needed.":"50 شاغلًا أو أكثر: يلزم مخرجان على الأقل.",
+"m² per person":"m² لكل شخص","Basis":"الأساس","Occupants":"عدد الشاغلين",
+"Gross area includes corridors, stairs, toilets and walls. Net area is the occupied floor only.":"المساحة الإجمالية تشمل الممرات والسلالم ودورات المياه والجدران. المساحة الصافية هي المساحة المشغولة فقط.","Fixed seating is counted by the number of seats, not by area.":"المقاعد الثابتة تُحسب بعدد المقاعد لا بالمساحة.","SBC 201 and IBC 2015 use 9.3 m² per person for offices; IBC 2018 and later use 13.9 m². Use the edition your authority enforces.":"يستخدم SBC 201 و IBC 2015 قيمة 9.3 m² للشخص في المكاتب، ويستخدم IBC 2018 وما بعده 13.9 m². استخدم الإصدار الذي تعتمده الجهة المختصة.",
+"Egress width and exits":"عرض مسارات الهروب والمخارج","Required stair and door width for an occupant load and the number of exits, with a check of the widths drawn.":"عرض السلالم والأبواب المطلوب لحمل إشغال معيّن وعدد المخارج، مع التحقق من العروض في المخططات.",
+"For the floor served (AR-01)":"للطابق المخدوم (AR-01)","Sprinklers and voice alarm":"الرشاشات والإنذار الصوتي","Sprinklered with emergency voice / alarm":"مزوّد برشاشات ونظام إنذار صوتي للطوارئ","Exit stairs":"سلالم الهروب","Clear width of each stair":"العرض الصافي لكل سلم","Exit doors":"أبواب الخروج","Clear width of each door":"العرض الصافي لكل باب",
+"Each stair, at least":"كل سلم، على الأقل","Each door, at least":"كل باب، على الأقل","Total stair width":"إجمالي عرض السلالم","Total door width":"إجمالي عرض الأبواب","Corridor width, at least":"عرض الممر، على الأقل","Stair factor":"معامل السلالم","Door factor":"معامل الأبواب",
+"Number of exit stairs meets the requirement.":"عدد سلالم الهروب يحقق المتطلب.","Not enough exit stairs for this occupant load.":"عدد سلالم الهروب غير كافٍ لهذا الحمل.","Number of exit doors meets the requirement.":"عدد أبواب الخروج يحقق المتطلب.","Not enough exit doors for this occupant load.":"عدد أبواب الخروج غير كافٍ لهذا الحمل.",
+"Stair width is enough.":"عرض السلالم كافٍ.","Stair width is too small.":"عرض السلالم أقل من المطلوب.","Door width is enough.":"عرض الأبواب كافٍ.","Door width is too small.":"عرض الأبواب أقل من المطلوب.","Losing one stair leaves less than half the required width (IBC §1005.5).":"فقدان سلم واحد يترك أقل من نصف العرض المطلوب (IBC §1005.5).","Losing one stair leaves at least half the required width.":"فقدان سلم واحد يترك نصف العرض المطلوب على الأقل.",
+"Stair width is measured between handrails; door width is the clear opening with the door open at 90°.":"يُقاس عرض السلم بين الدرابزينات، وعرض الباب هو الفتحة الصافية والباب مفتوح بزاوية 90°.","Size each floor for its own occupant load; stairs do not need to widen as they go down unless floors converge.":"صمّم كل طابق لحمل إشغاله؛ لا يلزم توسيع السلالم في الطوابق السفلى إلا إذا تجمّعت إليها طوابق أخرى.",
+"Travel distance and common path":"مسافة الانتقال والمسار المشترك","Checks the exit access travel distance, common path of egress travel and dead-end corridors against the IBC limits.":"يتحقق من مسافة الانتقال إلى المخرج والمسار المشترك والممرات المغلقة مقارنة بحدود IBC.",
+"Assembly (A)":"تجمّع (A)","Business / office (B)":"أعمال / مكاتب (B)","Educational (E)":"تعليمي (E)","Mercantile (M)":"تجاري (M)","Residential — apartments (R-2)":"سكني — شقق (R-2)","Factory / storage — moderate hazard (F-1, S-1)":"مصانع / مخازن — خطورة متوسطة (F-1، S-1)","Factory / storage — low hazard (F-2, S-2)":"مصانع / مخازن — خطورة منخفضة (F-2، S-2)","Hospital (I-2)":"مستشفى (I-2)",
+"Longest travel distance to an exit":"أطول مسافة انتقال إلى مخرج","Common path of travel":"المسار المشترك","Longest dead-end corridor":"أطول ممر مغلق","Travel distance limit":"حد مسافة الانتقال","Common path limit":"حد المسار المشترك","Dead-end limit":"حد الممر المغلق","Travel distance used":"نسبة مسافة الانتقال المستخدمة",
+"Not permitted without sprinklers.":"غير مسموح بدون رشاشات.","Travel distance within the limit.":"مسافة الانتقال ضمن الحد.","Travel distance exceeds the limit. Add an exit or move one.":"مسافة الانتقال تتجاوز الحد. أضف مخرجًا أو انقل أحد المخارج.","Common path within the limit.":"المسار المشترك ضمن الحد.","Common path exceeds the limit. Provide a second way out sooner.":"المسار المشترك يتجاوز الحد. وفّر طريق خروج ثانيًا في نقطة أقرب.","Dead-end corridor within the limit.":"الممر المغلق ضمن الحد.","Dead-end corridor too long.":"الممر المغلق أطول من المسموح.",
+"Travel m":"الانتقال m","Travel m (spr.)":"الانتقال m (رشاشات)","Common path m":"المسار المشترك m","Common path m (spr.)":"المسار المشترك m (رشاشات)",
+"Common path limits shown are for spaces with more than 30 occupants (more than 10 in R-2 and some others); smaller rooms get longer limits.":"حدود المسار المشترك المعروضة للفراغات التي يزيد شاغلوها عن 30 (أو 10 في R-2 وبعض الإشغالات)؛ والفراغات الأصغر لها حدود أطول.","— means not permitted.":"— تعني غير مسموح.",
+"Exit separation":"التباعد بين المخارج","Minimum distance between two exits: half the diagonal of the area served, or one third when the building is sprinklered.":"أقل مسافة بين مخرجين: نصف قطر المساحة المخدومة، أو الثلث عندما يكون المبنى مزوّدًا بالرشاشات.",
+"Length of area served":"طول المساحة المخدومة","Width of area served":"عرض المساحة المخدومة","Distance between exits as drawn":"المسافة بين المخارج في المخططات","Straight line between the nearest edges of the two exit doors":"خط مستقيم بين أقرب حافتين لبابي المخرجين",
+"Minimum separation":"أقل تباعد","Overall diagonal":"القطر الكلي","Rule":"القاعدة","one third of the diagonal":"ثلث القطر","half the diagonal":"نصف القطر","Exits are far enough apart.":"المخارج متباعدة بما يكفي.","Exits are too close together. Move them apart.":"المخارج متقاربة أكثر من اللازم. باعد بينها.",
+"With three or more exits, two must meet this rule and the others must be placed so that a single fire is unlikely to block them all.":"مع ثلاثة مخارج أو أكثر، يجب أن يحقق مخرجان هذه القاعدة وأن توزَّع البقية بحيث لا يحجبها حريق واحد كلها.","For exit stairs, the distance can be measured along a fire-rated corridor connecting them.":"لسلالم الهروب يمكن قياس المسافة على امتداد ممر مقاوم للحريق يربط بينها.",
+"Stair design":"تصميم السلالم","Number of risers, riser height and going for a floor-to-floor height, with the comfort rule, pitch, flights and landings.":"عدد القوائم وارتفاع القائمة وعرض النائمة لارتفاع طابق معيّن، مع قاعدة الراحة والميل والقلبات والبسطات.",
+"Floor-to-floor height":"الارتفاع بين الطوابق","Stair type":"نوع السلم","Public / commercial":"عام / تجاري","Inside a dwelling":"داخل وحدة سكنية","Layout":"الشكل","Straight":"مستقيم","Dog-leg, 2 flights":"قلبتان متعاكستان","U-shape, 3 flights":"على شكل U، ثلاث قلبات","Stair clear width":"العرض الصافي للسلم","Target riser":"ارتفاع القائمة المستهدف","0 = highest riser allowed":"0 = أعلى قائمة مسموحة",
+"Risers":"عدد القوائم","Riser height":"ارتفاع القائمة","Going (tread)":"عرض النائمة","Pitch":"زاوية الميل","Flights":"عدد القلبات","Risers per flight":"القوائم في كل قلبة","Treads":"عدد النوائم","Run of longest flight":"طول أطول قلبة","Landing depth, at least":"عمق البسطة، على الأقل","Plan size (approx.)":"المقاس في المسقط (تقريبي)",
+"Riser between {0} mm and {1} mm.":"القائمة بين {0} mm و {1} mm.","Riser outside {0} – {1} mm.":"القائمة خارج المدى {0} – {1} mm.","2R + G is within 600 – 650 mm: a comfortable stair.":"2R + G بين 600 و 650 mm: سلم مريح.","2R + G is outside 600 – 650 mm: the stair may feel awkward.":"2R + G خارج المدى 600 – 650 mm: قد يكون السلم غير مريح.",
+"Width suits 50 occupants or more.":"العرض مناسب لـ 50 شاغلًا أو أكثر.","Width below 1,118 mm: only for fewer than 50 occupants.":"العرض أقل من 1,118 mm: لأقل من 50 شاغلًا فقط.","Width below the 914 mm minimum.":"العرض أقل من الحد الأدنى 914 mm.",
+"Headroom of at least 2,032 mm is needed along the whole stair, measured vertically from the nosing line.":"يلزم ارتفاع خالٍ لا يقل عن 2,032 mm على امتداد السلم، يُقاس رأسيًا من خط حواف الدرج.","All risers and goings in a flight must match within 9.5 mm.":"يجب ألا يزيد الفرق بين القوائم أو النوائم في القلبة الواحدة عن 9.5 mm.","Plan size for a dog-leg stair includes the half landing, a floor landing and a 100 mm gap between flights.":"مقاس السلم ذي القلبتين يشمل البسطة الوسطى وبسطة الطابق وفراغًا 100 mm بين القلبتين.",
+"Ramp design":"تصميم المنحدرات","Length, runs and landings of a ramp for a given rise and slope, with accessibility checks.":"طول المنحدر وعدد أجزائه وبسطاته لارتفاع وميل معيّنين، مع التحقق من متطلبات الوصول الشامل.",
+"Total rise":"الارتفاع الكلي","Slope 1 :":"الميل 1 :","12 = 1:12 (8.3 %)":"12 = 1:12 (8.3 %)","Ramp use":"استخدام المنحدر","Accessible route":"مسار وصول شامل","Other egress":"مسار هروب آخر","Clear width between handrails":"العرض الصافي بين الدرابزينات","Landing length":"طول البسطة",
+"Ramp length (horizontal)":"طول المنحدر (أفقيًا)","Runs":"عدد الأجزاء","Rise of each run":"ارتفاع كل جزء","Length of each run":"طول كل جزء","Intermediate landings":"البسطات الوسطى","Overall length with top and bottom landings":"الطول الكلي مع البسطتين العلوية والسفلية","Angle":"الزاوية","Handrails":"الدرابزين","required on both sides":"مطلوب على الجانبين","not required":"غير مطلوب",
+"Slope 1:12 or flatter, as required on an accessible route.":"الميل 1:12 أو أقل، كما يلزم في مسار الوصول الشامل.","Slope steeper than 1:12 is not allowed on an accessible route.":"الميل الأشد من 1:12 غير مسموح في مسار الوصول الشامل.","Slope 1:8 or flatter, as required for an egress ramp.":"الميل 1:8 أو أقل، كما يلزم في منحدر الهروب.","Slope steeper than 1:8 is not allowed for a means of egress.":"الميل الأشد من 1:8 غير مسموح في مسارات الهروب.",
+"Width suits an egress ramp.":"العرض مناسب لمنحدر هروب.","Width meets the accessible minimum (915 mm) but not the 1,118 mm egress minimum.":"العرض يحقق حد الوصول الشامل (915 mm) لكنه أقل من حد الهروب 1,118 mm.","Ramp too narrow.":"المنحدر أضيق من المسموح.","Landings are long enough.":"البسطات بطول كافٍ.","Landings must be at least 1,525 mm long.":"يجب ألا يقل طول البسطة عن 1,525 mm.",
+"Landings are needed at the top and bottom of every run, and wherever the ramp turns (1,525 × 1,525 mm).":"تلزم بسطة أعلى وأسفل كل جزء، وعند كل تغيير في الاتجاه (1,525 × 1,525 mm).","Cross slope must not exceed 1:48. Provide edge protection where the side drops off.":"يجب ألا يتجاوز الميل العرضي 1:48. وفّر حماية للحواف المكشوفة.","Car park ramps for vehicles follow different rules (typically 1:6 to 1:10 with transitions).":"منحدرات السيارات في المواقف لها قواعد مختلفة (عادة 1:6 إلى 1:10 مع أجزاء انتقالية).",
+"Toilet fixture count":"عدد الأجهزة الصحية","Minimum number of water closets, lavatories and drinking fountains for an occupant load, from the IPC table.":"أقل عدد من المراحيض والمغاسل وبرادات الشرب لحمل إشغال معيّن، من جدول IPC.",
+"Assembly — theatres, cinemas (A-1)":"تجمّع — مسارح وسينما (A-1)","Assembly — restaurants, cafés (A-2)":"تجمّع — مطاعم ومقاهٍ (A-2)","Assembly — halls, museums, libraries (A-3)":"تجمّع — قاعات ومتاحف ومكتبات (A-3)","Places of worship (A-3)":"دور العبادة (A-3)","Mercantile / retail (M)":"تجاري / محلات (M)","Factory / industrial (F)":"مصانع (F)","Storage (S)":"مخازن (S)","Share of men":"نسبة الرجال",
+"Water closets — men":"مراحيض — رجال","Water closets — women":"مراحيض — نساء","Lavatories — men":"مغاسل — رجال","Lavatories — women":"مغاسل — نساء","Urinals can replace up to":"يمكن استبدال مباول بما يصل إلى","Drinking fountains":"برادات الشرب","Service sinks":"أحواض الخدمة",
+"15 occupants or fewer: one shared facility is allowed.":"15 شاغلًا أو أقل: يُسمح بدورة مياه مشتركة واحدة.","Separate facilities for men and women are needed.":"يلزم فصل دورات مياه الرجال والنساء.",
+"Fixture":"الجهاز","Men":"رجال","Women":"نساء","Ratio":"النسبة","Water closets":"المراحيض","Lavatories":"المغاسل","1:25 for the first 50, then 1:50":"1:25 لأول 50، ثم 1:50","1:40 for the first 80, then 1:80":"1:40 لأول 80، ثم 1:80","{0}:{1} men,  {2}:{3} women":"{0}:{1} رجال،  {2}:{3} نساء",
+"Every toilet room needs at least one accessible water closet; with six or more closets, one ambulatory stall too.":"كل دورة مياه تحتاج مرحاضًا واحدًا على الأقل لذوي الإعاقة؛ ومع ستة مراحيض أو أكثر تلزم أيضًا حجرة لمستخدمي أدوات المشي.","Ablution facilities for prayer areas are not covered by this table.":"أماكن الوضوء للمصليات غير مشمولة في هذا الجدول.","A water cooler or bottle filler can replace up to half of the drinking fountains.":"يمكن أن يحل مبرد مياه أو موزّع تعبئة محل نصف برادات الشرب كحد أقصى.",
+"Area schedule and efficiency":"جدول المساحات والكفاءة","Gross and net floor areas from a schedule of spaces, with the building efficiency (net-to-gross ratio).":"المساحات الإجمالية والصافية من جدول الفراغات، مع كفاءة المبنى (نسبة الصافي إلى الإجمالي).",
+"Net usable area":"المساحة الصافية المستغلة","Circulation (corridors, lobbies, stairs)":"الحركة (ممرات وردهات وسلالم)","Toilets, services and shafts":"دورات المياه والخدمات والفتحات الرأسية","Walls, columns and structure":"الجدران والأعمدة والهيكل","Parking and loading":"المواقف والتحميل","Balconies and terraces":"الشرفات والتراسات",
+"Parking and balconies":"المواقف والشرفات","Exclude from GFA":"استبعاد من المساحة الإجمالية","Include in GFA":"إدراج في المساحة الإجمالية","Category":"الفئة","Area per floor m²":"المساحة لكل طابق m²","Floors":"الطوابق",
+"Gross floor area (GFA)":"المساحة الإجمالية (GFA)","Efficiency (net ÷ gross)":"الكفاءة (صافي ÷ إجمالي)","Circulation share":"نسبة الحركة","Excluded from GFA":"المستبعد من المساحة الإجمالية","% of GFA":"% من الإجمالي",
+"Efficiency below 70 %: a lot of area goes to circulation and services.":"الكفاءة أقل من 70 %: نسبة كبيرة من المساحة للحركة والخدمات.","Efficiency above 90 %: check that circulation, shafts and walls are all counted.":"الكفاءة أعلى من 90 %: تأكد من احتساب الحركة والفتحات الرأسية والجدران.","Efficiency in the usual range (offices 75 – 85 %, residential 80 – 88 %).":"الكفاءة في المدى المعتاد (مكاتب 75 – 85 %، سكني 80 – 88 %).",
+"FAR and site coverage":"معامل البناء ونسبة التغطية","Maximum built-up area and footprint for a plot from the floor-area ratio, site coverage and setbacks, checked against a proposal.":"أقصى مسطح بناء وأقصى بصمة للمبنى على قطعة الأرض من معامل البناء ونسبة التغطية والارتدادات، مع التحقق من المقترح.",
+"Plot":"قطعة الأرض","Plot depth":"عمق القطعة","Plot frontage":"واجهة القطعة","Front setback":"الارتداد الأمامي","Rear setback":"الارتداد الخلفي","Side setback (each)":"الارتداد الجانبي (لكل جانب)","Planning limits":"اشتراطات التخطيط","Floor-area ratio (FAR)":"معامل البناء (FAR)","Site coverage":"نسبة التغطية","Maximum floors":"أقصى عدد للطوابق","0 = no limit":"0 = بلا حد",
+"Proposal":"المقترح","Ground floor footprint":"مساحة الدور الأرضي","Typical upper floor":"الدور المتكرر","Floors including ground":"عدد الطوابق شاملًا الأرضي",
+"Maximum GFA":"أقصى مسطح بناء","Maximum footprint":"أقصى بصمة للمبنى","Plot area":"مساحة القطعة","Buildable area inside setbacks":"المساحة القابلة للبناء داخل الارتدادات","Proposed GFA":"مسطح البناء المقترح","Proposed FAR":"معامل البناء المقترح","Proposed coverage":"نسبة التغطية المقترحة","Floors the FAR allows":"الطوابق التي يسمح بها معامل البناء","GFA still available":"مسطح البناء المتبقي",
+"Footprint within coverage and setbacks.":"البصمة ضمن نسبة التغطية والارتدادات.","Footprint exceeds the coverage limit or the setbacks.":"البصمة تتجاوز نسبة التغطية أو الارتدادات.","GFA within the FAR.":"مسطح البناء ضمن معامل البناء.","GFA exceeds the FAR.":"مسطح البناء يتجاوز معامل البناء.","Number of floors within the limit.":"عدد الطوابق ضمن الحد.","Too many floors.":"عدد الطوابق أكثر من المسموح.",
+"What counts towards FAR varies: basements, parking, roof structures and balconies are often excluded. Use the definitions of your municipality.":"ما يُحتسب في معامل البناء يختلف: كثيرًا ما تُستبعد القبو والمواقف وملاحق السطح والشرفات. استخدم تعريفات البلدية.",
+"Parking requirement":"متطلبات المواقف","Parking spaces required by use, accessible and van spaces, and the parking area needed.":"عدد المواقف المطلوبة حسب الاستخدام، ومواقف ذوي الإعاقة والفانات، ومساحة المواقف اللازمة.",
+"Office — per 100 m²":"مكاتب — لكل 100 m²","Retail / shops — per 100 m²":"محلات تجارية — لكل 100 m²","Restaurant / café — per 100 m²":"مطعم / مقهى — لكل 100 m²","Mall / supermarket — per 100 m²":"مركز تجاري / سوبرماركت — لكل 100 m²","Apartment — per unit":"شقة — لكل وحدة","Villa — per unit":"فيلا — لكل وحدة","Hotel — per room":"فندق — لكل غرفة","Hospital — per bed":"مستشفى — لكل سرير","Clinic — per 100 m²":"عيادات — لكل 100 m²","School — per classroom":"مدرسة — لكل فصل","Mosque — per 100 m² prayer area":"مسجد — لكل 100 m² من المصلى","Event hall — per 100 m²":"قاعة مناسبات — لكل 100 m²","Warehouse — per 100 m²":"مستودع — لكل 100 m²","Industrial — per 100 m²":"صناعي — لكل 100 m²",
+"m² or units":"m² أو وحدات","Spaces each":"مواقف لكل وحدة","Area per space incl. aisles":"المساحة لكل موقف شاملة الممرات","25 – 30 m² for 90° bays":"25 – 30 m² للمواقف العمودية","Parking levels":"أدوار المواقف",
+"Spaces required":"المواقف المطلوبة","Accessible spaces":"مواقف ذوي الإعاقة","of which van-accessible":"منها مواقف فان","Parking area":"مساحة المواقف","Area per level":"المساحة لكل دور","Ratios are typical values. Replace them with the ratios of your municipality.":"النسب قيم استرشادية. استبدلها بنسب البلدية لديك.","Quantity":"الكمية","Spaces":"المواقف",
+"Typical bay 2.5 × 5.5 m; aisle 6.0 m for 90° bays, 4.5 m for 60°, 3.5 m for 45° (one-way).":"الموقف المعتاد 2.5 × 5.5 m؛ الممر 6.0 m للمواقف العمودية، و4.5 m لزاوية 60°، و3.5 m لزاوية 45° (اتجاه واحد).","Accessible bay 2.5 m plus a 1.5 m access aisle (2.5 m aisle for vans); place them nearest the entrance.":"موقف ذوي الإعاقة 2.5 m مع ممر جانبي 1.5 m (2.5 m للفانات)؛ ضعها أقرب ما يمكن للمدخل.",
+"U-value of a wall or roof":"معامل الانتقال الحراري U للجدار أو السقف","Thermal transmittance of a wall, roof or floor build-up from its layers, with a check against the energy code limit.":"معامل الانتقال الحراري لجدار أو سقف أو أرضية من طبقاتها، مع التحقق من حد كود الطاقة.",
+"Element":"العنصر","Wall":"جدار","Roof":"سقف","Exposed floor":"أرضية مكشوفة","Material":"المادة","Thickness mm":"السمك mm","U-value limit":"حد معامل U","From your energy code":"من كود الطاقة المعتمد","Inside–outside temperature difference":"فرق الحرارة بين الداخل والخارج",
+"Reinforced concrete":"خرسانة مسلحة","Plain concrete":"خرسانة عادية","Hollow concrete block (equivalent)":"بلوك خرساني مفرغ (مكافئ)","Solid concrete block":"بلوك خرساني مصمت","Autoclaved aerated block (AAC)":"بلوك خلوي خفيف (AAC)","Clay brick":"طوب طيني","Limestone":"حجر جيري","Granite / marble":"جرانيت / رخام","Cement plaster":"لياسة أسمنتية","Gypsum plaster":"لياسة جبسية","Gypsum board":"ألواح جبسية","Cement screed":"طبقة تسوية أسمنتية","Ceramic / porcelain tile":"بلاط سيراميك / بورسلين","Extruded polystyrene (XPS)":"بوليسترين مبثوق (XPS)","Expanded polystyrene (EPS)":"بوليسترين ممدد (EPS)","Polyurethane / PIR foam":"فوم بولي يوريثان / PIR","Mineral / rock wool":"صوف صخري / معدني","Bitumen membrane":"عازل بيتوميني","Timber (softwood)":"خشب طري","Gravel ballast":"حصى","Unventilated air gap ≥ 25 mm":"فراغ هوائي غير مهوّى ≥ 25 mm",
+"U-value":"معامل U","Total resistance R":"المقاومة الكلية R","Heat flow":"التدفق الحراري","Total thickness":"السمك الكلي","U-value meets the limit.":"معامل U يحقق الحد.","U-value exceeds the limit. Add insulation.":"معامل U يتجاوز الحد. زد العزل.","Layer":"الطبقة","Inside surface":"السطح الداخلي","Outside surface":"السطح الخارجي",
+"Conductivities are typical design values; use the manufacturer's declared λ for insulation and blocks.":"قيم الموصلية قيم تصميمية نموذجية؛ استخدم قيمة λ المعلنة من المصنّع للعزل والبلوك.","Thermal bridges (columns, beams, ties) are ignored here and can raise the real U-value by 10 – 30 %.":"الجسور الحرارية (أعمدة وكمرات ورباطات) مهملة هنا، وقد ترفع معامل U الفعلي بنسبة 10 – 30 %.",
+"Window-to-wall ratio and solar gain":"نسبة النوافذ إلى الجدران والكسب الشمسي","Window-to-wall ratio by facade and overall, with the glazing SHGC check and an estimate of peak solar gain.":"نسبة النوافذ إلى الجدران لكل واجهة وللمبنى، مع التحقق من معامل SHGC للزجاج وتقدير ذروة الكسب الشمسي.",
+"Facade":"الواجهة","Wall area m²":"مساحة الجدار m²","Wall m²":"الجدار m²","Glazing m²":"الزجاج m²","North":"شمال","East":"شرق","South":"جنوب","West":"غرب","Skylight (horizontal)":"منور سقفي (أفقي)","Glass SHGC":"SHGC للزجاج","SHGC limit":"حد SHGC","WWR limit":"حد نسبة النوافذ",
+"Overall WWR":"نسبة النوافذ الكلية","Peak solar gain (estimate)":"ذروة الكسب الشمسي (تقديري)","Total glazing":"إجمالي الزجاج","Glazing allowed at the limit":"الزجاج المسموح عند الحد",
+"Overall WWR within the limit.":"نسبة النوافذ الكلية ضمن الحد.","Overall WWR exceeds the limit.":"نسبة النوافذ الكلية تتجاوز الحد.","Some facades exceed the limit on their own.":"بعض الواجهات تتجاوز الحد منفردة.","Every facade is within the limit.":"كل الواجهات ضمن الحد.","Glass SHGC meets the limit.":"معامل SHGC للزجاج يحقق الحد.","Glass SHGC exceeds the limit. Use a lower-SHGC glass or add shading.":"معامل SHGC للزجاج يتجاوز الحد. استخدم زجاجًا أقل أو أضف تظليلًا.",
+"WWR %":"النسبة %","Solar W/m²":"الإشعاع W/m²","Gain kW":"الكسب kW",
+"Peak irradiance values are typical clear-sky figures for latitudes of about 20 – 30° N, for comparing options only.":"قيم ذروة الإشعاع أرقام نموذجية لسماء صافية عند خطوط عرض 20 – 30° شمالًا تقريبًا، للمقارنة بين البدائل فقط.","External shading (fins, overhangs) lowers the effective SHGC; many codes allow credit for it.":"التظليل الخارجي (زعانف وبروزات) يخفض SHGC الفعلي، وتسمح كثير من الأكواد باحتسابه.",
+"Daylight factor":"معامل ضوء النهار","Average daylight factor of a side-lit room, the glazing-to-floor ratio, and the limiting room depth.":"متوسط معامل ضوء النهار لغرفة مضاءة جانبيًا، ونسبة الزجاج إلى الأرضية، وأقصى عمق للغرفة.",
+"Room width (window wall)":"عرض الغرفة (جدار النافذة)","Room depth":"عمق الغرفة","Room height":"ارتفاع الغرفة","Glazed area":"مساحة الزجاج","Window head height":"ارتفاع أعلى النافذة","Glass light transmittance":"نفاذية الزجاج للضوء","Visible sky angle θ":"زاوية السماء المرئية θ","90° if nothing blocks the view":"90° إذا لم يحجب شيء الرؤية","Average surface reflectance":"متوسط انعكاسية الأسطح","Maintenance (dirt) factor":"معامل الصيانة (الأتربة)",
+"Average daylight factor":"متوسط معامل ضوء النهار","Glazing ÷ floor area":"الزجاج ÷ مساحة الأرضية","Limiting room depth":"أقصى عمق للغرفة","Total room surface area":"مجموع مساحات أسطح الغرفة",
+"Below 2 %: the room will look gloomy and need electric light most of the day.":"أقل من 2 %: ستبدو الغرفة معتمة وتحتاج إضاءة صناعية معظم اليوم.","Above 5 %: well daylit, but check glare and solar heat gain.":"أعلى من 5 %: إضاءة طبيعية جيدة، لكن راجع الوهج والكسب الحراري الشمسي.","2 – 5 %: a well daylit room.":"2 – 5 %: غرفة جيدة الإضاءة الطبيعية.",
+"Glazing is at least 8 % of the floor area.":"الزجاج لا يقل عن 8 % من مساحة الأرضية.","Glazing is below 8 % of the floor area.":"الزجاج أقل من 8 % من مساحة الأرضية.","Room is not too deep for side lighting.":"عمق الغرفة مناسب للإضاءة الجانبية.","Room is deeper than the limit: the back will look dark.":"الغرفة أعمق من الحد: سيبدو الجزء الخلفي معتمًا.",
+"A is the total area of all room surfaces (floor, ceiling and walls, including windows).":"A مجموع مساحات أسطح الغرفة (الأرضية والسقف والجدران شاملة النوافذ).","Use simulation (Radiance, DIALux) for complex rooms or climate-based daylight metrics.":"استخدم المحاكاة (Radiance، DIALux) للغرف المعقدة أو لمقاييس ضوء النهار المعتمدة على المناخ.",
+"Dew point and surface condensation":"نقطة الندى والتكثف السطحي","Dew point of the air and the surface temperature of a wall, roof or glass, to check for condensation and mould.":"نقطة ندى الهواء ودرجة حرارة سطح الجدار أو السقف أو الزجاج، للتحقق من التكثف والعفن.",
+"Room air temperature":"درجة حرارة هواء الغرفة","Room relative humidity":"الرطوبة النسبية للغرفة","Outside temperature":"درجة الحرارة الخارجية","U-value of the element":"معامل U للعنصر","From AR-11; glazing 1.5 – 5.8":"من AR-11؛ الزجاج 1.5 – 5.8","Inside surface resistance":"مقاومة السطح الداخلي","0.13 — open wall or glass":"0.13 — جدار مكشوف أو زجاج","0.25 — corner or behind furniture":"0.25 — ركن أو خلف الأثاث",
+"Dew point":"نقطة الندى","Inside surface temperature":"درجة حرارة السطح الداخلي","Margin above dew point":"الهامش فوق نقطة الندى","Relative humidity at the surface":"الرطوبة النسبية عند السطح","Temperature factor fRsi":"معامل الحرارة fRsi","Highest U-value without condensation":"أعلى معامل U بدون تكثف",
+"Surface is at or below the dew point: condensation will form.":"السطح عند نقطة الندى أو أقل: سيحدث تكثف.","Surface stays above the dew point.":"السطح أعلى من نقطة الندى.","Surface humidity of 80 % or more: mould can grow.":"رطوبة السطح 80 % أو أكثر: قد ينمو العفن.","Surface humidity below 80 %: low mould risk.":"رطوبة السطح أقل من 80 %: خطر العفن منخفض.",
+"In air-conditioned buildings in hot, humid climates the risk is inside the wall: keep the vapour barrier on the outer (warm) side of the insulation.":"في المباني المكيفة بالمناخ الحار الرطب يكون الخطر داخل الجدار: ضع عازل البخار على الجهة الخارجية (الدافئة) من العزل.","Use the same check for chilled pipes and ducts: their surface temperature must stay above the room dew point, or insulate them.":"استخدم نفس التحقق لمواسير المياه المبردة والدكت: يجب أن تبقى حرارة سطحها أعلى من نقطة ندى الغرفة، وإلا فاعزلها.",
+"Lift traffic analysis":"تحليل حركة المصاعد","Up-peak round trip time, interval and handling capacity of a group of lifts, and the number of lifts needed.":"زمن الرحلة الكاملة في ذروة الصعود والفاصل الزمني وسعة النقل لمجموعة مصاعد، وعدد المصاعد اللازم.",
+"Building type":"نوع المبنى","Office — multi-tenant":"مكاتب — عدة مستأجرين","Office — single tenant":"مكاتب — مستأجر واحد","Hotel":"فندق","Hospital":"مستشفى","Floors served above the lobby":"الطوابق المخدومة فوق الردهة","Floor height":"ارتفاع الطابق","Population per floor":"عدد الشاغلين لكل طابق","Office: net area ÷ 10 m²":"مكاتب: المساحة الصافية ÷ 10 m²",
+"Car size":"سعة الكابينة","8 persons (630 kg)":"8 أشخاص (630 kg)","10 persons (800 kg)":"10 أشخاص (800 kg)","13 persons (1,000 kg)":"13 شخصًا (1,000 kg)","16 persons (1,275 kg)":"16 شخصًا (1,275 kg)","21 persons (1,600 kg)":"21 شخصًا (1,600 kg)","26 persons (2,000 kg)":"26 شخصًا (2,000 kg)",
+"Rated speed":"السرعة المقننة","Number of lifts":"عدد المصاعد","Time lost per stop":"الزمن الضائع لكل توقف","Doors plus acceleration":"الأبواب والتسارع","Passenger transfer time":"زمن دخول وخروج الراكب",
+"Interval":"الفاصل الزمني","5-minute handling capacity":"سعة النقل في 5 دقائق","Lifts needed for the targets":"المصاعد اللازمة لتحقيق الأهداف","Round trip time":"زمن الرحلة الكاملة","Persons moved in 5 minutes":"الأشخاص المنقولون في 5 دقائق","Building population":"عدد شاغلي المبنى","Passengers per trip":"الركاب في كل رحلة","Probable stops":"التوقفات المحتملة","Highest reversal floor":"أعلى طابق انعكاس",
+"Interval meets the target of {0} s.":"الفاصل الزمني يحقق الهدف {0} s.","Interval longer than the target of {0} s.":"الفاصل الزمني أطول من الهدف {0} s.","Handling capacity meets the target of {0} %.":"سعة النقل تحقق الهدف {0} %.","Handling capacity below the target of {0} %.":"سعة النقل أقل من الهدف {0} %.",
+"Travel at rated speed takes over 25 s: consider a faster lift or zoning.":"الرحلة بالسرعة المقننة تتجاوز 25 s: فكّر في سرعة أعلى أو تقسيم المصاعد إلى مناطق.","Speed suits the travel height.":"السرعة مناسبة لارتفاع المشوار.",
+"This is the classic up-peak calculation for a single lobby. Modern destination control and lunchtime traffic need simulation by the lift supplier.":"هذا هو الحساب التقليدي لذروة الصعود من ردهة واحدة. أنظمة التحكم بالوجهة وحركة وقت الظهيرة تحتاج محاكاة من مورّد المصاعد.","Add a separate goods or firefighting lift where the code or the building's use calls for one.":"أضف مصعد بضائع أو مصعد إطفاء مستقلًا حيث يتطلبه الكود أو استخدام المبنى.",
+"Reverberation time":"زمن الارتداد الصوتي","Reverberation time of a room from its volume and surface finishes (Sabine and Eyring), compared with the target for its use.":"زمن الارتداد الصوتي لغرفة من حجمها وتشطيبات أسطحها (سابين وآيرنج)، مقارنة بالهدف لاستخدامها.",
+"Room use":"استخدام الغرفة","Meeting / conference room":"غرفة اجتماعات","Open-plan office":"مكتب مفتوح","Lecture hall (speech)":"قاعة محاضرات (كلام)","Restaurant":"مطعم","Multi-purpose hall":"قاعة متعددة الأغراض","Concert hall (music)":"قاعة موسيقى","People present":"عدد الحاضرين","Finish":"التشطيب",
+"Concrete / painted plaster":"خرسانة / لياسة مدهونة","Ceramic tile / marble":"سيراميك / رخام","Gypsum board on studs":"ألواح جبسية على قوائم","Glass — large panes":"زجاج — ألواح كبيرة","Timber floor":"أرضية خشبية","Carpet on concrete":"موكيت على خرسانة","Carpet on underlay":"موكيت على بطانة","Mineral fibre ceiling tile":"بلاطات سقف ألياف معدنية","Perforated gypsum ceiling with backing":"سقف جبسي مثقب مع طبقة خلفية","Fabric-wrapped panel 50 mm":"لوح مغلف بالقماش 50 mm","Heavy curtains (draped)":"ستائر ثقيلة","Timber panelling":"تكسيات خشبية","Upholstered seating (per m²)":"مقاعد منجدة (لكل m²)","Open doorway":"فتحة باب مفتوحة",
+"Reverberation time (Sabine)":"زمن الارتداد (سابين)","Target":"الهدف","Reverberation time (Eyring)":"زمن الارتداد (آيرنج)","Room volume":"حجم الغرفة","Total absorption":"الامتصاص الكلي","Mean absorption coefficient":"متوسط معامل الامتصاص","Extra absorption needed":"الامتصاص الإضافي اللازم","≈ area of 0.85 acoustic panel":"≈ مساحة ألواح صوتية بمعامل 0.85",
+"Much shorter than the target: the room may sound dead.":"أقصر بكثير من الهدف: قد يبدو صوت الغرفة مكتومًا.","Reverberation time meets the target.":"زمن الارتداد يحقق الهدف.","Reverberation time too long. Add absorption.":"زمن الارتداد أطول من اللازم. أضف مواد ماصّة.","Finish areas do not add up to the room surface area. Check the schedule.":"مجموع مساحات التشطيبات لا يساوي مساحة أسطح الغرفة. راجع الجدول.","Finish areas match the room surface area.":"مساحات التشطيبات تطابق مساحة أسطح الغرفة.",
+"α 500 Hz":"α عند 500 Hz","Absorption m²":"الامتصاص m²","People":"الأشخاص","{0} each":"{0} لكل شخص",
+"Coefficients are at 500 Hz. Check 125 Hz to 4 kHz with product data for final design.":"المعاملات عند 500 Hz. راجع الترددات من 125 Hz إلى 4 kHz من بيانات المنتجات في التصميم النهائي.","Seats, curtains and people add a lot of absorption: an empty hall sounds more reverberant than a full one.":"المقاعد والستائر والأشخاص تضيف امتصاصًا كبيرًا: القاعة الفارغة أكثر ارتدادًا من الممتلئة.",
+
 "HVAC":"التكييف والتهوية","Plumbing":"الصحي","Fire protection":"مكافحة الحريق","Electrical":"الكهرباء","Structural":"الإنشائي","Civil & geotechnical":"المدني والجيوتقني","Fundamentals":"أساسيات","Site & quality control":"الموقع وضبط الجودة",
 "Room cooling load":"حمل التبريد للغرفة","Quick sensible and latent cooling load for a room using the rule-of-thumb equations from the AC Equations sheet and the ASHRAE people heat-gain table.":"حساب سريع لحمل التبريد المحسوس والكامن لغرفة باستخدام المعادلات التقريبية من ورقة AC Equations وجدول ASHRAE للكسب الحراري من الأشخاص.",
 "This is the rule-of-thumb method in the AC Equations sheet. Use it for early sizing, not for final equipment selection.":"هذه هي الطريقة التقريبية في ورقة AC Equations. استخدمها للتحجيم المبدئي، لا لاختيار المعدات النهائي.",
@@ -941,7 +1333,7 @@ const AR={
 "Concrete materials":"مواد الخرسانة","Cement, sand, coarse aggregate and water for a volume of concrete from a nominal mix ratio.":"الأسمنت والرمل والركام الكبير والمياه لحجم من الخرسانة بنسبة خلط اسمية.","Concrete volume (wet)":"حجم الخرسانة (رطب)","Cement part":"نسبة الأسمنت","Sand parts":"نسبة الرمل","Aggregate parts":"نسبة الركام","Dry volume factor":"معامل الحجم الجاف","Water / cement ratio":"نسبة الماء إلى الأسمنت","Cement bag":"شكارة الأسمنت",
 "Sieve analysis":"التحليل المنخلي","Percent passing, D10 / D30 / D60, uniformity and curvature coefficients from a sieve test.":"النسبة المارة وD10 / D30 / D60 ومعاملا الانتظام والتدرج من اختبار المناخل.","Sieve mm (0 = pan)":"المنخل mm (0 = القاع)","Retained g":"المحجوز g",
 "Search calculators…":"ابحث في الحاسبات…","Calculators":"الحاسبات","Built from":"مبنية على","Inputs":"المدخلات","Reset":"إعادة ضبط","Results":"النتائج","Copy":"نسخ","Copied":"تم النسخ","Select and copy manually":"حدّد النص وانسخه يدويًا","+ Add row":"+ إضافة صف","Remove row":"حذف الصف","Table":"الجدول","Notes":"ملاحظات","Example.":"مثال.","No calculator matches.":"لا توجد حاسبة مطابقة.","OK":"مقبول","Check":"راجع","Fail":"غير مقبول","Sources":"المصادر",
-"Every calculator lists the BG sheets it was built from. Values are for preliminary design; check against the governing code and manufacturer data.":"كل حاسبة تذكر أوراق BG التي بُنيت عليها. القيم للتصميم المبدئي؛ راجعها مع الكود المعتمد وبيانات المصنّعين.","Engineer's Calculator · Rev A · Inputs are remembered in this browser only.":"حاسبة المهندس · الإصدار A · تُحفظ المدخلات في هذا المتصفح فقط.","Benchmark Guides":"بنشمارك جايدز","Engineer's Calculator":"حاسبة المهندس",
+"Every calculator lists the BG sheets or code clauses it is based on. Values are for preliminary design; check against the governing code and manufacturer data.":"كل حاسبة تذكر أوراق BG أو بنود الكود التي بُنيت عليها. القيم للتصميم المبدئي؛ راجعها مع الكود المعتمد وبيانات المصنّعين.","Engineer's Calculator · Rev A · Inputs are remembered in this browser only.":"حاسبة المهندس · الإصدار A · تُحفظ المدخلات في هذا المتصفح فقط.","Benchmark Guides":"بنشمارك جايدز","Engineer's Calculator":"حاسبة المهندس",
 "Total cooling load":"حمل التبريد الكلي","Cooling capacity":"سعة التبريد","Total":"الإجمالي","Sensible / latent":"محسوس / كامن","Sensible heat ratio":"نسبة الحرارة المحسوسة","Load density":"كثافة الحمل","Area per TR":"المساحة لكل طن تبريد","Load density is in the usual range for a quick estimate.":"كثافة الحمل ضمن المدى المعتاد للتقدير السريع.","Component":"البند","Rule":"القاعدة","Building fabric & solar":"غلاف المبنى والإشعاع الشمسي","{0} W per m³ of volume":"{0} W لكل m³ من الحجم","Fresh air & infiltration":"الهواء النقي والتسرب","{0} W per m³":"{0} W لكل m³","Lighting":"الإنارة","installed W × {0}":"القدرة المركبة × {0}","People — sensible":"الأشخاص — محسوس","People — latent":"الأشخاص — كامن","Equipment":"المعدات","Load density above {0} W/m². Check the inputs or use a full load calculation (HAP / ASHRAE RTS).":"كثافة الحمل أعلى من {0} W/m². راجع المدخلات أو استخدم حساب أحمال كامل (HAP / ASHRAE RTS).",
 "Required airflow":"كمية الهواء المطلوبة","Room area":"مساحة الغرفة","Room volume":"حجم الغرفة","Zone outdoor air Voz":"الهواء الخارجي للمنطقة Voz","Zone outdoor air":"الهواء الخارجي للمنطقة","Occupants used":"الشاغلون المستخدمون","People component Rp·Pz":"جزء الأشخاص Rp·Pz","Area component Ra·Az":"جزء المساحة Ra·Az","Per person":"لكل شخص","Category":"الفئة","Default /{0} m²":"الافتراضي لكل {0} m²","Classroom (age {0}+)":"فصل دراسي ({0} سنوات فأكثر)",
 "Round duct":"مجرى دائري","Rectangular duct":"مجرى مستطيل","Theoretical diameter":"القطر النظري","Velocity — round":"السرعة — دائري","Friction — round":"الاحتكاك — دائري","Velocity — rectangular":"السرعة — مستطيل","Friction — rectangular":"الاحتكاك — مستطيل","Equivalent diameter (rect.)":"القطر المكافئ (مستطيل)","Velocity pressure":"ضغط السرعة","Aspect ratio {0}:{1}.":"نسبة الأبعاد {0}:{1}.","Velocity within low-velocity range.":"السرعة ضمن نطاق السرعات المنخفضة.","Recommended / maximum velocities, m/s (BG-MEC-CS-{0})":"السرعات الموصى بها / القصوى، m/s (BG-MEC-CS-{0})","Element":"العنصر","Residence":"سكني","Public buildings":"مبانٍ عامة","Industrial":"صناعي","Outside air intakes":"مآخذ الهواء الخارجي","Filters":"الفلاتر","Heating coils":"ملفات التسخين","Fan outlets":"مخارج المراوح","Main ducts":"المجاري الرئيسية","Branch ducts":"المجاري الفرعية","Branch risers":"الصواعد الفرعية","Aspect ratio {0}:{1} is above {2}:{3}. Increase the depth.":"نسبة الأبعاد {0}:{1} أعلى من {2}:{3}. زِد العمق.","Velocity above {0} m/s: expect noise in occupied spaces.":"السرعة أعلى من {0} m/s: توقّع ضوضاء في الأماكن المشغولة.",
@@ -1001,7 +1393,7 @@ function tr(s){
   const nums=[]; const k=s.replace(/\d[\d,]*(?:\.\d+)?/g,m=>{nums.push(m);return '{'+(nums.length-1)+'}'});
   const t=AR[k]; return t===undefined?s:t.replace(/\{(\d+)\}/g,(_,i)=>nums[+i]);
 }
-const STATIC={appname:"Engineer's Calculator",by:'Benchmark Guides',navbtn:'Calculators',navnote:'Every calculator lists the BG sheets it was built from. Values are for preliminary design; check against the governing code and manufacturer data.',foot:"Engineer's Calculator · Rev A · Inputs are remembered in this browser only."};
+const STATIC={appname:"Engineer's Calculator",by:'Benchmark Guides',navbtn:'Calculators',navnote:'Every calculator lists the BG sheets or code clauses it is based on. Values are for preliminary design; check against the governing code and manufacturer data.',foot:"Engineer's Calculator · Rev A · Inputs are remembered in this browser only."};
 function applyLang(){
   app.lang=LANG; app.dir=LANG==='ar'?'rtl':'ltr'; if(STANDALONE){const r=document.documentElement; r.lang=LANG; r.dir=app.dir;}
   for(const k in STATIC){const el=root.getElementById(k); if(el) el.textContent=tr(STATIC[k]);}
@@ -1043,7 +1435,7 @@ function open(id,push=true){
   $('#sheet').innerHTML=`
    <header class="ph" style="--disc:var(--k-disc-${GDISC[c.g]})"><div class="ph-in"><div class="eyebrow"><span class="pill"><i></i>${c.code}</span>${esc(tr(grp))}</div><h2>${esc(tr(c.t))}</h2><p>${esc(tr(c.d))}</p></div>
     <div class="tblock"><div class="tbc"><span class="lbl">${tr('Sheet')}</span><b>${c.code}</b></div><div class="tbc"><span class="lbl">${tr('Discipline')}</span><b>${esc(tr(grp))}</b></div><div class="tbc"><span class="lbl">${tr('Revision')}</span><b>A</b></div>
-     <div class="tbc wide"><span class="lbl">${tr('Built from')}</span><div class="src">${c.src.map(([k,n])=>`<span class="chip"><b>${k}</b><span>${esc(n)}</span></span>`).join('')}</div></div></div></header>
+     <div class="tbc wide"><span class="lbl">${tr(c.ref?'Based on':'Built from')}</span><div class="src">${c.src.map(([k,n])=>`<span class="chip" dir="ltr"><b>${k}</b><span>${esc(n)}</span></span>`).join('')}</div></div></div></header>
    <div class="body">
     <section class="card inputs" aria-label="${tr('Inputs')}"><div class="card-h"><h3 class="sec">${tr('Inputs')}</h3><button class="btn ghost" id="reset">${tr('Reset')}</button></div><div class="fields">${f}</div></section>
     <section class="card outputs" aria-label="${tr('Results')}" aria-live="polite"><div class="card-h"><h3 class="sec">${tr('Results')}</h3><span class="toast" id="toast"></span><button class="btn primary" id="copy">${tr('Copy')}</button></div><div id="out"></div></section>
