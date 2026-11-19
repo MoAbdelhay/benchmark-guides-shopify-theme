@@ -13,6 +13,7 @@
   --k-line:var(--line,rgba(22,33,43,.16)); --k-line-s:var(--line-strong,rgba(22,33,43,.5));
   --k-disc-gen:var(--disc-gen,#7C8A93); --k-disc-civ:var(--disc-civ,#B5763A); --k-disc-str:var(--disc-str,#5B87A3);
   --k-disc-mec:var(--disc-mec,#5F8A6A); --k-disc-ele:var(--disc-ele,#D6A637); --k-disc-prc:var(--disc-prc,#8A78AE); --k-disc-arc:var(--disc-arc,#B5524A);
+  --k-disc-enr:var(--disc-enr,#3E9A8F); --k-disc-hyd:var(--disc-hyd,#3F86B5); --k-disc-min:var(--disc-min,#8C6F56);
   --k-display:var(--font-display,"Saira","Segoe UI",system-ui,sans-serif);
   --k-body:var(--font-body,"Source Serif 4",Georgia,"Times New Roman",serif);
   --k-mono:var(--font-mono,"IBM Plex Mono",ui-monospace,Consolas,monospace);

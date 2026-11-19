@@ -140,8 +140,8 @@ const CONDUIT=[16,20,25,32,40,50,63,75,100,150];
 const TRAY=[50,100,150,200,300,450,600,750,900];
 
 /* ---------- calculators ---------- */
-const GDISC={HV:'mec',PL:'mec',FP:'mec',EL:'ele',ST:'str',CV:'civ',GN:'gen',OP:'prc',AR:'arc'};
-const GROUPS=[['HV','HVAC'],['PL','Plumbing'],['FP','Fire protection'],['EL','Electrical'],['AR','Architecture'],['ST','Structural'],['CV','Civil & geotechnical'],['GN','Fundamentals'],['OP','Site & quality control']];
+const GDISC={HV:'mec',PL:'mec',FP:'mec',GS:'mec',MG:'mec',RF:'mec',EL:'ele',LC:'ele',SE:'enr',AR:'arc',SU:'enr',ST:'str',PF:'str',CV:'civ',SW:'hyd',WT:'hyd',IR:'hyd',RD:'civ',SV:'civ',MN:'min',QS:'prc',PM:'prc',GN:'gen',OP:'prc'};
+const GROUPS=[['HV','HVAC'],['PL','Plumbing'],['FP','Fire protection'],['GS','Fuel gas'],['MG','Medical gases'],['RF','Refrigeration & steam'],['EL','Electrical'],['LC','ELV & low-current'],['SE','Solar & energy'],['AR','Architecture'],['SU','Sustainability'],['ST','Structural'],['PF','Pile foundations'],['CV','Civil & geotechnical'],['SW','Stormwater & hydrology'],['WT','Water & wastewater'],['IR','Irrigation'],['RD','Roads & transport'],['SV','Surveying'],['MN','Mining'],['QS','Quantity surveying'],['PM','Project management'],['OP','Site & quality control'],['GN','Fundamentals']];
 const C=[];
 const def=o=>C.push(o);
 
@@ -1151,6 +1151,844 @@ def({id:'reverb',g:'AR',code:'AR-16',t:'Reverberation time',ref:1,
  notes:['Coefficients are at 500 Hz. Check 125 Hz to 4 kHz with product data for final design.','Seats, curtains and people add a lot of absorption: an empty hall sounds more reverberant than a full one.']});
 
 
+/* ===== fuel gas ===== */
+const GAS=[['ng','Natural gas'],['lpg','LPG (propane)']];
+const GASP={ng:{s:0.6,cv:10.7},lpg:{s:1.52,cv:25.9}}; // relative density, gross CV kWh/m³
+const GSTEEL=[['DN15',16.1],['DN20',21.6],['DN25',27.3],['DN32',36.0],['DN40',41.9],['DN50',53.1],['DN65',68.9],['DN80',80.9],['DN100',105.3],['DN150',155.4]];
+const GAPP=[['Domestic cooker',10],['Domestic water heater',8],['Combi boiler',28],['Commercial range (6 burners)',36],['Commercial oven',15],['Fryer',20],['Bratt pan',18],['Grill / salamander',10],['Wok burner',25],['Boiler 100 kW',100],['Other',0]];
+const LPG_KWH_KG=13.9;
+const LPG_TANKS=[0.5,1,2,4,6.5,9,13,20,30,45,60,100];
+
+def({id:'gas-pipe',g:'GS',code:'GS-01',t:'Gas pipe sizing',ref:1,
+ d:'Low-pressure natural gas or LPG pipe size for a load and length, by the Pole formula.',
+ src:[['IGEM/UP/2','Pipe sizing'],['BS 6891','Low-pressure installations']],
+ inp:[{id:'gas',l:'Gas',type:'sel',o:GAS,v:'ng'},{id:'kw',l:'Gas load',u:'kW',v:120},{id:'L',l:'Pipe length',u:'m',v:40},
+  {id:'fa',l:'Fittings allowance',u:'%',v:20},{id:'dp',l:'Allowed pressure drop',u:'mbar',v:1,hint:'Natural gas 1 mbar, LPG 2.5 mbar'}],
+ calc(v){const P=GASP[v.gas],Q=v.kw/P.cv,Le=v.L*(1+v.fa/100),dreq=Math.pow(Q*Q*P.s*Le/(0.0072*0.0072*v.dp),0.2);
+  const rows=GSTEEL.map(x=>{const d=x[1],cap=0.0072*Math.sqrt(v.dp*Math.pow(d,5)/(P.s*Le)),vel=Q/3600/(PI*d*d/4e6);return {n:x[0],d,cap,vel,ok:cap>=Q}});
+  const sel=rows.findIndex(r=>r.ok),r=rows[sel];
+  return {res:[{l:'Pipe size',v:r?r.n:'—',key:1},{l:'Gas flow',v:Q,u:'m³/h',key:1,d:2},{l:'Minimum bore',v:dreq,u:'mm',d:1},{l:'Capacity of the size chosen',v:r?r.cap:NaN,u:'m³/h',d:2},{l:'Velocity',v:r?r.vel:NaN,u:'m/s',d:2},{l:'Effective length',v:Le,u:'m',d:1}],
+   chk:[r?{s:'ok',t:'Pressure drop within '+fmt(v.dp,1)+' mbar.'}:{s:'bad',t:'No size in the table is large enough. Shorten the run or allow a larger drop.'},
+    r&&r.vel>6?{s:'warn',t:'Velocity over 6 m/s: expect noise.'}:{s:'ok',t:'Velocity is low.'}],
+   tbl:{head:['Size','Bore mm','Capacity m³/h','Velocity m/s'],rows:rows.map((x,i)=>({hl:i===sel,dim:!x.ok,c:[x.n,fmt(x.d,1),fmt(x.cap,2),fmt(x.vel,2)]}))}};},
+ f:['Q = load ÷ calorific value','Q = 0.0072 √( h d⁵ ÷ (s L) )   (Q m³/h, h mbar, d mm, L m)','s = 0.6 natural gas, 1.52 propane'],
+ notes:['Bores are for medium-weight steel tube. Copper and polyethylene have different bores: check the size against its own table.','Keep the drop from the meter to the furthest appliance within the limit for the supply pressure.']});
+
+def({id:'gas-load',g:'GS',code:'GS-02',t:'Gas appliance load',ref:1,
+ d:'Connected and design gas load of a group of appliances, as natural gas flow and LPG mass flow.',
+ src:[['IGEM/UP/2','Diversity'],['NFPA 54','Chapter 6']],
+ inp:[{id:'rows',type:'rows',cols:[{id:'a',l:'Appliance',type:'sel',o:opt(GAPP.map(x=>x[0])),set:r=>{if(GAPP[+r.a][1])r.kw=GAPP[+r.a][1]}},{id:'q',l:'Qty',v:1},{id:'kw',l:'kW each',v:10}],
+   v:[{a:'3',q:2,kw:36},{a:'4',q:2,kw:15},{a:'5',q:2,kw:20},{a:'7',q:1,kw:10}]},
+  {id:'div',l:'Diversity factor',u:'%',v:100,hint:'Commercial kitchens 100 %; groups of dwellings much lower'}],
+ calc(v){const rows=v.rows.map(x=>({n:(GAPP[+x.a]||GAPP[0])[0],q:+x.q||0,kw:+x.kw||0})),T=rows.reduce((s,x)=>s+x.q*x.kw,0),D=T*v.div/100;
+  return {res:[{l:'Design load',v:D,u:'kW',key:1,d:1},{l:'Natural gas flow',v:D/GASP.ng.cv,u:'m³/h',key:1,d:2},{l:'LPG flow',v:D/LPG_KWH_KG,u:'kg/h',key:1,d:2},{l:'Connected load',v:T,u:'kW',d:1},{l:'LPG vapour flow',v:D/GASP.lpg.cv,u:'m³/h',d:2}],
+   chk:[v.div<100?{s:'warn',t:'Diversity applied. Make sure it suits how the appliances are used together.'}:{s:'ok',t:'No diversity: all appliances at full rate.'}],
+   tbl:{head:['Appliance','Qty','kW each','kW'],rows:rows.map(x=>[x.n,fmt(x.q,0),fmt(x.kw,1),fmt(x.q*x.kw,1)])}};},
+ f:['Design load = Σ (qty × kW) × diversity','Natural gas m³/h = kW ÷ 10.7,   LPG kg/h = kW ÷ 13.9'],
+ notes:['Ratings are gross heat input. Use the nameplate figure where you have it.']});
+
+def({id:'lpg-tank',g:'GS',code:'GS-03',t:'LPG storage',ref:1,
+ d:'LPG tank size for a load and days of storage, and the cylinders needed if a cylinder manifold is used instead.',
+ src:[['NFPA 58','Storage'],['UKLPG CoP 1','Bulk tanks']],
+ inp:[{id:'kw',l:'Design load',u:'kW',v:100},{id:'h',l:'Hours of use per day',u:'h',v:10},{id:'days',l:'Days of storage',u:'d',v:14},
+  {id:'fill',l:'Maximum fill',u:'%',v:85},{h:'Cylinders'},{id:'cyl',l:'Cylinder size',u:'kg',v:45},{id:'off',l:'Off-take per cylinder',u:'kg/h',v:1,hint:'About 1 kg/h at 15 °C; less in cold weather'}],
+ calc(v){const peak=v.kw/LPG_KWH_KG,day=peak*v.h,mass=day*v.days,wc=mass/0.51/(v.fill/100)/1000,t=nextStd(wc,LPG_TANKS),n=t?1:Math.ceil(wc/100),on=Math.ceil(peak/v.off);
+  return {res:[{l:'Tank water capacity needed',v:wc,u:'m³',key:1,d:2},{l:'Standard tank',v:t?fmt(t,1)+' m³':n+' × 100 m³',key:1},{l:'LPG stored',v:mass,u:'kg',d:0},{l:'Daily use',v:day,u:'kg/d',d:0},{l:'Peak flow',v:peak,u:'kg/h',d:2},
+   {l:'Cylinders on line',v:on,d:0},{l:'Cylinders for two banks',v:2*on,d:0},{l:'Cylinder changes per week',v:day*7/v.cyl,d:1}],
+   chk:[on>10?{s:'warn',t:'More than 10 cylinders on line: a bulk tank is usually the better choice.'}:{s:'ok',t:'A cylinder manifold is practical for this load.'}]};},
+ f:['Peak kg/h = kW ÷ 13.9','Storage kg = kg/h × hours × days','Water capacity = kg ÷ 0.51 kg/L ÷ fill limit'],
+ notes:['Check separation distances to buildings, boundaries and openings for the tank size chosen.','A tank\'s natural vaporisation falls in cold weather. Large loads may need a vaporiser.']});
+
+/* ===== medical gases ===== */
+const MGAS=[['Oxygen',4.0,1.33,2.0e-5],['Medical air 4 bar',4.0,1.2,1.8e-5],['Surgical air 7 bar',7.0,1.2,1.8e-5],['Nitrous oxide',4.0,1.83,1.46e-5],['Vacuum',-0.6,1.2,1.8e-5]];
+const MCU=[['12 × 0.6',10.8],['15 × 0.7',13.6],['22 × 0.9',20.2],['28 × 0.9',26.2],['35 × 1.2',32.6],['42 × 1.2',39.6],['54 × 1.2',51.6],['76.1 × 1.5',73.1],['108 × 1.5',105]];
+const VIE=[1000,2000,3000,5000,10000,20000,30000];
+
+def({id:'medgas-flow',g:'MG',code:'MG-01',t:'Medical gas design flow',ref:1,
+ d:'Diversified design flow of each medical gas from the outlets in each department.',
+ src:[['HTM 02-01','Part A, design flows'],['NFPA 99','Chapter 5']],
+ inp:[{id:'rows',type:'rows',cols:[{id:'g',l:'Gas',type:'sel',o:opt(MGAS.map(x=>x[0]))},{id:'n',l:'Outlets',v:10},{id:'q',l:'L/min first outlet',v:10},{id:'d',l:'Diversity %',v:15}],
+   v:[{g:'0',n:30,q:10,d:15},{g:'1',n:30,q:20,d:10},{g:'4',n:30,q:40,d:10},{g:'0',n:6,q:100,d:50}]}],
+ calc(v){const by={};const rows=v.rows.map(x=>{const n=+x.n||0,Q=n>0?(+x.q)*(1+(n-1)*(+x.d)/100):0,g=(MGAS[+x.g]||MGAS[0])[0];by[g]=(by[g]||0)+Q;return {g,n,q:+x.q,d:+x.d,Q}});
+  const res=Object.keys(by).map((g,i)=>({l:g,v:by[g],u:'L/min',key:i<3?1:0,d:0}));
+  return {res:res.length?res:[{l:'Design flow',v:0,u:'L/min',key:1}],
+   chk:[{s:'ok',t:'Each line: first outlet at full flow plus the others at the diversity given.'}],
+   tbl:{head:['Gas','Outlets','L/min first outlet','Diversity %','Design L/min'],rows:rows.map(x=>[x.g,fmt(x.n,0),fmt(x.q,0),fmt(x.d,0),fmt(x.Q,0)])}};},
+ f:['Q = q × [ 1 + (n − 1) × diversity ]','Add the departments on the same pipeline for the plant flow.'],
+ notes:['Default flows and diversities are typical ward and theatre values. Use the department figures in HTM 02-01 or NFPA 99 for final design.']});
+
+def({id:'medgas-pipe',g:'MG',code:'MG-02',t:'Medical gas pipe sizing',ref:1,
+ d:'Copper pipe size for a medical gas or vacuum flow, from the pressure drop over the run.',
+ src:[['HTM 02-01','Pipeline sizing'],['EN 13348','Copper tubes for medical gases']],
+ inp:[{id:'g',l:'Gas',type:'sel',o:opt(MGAS.map(x=>x[0])),v:'0',wide:1},{id:'Q',l:'Design flow (free air)',u:'L/min',v:400},{id:'L',l:'Pipe length',u:'m',v:80},
+  {id:'fa',l:'Fittings allowance',u:'%',v:30},{id:'dp',l:'Allowed pressure drop',u:'bar',v:0.2,hint:'4 bar: 0.2 bar; 7 bar: 0.35 bar; vacuum: 0.13 bar'}],
+ calc(v){const G=MGAS[+v.g],Pa=(G[1]+1.01325),rho=G[2]*Pa/1.01325,Qa=v.Q/60000*1.01325/Pa,Le=v.L*(1+v.fa/100);
+  const rows=MCU.map(x=>{const d=x[1]/1000,A=PI*d*d/4,vel=Qa/A,Re=rho*vel*d/G[3],f=Re<2300?64/Math.max(Re,1):0.25/Math.pow(Math.log10(1.5e-6/(3.7*d)+5.74/Math.pow(Re,0.9)),2),dp=f*Le/d*rho*vel*vel/2/1e5;return {n:x[0],id:x[1],vel,dp,ok:dp<=v.dp}});
+  const sel=rows.findIndex(r=>r.ok),r=rows[sel];
+  return {res:[{l:'Copper size (OD × wall)',v:r?r.n:'—',u:'mm',key:1},{l:'Pressure drop',v:r?r.dp:NaN,u:'bar',key:1,d:3},{l:'Velocity',v:r?r.vel:NaN,u:'m/s',d:1},{l:'Absolute pressure',v:Pa,u:'bar',d:2},{l:'Actual flow',v:Qa*1000,u:'L/s',d:2}],
+   chk:[r?{s:'ok',t:'Drop within '+fmt(v.dp,2)+' bar.'}:{s:'bad',t:'No copper size in the table meets the drop. Split the load or allow a larger drop.'},
+    r&&r.vel>15?{s:'warn',t:'Velocity over 15 m/s.'}:{s:'ok',t:'Velocity acceptable.'}],
+   tbl:{head:['Size mm','Bore mm','Velocity m/s','Drop bar'],rows:rows.map((x,i)=>({hl:i===sel,dim:!x.ok,c:[x.n,fmt(x.id,1),fmt(x.vel,1),fmt(x.dp,3)]}))}};},
+ f:['Actual flow = free-air flow × 1.013 ÷ absolute pressure','Δp = f (L ÷ d) ρ v² ÷ 2,   f from Swamee–Jain'],
+ notes:['Vacuum is sized at 0.4 bar absolute; its flow is free air at atmospheric pressure.','Minimum size is usually 12 mm for terminal drops and 15 mm for branches.']});
+
+def({id:'oxygen-store',g:'MG',code:'MG-03',t:'Oxygen storage',ref:1,
+ d:'Liquid oxygen tank (VIE) size for days of storage, and the cylinders for the emergency reserve.',
+ src:[['HTM 02-01','Supply systems'],['NFPA 99','§5.1.3.5']],
+ inp:[{id:'Q',l:'Oxygen design flow',u:'L/min',v:900},{id:'u',l:'Average use as a share of design flow',u:'%',v:35},{id:'days',l:'Days of storage',u:'d',v:10},
+  {id:'res',l:'Emergency reserve',u:'h',v:4},{id:'cyl',l:'Cylinder content',u:'L',v:6800,hint:'J size about 6,800 L'}],
+ calc(v){const day=v.Q*v.u/100*1440,liq=day*v.days/861,t=nextStd(liq,VIE),n=Math.ceil(v.Q*v.u/100*60*v.res/v.cyl);
+  return {res:[{l:'Liquid oxygen needed',v:liq,u:'L',key:1,d:0},{l:'Standard VIE tank',v:t?fmt(t,0)+' L':'> 30,000 L',key:1},{l:'Reserve cylinders',v:n,key:1,d:0},{l:'Average daily use',v:day/1000,u:'m³/d',d:1},{l:'Days from the tank chosen',v:t?t*861/day:NaN,u:'d',d:1}],
+   chk:[{s:'ok',t:'Keep a secondary supply as well as the reserve, so one fault cannot stop oxygen.'}]};},
+ f:['Daily use = design flow × average use × 1,440 min','Liquid = gas ÷ 861   (1 L liquid oxygen ≈ 861 L gas)','Reserve cylinders = flow × hours ÷ cylinder content'],
+ notes:['Average use is usually 30–50 % of the design flow. Use the hospital\'s records where they exist.']});
+
+/* ===== refrigeration and steam ===== */
+const PROD=[['Beef / lamb',3.08,1.62,229,-2.2],['Poultry',3.32,1.77,247,-2.8],['Fish',3.6,1.88,260,-2.2],['Fruit',3.65,1.88,280,-1.5],['Vegetables',3.9,1.95,300,-0.8],['Milk and dairy',3.75,1.85,280,-0.6],['Bakery',2.9,1.42,110,-5]];
+const STM=[ // bar abs, Ts °C, hf, hfg, hg kJ/kg, vg m³/kg
+ [1,99.6,417,2258,2675,1.694],[2,120.2,505,2202,2706,0.8857],[3,133.5,561,2164,2725,0.6058],[4,143.6,605,2134,2738,0.4624],[5,151.8,640,2108,2748,0.3748],
+ [6,158.8,670,2086,2756,0.3156],[7,165.0,697,2066,2762,0.2728],[8,170.4,721,2048,2768,0.2403],[10,179.9,763,2015,2777,0.1944],[12,188.0,798,1986,2784,0.1632],
+ [14,195.0,830,1960,2789,0.1408],[16,201.4,859,1935,2793,0.1237],[18,207.1,885,1912,2796,0.1104],[21,214.9,920,1880,2799,0.0949]];
+const stm=(pg,k)=>{const p=Math.min(21,Math.max(1,pg+1.01325));let i=1;while(i<STM.length-1&&STM[i][0]<p)i++;const a=STM[i-1],b=STM[i],t=(p-a[0])/(b[0]-a[0]);return a[k]+(b[k]-a[k])*t};
+const SCH40=[['DN15',15.8],['DN20',20.9],['DN25',26.6],['DN32',35.1],['DN40',40.9],['DN50',52.5],['DN65',62.7],['DN80',77.9],['DN100',102.3],['DN125',128.2],['DN150',154.1],['DN200',202.7],['DN250',254.5],['DN300',303.2]];
+const FUEL=[['Diesel',42.6,'kg/h'],['Natural gas',38.7,'m³/h'],['LPG',46.3,'kg/h']];
+
+def({id:'cold-room',g:'RF',code:'RF-01',t:'Cold room load',ref:1,
+ d:'Refrigeration load of a chiller or freezer room from its walls, product, air changes, people, lights and fans.',
+ src:[['ASHRAE Refrigeration','Chapter 24'],['ASHRAE Refrigeration','Chapter 19']],
+ inp:[{h:'Room'},{id:'L',l:'Length',u:'m',v:6},{id:'W',l:'Width',u:'m',v:4},{id:'H',l:'Height',u:'m',v:3},{id:'Tr',l:'Room temperature',u:'°C',v:2},{id:'Ta',l:'Surrounding temperature',u:'°C',v:35},
+  {id:'U',l:'Panel U-value',u:'W/m²K',v:0.22,hint:'100 mm PIR about 0.22'},
+  {h:'Product'},{id:'p',l:'Product',type:'sel',o:opt(PROD.map(x=>x[0])),v:'0'},{id:'m',l:'Product brought in per day',u:'kg/d',v:2000},{id:'Ti',l:'Entering temperature',u:'°C',v:20},
+  {h:'Other loads'},{id:'np',l:'People working inside',u:'',v:2},{id:'hp',l:'Hours inside per day',u:'h',v:4},{id:'lt',l:'Lighting',u:'W/m²',v:10},{id:'fan',l:'Evaporator fans',u:'W',v:400},
+  {id:'sf',l:'Safety factor',u:'%',v:10},{id:'run',l:'Compressor running time',u:'h/d',v:18,hint:'Chillers 16–18 h, freezers 18–20 h'}],
+ calc(v){const P=PROD[+v.p],A=2*(v.L*v.W+v.L*v.H+v.W*v.H),V=v.L*v.W*v.H,dT=v.Ta-v.Tr;
+  const qT=v.U*A*dT*24/1000,qP=(v.Tr>=P[4]?v.m*P[1]*Math.max(0,v.Ti-v.Tr):v.m*(P[1]*Math.max(0,v.Ti-P[4])+P[3]+P[2]*(P[4]-v.Tr)))/3600;
+  const n=Math.max(3,70/Math.sqrt(Math.max(V,1))),qI=n*V*1.2*1.006*dT*1.5/3600,qPe=v.np*(272-6*v.Tr)*v.hp/1000,qL=v.lt*v.L*v.W*v.hp/1000,qF=v.fan*24/1000;
+  const sum=qT+qP+qI+qPe+qL+qF,tot=sum*(1+v.sf/100),kW=tot/v.run;
+  return {res:[{l:'Refrigeration capacity',v:kW,u:'kW',key:1,d:2},{l:'Daily load with safety factor',v:tot,u:'kWh/d',key:1,d:1},{l:'In tons of refrigeration',v:kW/3.517,u:'TR',d:2},{l:'Room volume',v:V,u:'m³',d:1},{l:'Air changes per day',v:n,d:1}],
+   chk:[v.Tr<P[4]?{s:'ok',t:'Room is below the freezing point of the product: freezing load included.'}:{s:'ok',t:'Chilling only: the product does not freeze.'},
+    dT>0?{s:'ok',t:'Temperature difference '+fmt(dT,0)+' K.'}:{s:'bad',t:'Room must be colder than its surroundings.'}],
+   tbl:{head:['Load','kWh/d','Share %'],rows:[['Walls, roof and floor',qT],['Product',qP],['Air changes',qI],['People',qPe],['Lighting',qL],['Fans',qF]].map(x=>[x[0],fmt(x[1],1),fmt(sum?x[1]/sum*100:0,0)])}};},
+ f:['Walls: U A ΔT × 24 h','Product: m [ c₁ (Tᵢ − T_f) + L + c₂ (T_f − T_r) ]','Air changes ≈ 70 ÷ √V per day','Capacity = daily load × (1 + SF) ÷ running hours'],
+ notes:['Product data are typical. Use the supplier\'s figures for unusual products.','Freezers need defrost: allow for it in the running time.']});
+
+def({id:'steam-pipe',g:'RF',code:'RF-02',t:'Steam pipe sizing',ref:1,
+ d:'Steel pipe size for saturated steam by velocity, with the pressure drop per 100 m.',
+ src:[['Spirax Sarco','Steam distribution'],['ASHRAE Fundamentals','Chapter 22']],
+ inp:[{id:'m',l:'Steam flow',u:'kg/h',v:2000},{id:'p',l:'Steam pressure',u:'bar g',v:7},{id:'vl',l:'Velocity limit',u:'m/s',v:25,hint:'Mains 25–35 m/s, branches 15–25 m/s'}],
+ calc(v){const vg=stm(v.p,5),Ts=stm(v.p,1),rho=1/vg,Qv=v.m/3600*vg;
+  const rows=SCH40.map(x=>{const d=x[1]/1000,vel=Qv/(PI*d*d/4),Re=rho*vel*d/1.4e-5,f=0.25/Math.pow(Math.log10(4.5e-5/(3.7*d)+5.74/Math.pow(Re,0.9)),2),dp=f*100/d*rho*vel*vel/2/1e5;return {n:x[0],id:x[1],vel,dp,ok:vel<=v.vl}});
+  const sel=rows.findIndex(r=>r.ok),r=rows[sel];
+  return {res:[{l:'Pipe size',v:r?r.n:'—',key:1},{l:'Velocity',v:r?r.vel:NaN,u:'m/s',key:1,d:1},{l:'Pressure drop per 100 m',v:r?r.dp:NaN,u:'bar',d:3},{l:'Saturation temperature',v:Ts,u:'°C',d:1},{l:'Specific volume',v:vg,u:'m³/kg',d:4}],
+   chk:[r?{s:'ok',t:'Velocity within '+fmt(v.vl,0)+' m/s.'}:{s:'bad',t:'Flow too large for the table.'},r&&r.dp>0.5?{s:'warn',t:'Drop over 0.5 bar per 100 m: check the pressure at the far end.'}:{s:'ok',t:'Pressure drop is moderate.'}],
+   tbl:{head:['Size','Bore mm','Velocity m/s','Drop bar/100 m'],rows:rows.map((x,i)=>({hl:i===sel,dim:!x.ok,c:[x.n,fmt(x.id,1),fmt(x.vel,1),fmt(x.dp,3)]}))}};},
+ f:['Volume flow = mass flow × specific volume','v = Q ÷ (π d² ÷ 4)','Δp = f (L ÷ d) ρ v² ÷ 2'],
+ notes:['Bores are Schedule 40. Steam properties are interpolated from saturated steam tables.']});
+
+def({id:'steam-boiler',g:'RF',code:'RF-03',t:'Steam boiler sizing',ref:1,
+ d:'Steam flow, boiler rating and fuel use for a process or heating load.',
+ src:[['Spirax Sarco','Steam boilers'],['BS EN 12953','Shell boilers']],
+ inp:[{id:'kw',l:'Heat load',u:'kW',v:900},{id:'p',l:'Operating pressure',u:'bar g',v:8},{id:'tf',l:'Feedwater temperature',u:'°C',v:80},
+  {id:'mg',l:'Losses and margin',u:'%',v:15},{id:'eta',l:'Boiler efficiency',u:'%',v:85},{id:'fu',l:'Fuel',type:'sel',o:opt(FUEL.map(x=>x[0])),v:'0'}],
+ calc(v){const hfg=stm(v.p,3),hg=stm(v.p,4),m=v.kw*3600/hfg*(1+v.mg/100),out=m*(hg-4.19*v.tf)/3600,fa=m*(hg-4.19*v.tf)/2257,F=FUEL[+v.fu],fuel=out/(v.eta/100)*3.6/F[1];
+  return {res:[{l:'Steam flow',v:m,u:'kg/h',key:1,d:0},{l:'Boiler output',v:out,u:'kW',key:1,d:0},{l:'From and at 100 °C',v:fa,u:'kg/h',d:0},{l:'Boiler horsepower',v:out/9.81,u:'BHP',d:0},{l:'Fuel use',v:fuel,u:F[2],key:1,d:1},{l:'Saturation temperature',v:stm(v.p,1),u:'°C',d:1}],
+   chk:[v.tf<60?{s:'warn',t:'Feedwater below 60 °C raises oxygen corrosion: consider a hotter hotwell or a deaerator.'}:{s:'ok',t:'Feedwater temperature is reasonable.'}]};},
+ f:['Steam kg/h = kW × 3,600 ÷ h_fg × (1 + margin)','Output = steam × (h_g − 4.19 T_feed) ÷ 3,600','F&A 100 °C = steam × (h_g − h_feed) ÷ 2,257','Fuel = output ÷ efficiency ÷ calorific value'],
+ notes:['Calorific values: diesel 42.6 MJ/kg, natural gas 38.7 MJ/m³, LPG 46.3 MJ/kg.','Use two boilers where the load cannot stop for maintenance.']});
+
+def({id:'flash-steam',g:'RF',code:'RF-04',t:'Flash steam',ref:1,
+ d:'Flash steam released when condensate drops to a lower pressure, and the vent or flash line size.',
+ src:[['Spirax Sarco','Flash steam'],['ASHRAE Systems','Chapter 11']],
+ inp:[{id:'m',l:'Condensate flow',u:'kg/h',v:1500},{id:'p1',l:'Steam trap inlet pressure',u:'bar g',v:8},{id:'p2',l:'Receiver or flash vessel pressure',u:'bar g',v:0.5},{id:'vl',l:'Flash line velocity',u:'m/s',v:15}],
+ calc(v){const h1=stm(v.p1,2),h2=stm(v.p2,2),fg2=stm(v.p2,3),x=Math.max(0,(h1-h2)/fg2),mf=v.m*x,Q=mf/3600*stm(v.p2,5),r=SCH40.find(s=>Q/(PI*Math.pow(s[1]/1000,2)/4)<=v.vl);
+  return {res:[{l:'Flash steam',v:x*100,u:'%',key:1,d:1},{l:'Flash steam flow',v:mf,u:'kg/h',key:1,d:0},{l:'Condensate left',v:v.m-mf,u:'kg/h',d:0},{l:'Flash line size',v:r?r[0]:'—',key:1},{l:'Heat in the flash steam',v:mf*fg2/3600,u:'kW',d:1}],
+   chk:[v.p2>=v.p1?{s:'bad',t:'Receiver pressure must be lower than the trap pressure.'}:{s:'ok',t:'Flash steam can be recovered for low-pressure heating.'}]};},
+ f:['Flash fraction = (h_f1 − h_f2) ÷ h_fg2','Flash flow = condensate × fraction'],
+ notes:['Size condensate return lines for the flash steam volume, not the water.']});
+
+/* ===== ELV / low-current ===== */
+const UPS_STD=[1,2,3,6,10,15,20,30,40,60,80,100,120,160,200,250,300,400,500,600,800];
+const CAMRES=[['2 MP (1080p) H.265',2],['2 MP (1080p) H.264',4],['4 MP H.265',4],['4 MP H.264',6],['8 MP (4K) H.265',8],['8 MP (4K) H.264',12]];
+const FA_BATT=[7,12,17,24,26,33,38,40,55,65,80,100];
+
+def({id:'ups',g:'LC',code:'LC-01',t:'UPS and battery autonomy',ref:1,
+ d:'UPS rating for a set of loads and the battery energy for the backup time.',
+ src:[['IEC 62040-3','UPS performance'],['IEEE 1184','Battery sizing']],
+ inp:[{id:'rows',type:'rows',cols:[{id:'q',l:'Qty',v:1},{id:'w',l:'W each',v:300}],v:[{q:20,w:250},{q:4,w:600},{q:2,w:1200}]},
+  {id:'pf',l:'Load power factor',u:'',v:0.9},{id:'gr',l:'Future growth',u:'%',v:25},{id:'t',l:'Backup time',u:'min',v:15},{id:'eta',l:'Inverter efficiency',u:'%',v:94},
+  {id:'vdc',l:'Battery string voltage',u:'V',v:384},{id:'age',l:'Ageing factor',u:'',v:1.25}],
+ calc(v){const W=v.rows.reduce((s,x)=>s+(+x.q||0)*(+x.w||0),0),kW=W/1000*(1+v.gr/100),kVA=kW/v.pf,u=nextStd(kVA/0.8,UPS_STD),E=kW*v.t/60/(v.eta/100)*v.age,Ah=E*1000/v.vdc;
+  return {res:[{l:'UPS rating',v:u?fmt(u,0)+' kVA':'> 800 kVA',key:1},{l:'Design load',v:kW,u:'kW',key:1,d:2},{l:'Battery energy',v:E,u:'kWh',key:1,d:2},{l:'Battery capacity',v:Ah,u:'Ah',d:0},{l:'Connected load',v:W/1000,u:'kW',d:2},{l:'Apparent power',v:kVA,u:'kVA',d:2}],
+   chk:[{s:'ok',t:'UPS loaded to '+fmt(u?kVA/u*100:0,0)+' % at design load (sized for 80 % or less).'}]};},
+ f:['kW = Σ W × (1 + growth),   kVA = kW ÷ pf','Battery kWh = kW × time ÷ efficiency × ageing'],
+ notes:['Short backup times draw high currents: pick the battery from the maker\'s constant-power discharge table, not from Ah alone.']});
+
+def({id:'cctv',g:'LC',code:'LC-02',t:'CCTV storage',ref:1,
+ d:'Recorder storage and network bandwidth for a set of cameras and a retention period.',
+ src:[['IEC 62676-4','Video surveillance'],['Manufacturer bit-rate data','']],
+ inp:[{id:'rows',type:'rows',cols:[{id:'r',l:'Camera type',type:'sel',o:opt(CAMRES.map(x=>x[0])),set:r=>{r.mb=CAMRES[+r.r][1]}},{id:'n',l:'Cameras',v:10},{id:'mb',l:'Mbps each',v:4}],
+   v:[{r:'2',n:24,mb:4},{r:'4',n:6,mb:8}]},
+  {id:'h',l:'Recording hours per day',u:'h',v:24},{id:'mo',l:'Recording time with motion',u:'%',v:100,hint:'100 % for continuous recording'},{id:'days',l:'Retention',u:'d',v:30},{id:'raid',l:'RAID and spare overhead',u:'%',v:25}],
+ calc(v){const rows=v.rows.map(x=>({t:(CAMRES[+x.r]||CAMRES[0])[0],n:+x.n||0,mb:+x.mb||0})),bw=rows.reduce((s,x)=>s+x.n*x.mb,0),TB=bw*3600*v.h*(v.mo/100)*v.days/8/1e6,raw=TB*(1+v.raid/100);
+  return {res:[{l:'Storage needed',v:raw,u:'TB',key:1,d:1},{l:'Video data',v:TB,u:'TB',d:1},{l:'Total bandwidth',v:bw,u:'Mbps',key:1,d:0},{l:'Cameras',v:rows.reduce((s,x)=>s+x.n,0),d:0}],
+   chk:[bw>700?{s:'warn',t:'Over 700 Mbps: split the recording across several recorders or a 10 Gb network.'}:{s:'ok',t:'Bandwidth fits a 1 Gb network.'}],
+   tbl:{head:['Camera type','Cameras','Mbps each','TB'],rows:rows.map(x=>[x.t,fmt(x.n,0),fmt(x.mb,1),fmt(x.n*x.mb*3600*v.h*(v.mo/100)*v.days/8/1e6,1)])}};},
+ f:['TB = Mbps × 3,600 × hours × motion share × days ÷ 8 ÷ 10⁶','Disk = video data × (1 + overhead)'],
+ notes:['Bit rates vary with scene, frame rate and compression settings. Use the camera maker\'s calculator for final sizing.']});
+
+def({id:'fa-battery',g:'LC',code:'LC-03',t:'Fire alarm battery',ref:1,
+ d:'Standby battery capacity of a fire alarm panel for the standby and alarm periods.',
+ src:[['NFPA 72','§10.6.7'],['BS 5839-1','§25.4']],
+ inp:[{id:'is',l:'Standby current',u:'A',v:0.8},{id:'ia',l:'Alarm current',u:'A',v:3.5},
+  {id:'ts',l:'Standby period',type:'sel',o:[['24','24 h'],['72','72 h']],v:'24'},{id:'ta',l:'Alarm period',type:'sel',o:[['5','5 min (NFPA 72)'],['15','15 min (voice)'],['30','30 min (BS 5839)']],v:'5'},
+  {id:'df',l:'Derating factor',u:'',v:1.25}],
+ calc(v){const Ah=(v.is*(+v.ts)+v.ia*(+v.ta)/60)*v.df,b=nextStd(Ah,FA_BATT);
+  return {res:[{l:'Battery capacity',v:Ah,u:'Ah',key:1,d:1},{l:'Standard battery',v:b?b+' Ah':'> 100 Ah',key:1},{l:'Standby',v:v.is*(+v.ts),u:'Ah',d:1},{l:'Alarm',v:v.ia*(+v.ta)/60,u:'Ah',d:2}],
+   chk:[b?{s:'ok',t:'Two 12 V batteries in series of this size give 24 V.'}:{s:'warn',t:'Over 100 Ah: use a separate power supply or split the load.'}]};},
+ f:['Ah = [ I_standby × t_standby + I_alarm × t_alarm ] × derating'],
+ notes:['Take device currents from the panel and device data sheets, for all loops and outputs.']});
+
+def({id:'nac-drop',g:'LC',code:'LC-04',t:'Fire alarm circuit voltage drop',ref:1,
+ d:'Voltage at the last sounder or strobe on a notification circuit, at the end-of-life battery voltage.',
+ src:[['NFPA 72','§18.3'],['BS 5839-1','§26']],
+ inp:[{id:'I',l:'Circuit alarm current',u:'A',v:1.2},{id:'L',l:'Circuit length (one way)',u:'m',v:150},
+  {id:'A',l:'Cable size',type:'sel',o:[['1','1.0 mm²'],['1.5','1.5 mm²'],['2.5','2.5 mm²']],v:'1.5'},{id:'ld',l:'Load layout',type:'sel',o:[['1','At the end'],['0.5','Spread evenly']],v:'0.5'},
+  {id:'V',l:'Supply voltage at end of battery life',u:'V',v:20.4},{id:'vmin',l:'Minimum device voltage',u:'V',v:16}],
+ calc(v){const R=0.0175*2*v.L/(+v.A),dv=v.I*R*(+v.ld),ve=v.V-dv,Lmax=(v.V-v.vmin)/(v.I*(+v.ld)*0.0175*2/(+v.A));
+  return {res:[{l:'Voltage at the last device',v:ve,u:'V',key:1,d:2},{l:'Voltage drop',v:dv,u:'V',key:1,d:2},{l:'Drop',v:dv/v.V*100,u:'%',d:1},{l:'Maximum length',v:Lmax,u:'m',d:0},{l:'Loop resistance',v:R,u:'Ω',d:2}],
+   chk:[ve>=v.vmin?{s:'ok',t:'Last device gets at least '+fmt(v.vmin,0)+' V.'}:{s:'bad',t:'Voltage at the last device is too low. Use a larger cable or split the circuit.'}]};},
+ f:['R = ρ × 2L ÷ A,   ρ = 0.0175 Ω·mm²/m','ΔV = I × R × layout factor (1 at the end, 0.5 spread evenly)'],
+ notes:['Device minimum voltage is on its listing, often 16 V for 24 V devices.']});
+
+def({id:'cabling',g:'LC',code:'LC-05',t:'Structured cabling quantities',ref:1,
+ d:'Average cable run, number of 305 m boxes, patch panels and switch ports for a floor.',
+ src:[['BICSI TDMM','Cable estimating'],['ISO/IEC 11801','Channel length']],
+ inp:[{id:'n',l:'Data outlets',u:'',v:120},{id:'mn',l:'Shortest run',u:'m',v:15},{id:'mx',l:'Longest run',u:'m',v:75},{id:'sl',l:'Slack at both ends',u:'m',v:3},{id:'sp',l:'Spare switch ports',u:'%',v:20}],
+ calc(v){const avg=(v.mn+v.mx)/2*1.1+v.sl,per=Math.floor(305/avg),box=per>0?Math.ceil(v.n/per):NaN;
+  return {res:[{l:'305 m boxes',v:box,key:1,d:0},{l:'Average run',v:avg,u:'m',key:1,d:1},{l:'Runs per box',v:per,d:0},{l:'Total cable',v:v.n*avg,u:'m',d:0},{l:'24-port patch panels',v:Math.ceil(v.n/24),d:0},{l:'Switch ports',v:Math.ceil(v.n*(1+v.sp/100)),d:0}],
+   chk:[v.mx+v.sl<=90?{s:'ok',t:'Longest permanent link within 90 m.'}:{s:'bad',t:'Longest run over 90 m: add a telecom room closer to the outlets.'}]};},
+ f:['Average = (shortest + longest) ÷ 2 × 1.1 + slack','Runs per box = ⌊ 305 ÷ average ⌋'],
+ notes:['Order whole boxes: offcuts shorter than a run are waste.']});
+
+/* ===== solar and energy ===== */
+const LFP=[['0.9','Lithium (LFP), 90 %'],['0.5','Lead-acid, 50 %']];
+const EUSE=['Cooling','Lighting','Equipment and plug loads','Fans and pumps','Hot water','Other'];
+const EUIB=[['Office',220],['Retail',300],['Hotel',300],['School',150],['Hospital',400],['Residential',150]];
+
+def({id:'pv-grid',g:'SE',code:'SE-01',t:'Grid-tied PV system',ref:1,
+ d:'PV array size, number of modules and roof area to offset a share of a building\'s annual energy use.',
+ src:[['IEC 61724-1','Performance ratio'],['NREL PVWatts','Yield method']],
+ inp:[{id:'E',l:'Annual energy use',u:'kWh/yr',v:120000},{id:'off',l:'Share to offset',u:'%',v:50},{id:'psh',l:'Peak sun hours',u:'h/d',v:6,hint:'Riyadh and Jeddah about 6'},{id:'pr',l:'Performance ratio',u:'',v:0.78},
+  {id:'wp',l:'Module rating',u:'Wp',v:550},{id:'am',l:'Module area',u:'m²',v:2.58},{id:'sp',l:'Roof area per module area',u:'',v:1.6,hint:'Tilted rows need gaps to avoid shading'},{id:'roof',l:'Roof area available',u:'m²',v:600}],
+ calc(v){const kWp=v.E*v.off/100/(v.psh*365*v.pr),n=Math.ceil(kWp*1000/v.wp),nmax=Math.floor(v.roof/(v.am*v.sp)),nf=Math.min(n,nmax),kf=nf*v.wp/1000,y=kf*v.psh*365*v.pr;
+  return {res:[{l:'Array size',v:kf,u:'kWp',key:1,d:1},{l:'Modules',v:nf,key:1,d:0},{l:'Annual yield',v:y,u:'kWh/yr',key:1,d:0},{l:'Share of use offset',v:y/v.E*100,u:'%',d:1},{l:'Roof area used',v:nf*v.am*v.sp,u:'m²',d:0},{l:'Inverter AC rating (DC/AC 1.2)',v:kf/1.2,u:'kW',d:1}],
+   chk:[n>nmax?{s:'warn',t:'Roof too small for the target: '+fmt(nmax,0)+' modules fit.'}:{s:'ok',t:'Target fits on the roof.'}]};},
+ f:['kWp = annual kWh × share ÷ (PSH × 365 × PR)','Modules = kWp ÷ module Wp','Yield = kWp × PSH × 365 × PR'],
+ notes:['Dust is heavy in the Gulf: plan for regular cleaning or reduce the performance ratio.','Check the utility\'s rules on export and system size before design.']});
+
+def({id:'pv-offgrid',g:'SE',code:'SE-02',t:'Off-grid battery and PV',ref:1,
+ d:'Battery bank and PV array for an off-grid load with days of autonomy.',
+ src:[['IEEE 1013','Lead-acid sizing'],['IEEE 1561','Off-grid PV']],
+ inp:[{id:'E',l:'Daily energy use',u:'Wh/d',v:6000},{id:'days',l:'Days of autonomy',u:'d',v:2},{id:'dod',l:'Battery type and depth of discharge',type:'sel',o:LFP,v:'0.9',wide:1},
+  {id:'V',l:'System voltage',type:'sel',o:[['12','12 V'],['24','24 V'],['48','48 V']],v:'48'},{id:'eta',l:'Inverter efficiency',u:'%',v:92},{id:'tf',l:'Temperature factor',u:'',v:1.1},
+  {id:'psh',l:'Peak sun hours (worst month)',u:'h/d',v:5},{id:'pr',l:'System losses factor',u:'',v:0.7}],
+ calc(v){const Ed=v.E/(v.eta/100),Eb=Ed*v.days/(+v.dod)*v.tf,Ah=Eb/(+v.V),Wp=Ed/(v.psh*v.pr),I=Wp/(+v.V)*1.25;
+  return {res:[{l:'Battery capacity',v:Ah,u:'Ah',key:1,d:0},{l:'Battery energy',v:Eb/1000,u:'kWh',key:1,d:1},{l:'PV array',v:Wp,u:'Wp',key:1,d:0},{l:'Charge controller current',v:I,u:'A',d:0},{l:'Daily energy from the battery',v:Ed,u:'Wh',d:0}],
+   chk:[+v.V<48&&v.E>3000?{s:'warn',t:'Over 3 kWh per day: a 48 V system keeps currents and cable sizes down.'}:{s:'ok',t:'System voltage suits the load.'}]};},
+ f:['Battery Wh = daily Wh ÷ η × days ÷ DoD × temperature factor','PV Wp = daily Wh ÷ η ÷ (PSH × losses factor)','Controller A = Wp ÷ V × 1.25'],
+ notes:['Lead-acid batteries last longer at 30–50 % depth of discharge; LFP tolerates 80–90 %.']});
+
+def({id:'pv-string',g:'SE',code:'SE-03',t:'PV string sizing',ref:1,
+ d:'Minimum and maximum modules per string for an inverter, corrected for the coldest and hottest cell temperatures.',
+ src:[['IEC 62548','PV array design'],['NEC 690.7','Maximum voltage']],
+ inp:[{h:'Module'},{id:'voc',l:'Open-circuit voltage Voc',u:'V',v:49.6},{id:'vmp',l:'Maximum-power voltage Vmp',u:'V',v:41.6},{id:'isc',l:'Short-circuit current Isc',u:'A',v:14},
+  {id:'bv',l:'Voc temperature coefficient',u:'%/°C',v:-0.27},{id:'bp',l:'Vmp temperature coefficient',u:'%/°C',v:-0.35},
+  {h:'Site'},{id:'tmin',l:'Lowest cell temperature',u:'°C',v:0},{id:'tmax',l:'Highest cell temperature',u:'°C',v:75},
+  {h:'Inverter'},{id:'vmax',l:'Maximum DC voltage',u:'V',v:1100},{id:'m1',l:'MPPT range, low',u:'V',v:200},{id:'m2',l:'MPPT range, high',u:'V',v:1000},{id:'imax',l:'Maximum input current per MPPT',u:'A',v:26},
+  {id:'n',l:'Modules per string chosen',u:'',v:20}],
+ calc(v){const vocC=v.voc*(1+v.bv/100*(v.tmin-25)),vmpC=v.vmp*(1+v.bp/100*(v.tmin-25)),vmpH=v.vmp*(1+v.bp/100*(v.tmax-25));
+  const nmax=Math.min(Math.floor(v.vmax/vocC),Math.floor(v.m2/vmpC)),nmin=Math.ceil(v.m1/vmpH),sp=Math.floor(v.imax/(v.isc*1.25));
+  return {res:[{l:'Maximum modules per string',v:nmax,key:1,d:0},{l:'Minimum modules per string',v:nmin,key:1,d:0},{l:'Strings per MPPT',v:sp,key:1,d:0},
+   {l:'String Voc when cold',v:v.n*vocC,u:'V',d:0},{l:'String Vmp when hot',v:v.n*vmpH,u:'V',d:0},{l:'String Vmp when cold',v:v.n*vmpC,u:'V',d:0}],
+   chk:[v.n*vocC<=v.vmax?{s:'ok',t:'Cold open-circuit voltage within the inverter maximum.'}:{s:'bad',t:'Cold open-circuit voltage exceeds the inverter maximum.'},
+    v.n*vmpH>=v.m1?{s:'ok',t:'Hot operating voltage stays above the MPPT minimum.'}:{s:'bad',t:'Hot operating voltage drops below the MPPT range.'},
+    v.n*vmpC<=v.m2?{s:'ok',t:'Cold operating voltage within the MPPT range.'}:{s:'warn',t:'Cold operating voltage above the MPPT range.'}]};},
+ f:['Voc,cold = Voc [ 1 + β (T_min − 25) ]','Vmp,hot = Vmp [ 1 + γ (T_max − 25) ]','N_max = ⌊ V_max ÷ Voc,cold ⌋,   N_min = ⌈ MPPT_min ÷ Vmp,hot ⌉'],
+ notes:['Cell temperature in the Gulf summer often exceeds 70 °C. The lowest cell temperature is about the lowest ambient at dawn.']});
+
+def({id:'pv-payback',g:'SE',code:'SE-04',t:'Solar payback',ref:1,
+ d:'Simple payback, lifetime savings and cost of energy of a PV system.',
+ src:[['IEC 61724-1','Energy yield'],['NREL','LCOE method']],
+ inp:[{id:'kwp',l:'System size',u:'kWp',v:100},{id:'y',l:'Specific yield',u:'kWh/kWp·yr',v:1800},{id:'c',l:'Installed cost per kWp',u:'',v:3000},
+  {id:'t',l:'Electricity tariff per kWh',u:'',v:0.32},{id:'om',l:'Operation and maintenance',u:'%/yr',v:1.5},{id:'deg',l:'Yearly degradation',u:'%',v:0.5},{id:'esc',l:'Tariff increase per year',u:'%',v:0},{id:'life',l:'System life',u:'yr',v:25}],
+ calc(v){const cap=v.kwp*v.c,om=cap*v.om/100;let cum=-cap,pb=NaN,E=0,S=0;const rows=[];
+  for(let k=1;k<=v.life;k++){const e=v.kwp*v.y*Math.pow(1-v.deg/100,k-1),s=e*v.t*Math.pow(1+v.esc/100,k-1)-om;E+=e;S+=s;const prev=cum;cum+=s;if(isNaN(pb)&&cum>=0)pb=k-1+(-prev)/s;if(k%5===0||k===1)rows.push([String(k),fmt(e,0),fmt(s,0),fmt(cum,0)])}
+  return {res:[{l:'Simple payback',v:pb,u:'yr',key:1,d:1},{l:'Net savings over life',v:S-cap,key:1,d:0},{l:'Cost of energy',v:(cap+om*v.life)/E,u:'per kWh',key:1,d:3},{l:'Installed cost',v:cap,d:0},{l:'First-year energy',v:v.kwp*v.y,u:'kWh',d:0}],
+   chk:[isNaN(pb)?{s:'bad',t:'The system does not pay back within its life.'}:pb<8?{s:'ok',t:'Pays back in under 8 years.'}:{s:'warn',t:'Payback over 8 years.'}],
+   tbl:{head:['Year','kWh','Saving','Cumulative'],rows}};},
+ f:['Saving = kWh × tariff − O&M','Payback when Σ savings = installed cost','Cost of energy = (capex + O&M × life) ÷ Σ kWh'],
+ notes:['Money values are in any one currency. Discounting is not applied.']});
+
+def({id:'eui',g:'SE',code:'SE-05',t:'Building energy use intensity',ref:1,
+ d:'Annual energy use per square metre by end use, with carbon and cost, compared with a typical value for the building type.',
+ src:[['ASHRAE 100','Energy benchmarks'],['ISO 52000-1','Energy performance']],
+ inp:[{id:'ty',l:'Building type',type:'sel',o:opt(EUIB.map(x=>x[0])),v:'0'},{id:'A',l:'Gross floor area',u:'m²',v:5000},
+  {id:'rows',type:'rows',cols:[{id:'u',l:'End use',type:'sel',o:opt(EUSE)},{id:'e',l:'kWh/yr',v:100000}],v:[{u:'0',e:620000},{u:'1',e:140000},{u:'2',e:180000},{u:'3',e:90000},{u:'4',e:20000}]},
+  {id:'cf',l:'Grid emission factor',u:'kg/kWh',v:0.57},{id:'t',l:'Tariff per kWh',u:'',v:0.32}],
+ calc(v){const T=v.rows.reduce((s,x)=>s+(+x.e||0),0),eui=T/v.A,B=EUIB[+v.ty][1];
+  return {res:[{l:'Energy use intensity',v:eui,u:'kWh/m²·yr',key:1,d:0},{l:'Typical for the type',v:B,u:'kWh/m²·yr',d:0},{l:'Annual energy',v:T,u:'kWh/yr',d:0},{l:'Carbon',v:T*v.cf/1000,u:'t CO₂/yr',key:1,d:0},{l:'Energy cost',v:T*v.t,u:'per yr',d:0}],
+   chk:[eui<=B?{s:'ok',t:'At or below the typical value for this building type.'}:{s:'warn',t:'Above the typical value: review cooling and lighting first.'}],
+   tbl:{head:['End use','kWh/yr','kWh/m²·yr','Share %'],rows:v.rows.map(x=>[EUSE[+x.u]||EUSE[0],fmt(+x.e,0),fmt((+x.e)/v.A,1),fmt(T?(+x.e)/T*100:0,0)])}};},
+ f:['EUI = annual kWh ÷ gross floor area','Carbon = kWh × grid factor'],
+ notes:['Typical values are rough figures for hot-climate buildings. Compare with your own portfolio or local benchmarks.']});
+
+/* ===== sustainability ===== */
+const ECF=[ // material (unit), kg CO2e per unit, A1–A3 typical
+ ['Concrete C30/37 (m³)',300],['Concrete C40/50 (m³)',360],['Concrete C30/37 with 30 % GGBS or fly ash (m³)',220],['Reinforcing steel (t)',1990],['Structural steel sections (t)',1550],
+ ['Aluminium, typical recycled content (t)',6700],['Float glass (t)',1440],['Clay brick (t)',213],['Concrete block (t)',93],['Cement mortar (t)',150],['Gypsum board (t)',390],
+ ['EPS insulation (t)',3290],['Mineral wool (t)',1280],['Ceramic tiles (t)',780],['Copper (t)',2710],['PVC pipe (t)',3100],['Aggregates (t)',5]];
+const WFIX=[ // fixture, baseline flow, unit, uses per FTE female, male (with urinals), male (without), duration min
+ ['WC','L/flush',6.0],['Urinal','L/flush',3.8],['Lavatory tap','L/min',1.9],['Kitchen sink','L/min',8.3],['Shower','L/min',9.5]];
+const LEEDW=[[25,1],[30,2],[35,3],[40,4],[45,5],[50,6]];
+
+def({id:'carbon',g:'SU',code:'SU-01',t:'Embodied carbon',ref:1,
+ d:'Cradle-to-gate embodied carbon of the main materials, total and per square metre of floor area.',
+ src:[['EN 15978','Life cycle stages A1–A3'],['ICE database v3','Typical factors']],
+ inp:[{id:'rows',type:'rows',cols:[{id:'m',l:'Material',type:'sel',o:opt(ECF.map(x=>x[0])),set:r=>{r.f=ECF[+r.m][1]}},{id:'q',l:'Quantity',v:100},{id:'f',l:'kg CO₂e per unit',v:300}],
+   v:[{m:'0',q:3200,f:300},{m:'3',q:420,f:1990},{m:'8',q:1800,f:93},{m:'6',q:60,f:1440},{m:'5',q:25,f:6700}]},
+  {id:'A',l:'Gross floor area',u:'m²',v:10000},{id:'tg',l:'Target',u:'kg CO₂e/m²',v:500}],
+ calc(v){const rows=v.rows.map(x=>({n:(ECF[+x.m]||ECF[0])[0],q:+x.q||0,f:+x.f||0})).map(x=>Object.assign(x,{e:x.q*x.f})),T=rows.reduce((s,x)=>s+x.e,0),pm=T/v.A;
+  return {res:[{l:'Embodied carbon',v:T/1000,u:'t CO₂e',key:1,d:0},{l:'Per floor area',v:pm,u:'kg CO₂e/m²',key:1,d:0},{l:'Target',v:v.tg,u:'kg CO₂e/m²',d:0}],
+   chk:[pm<=v.tg?{s:'ok',t:'Within the target.'}:{s:'warn',t:'Above the target. The largest items in the table give the biggest savings.'}],
+   tbl:{head:['Material','Quantity','kg CO₂e per unit','t CO₂e','Share %'],rows:rows.map(x=>[x.n,fmt(x.q,0),fmt(x.f,0),fmt(x.e/1000,1),fmt(T?x.e/T*100:0,0)])}};},
+ f:['Embodied carbon = Σ quantity × factor'],
+ notes:['Factors are typical A1–A3 values. Use the product EPD where you have it.','Transport, construction, use and end of life (A4–C4) are not included.']});
+
+def({id:'water-use',g:'SU',code:'SU-02',t:'Indoor water use reduction',ref:1,
+ d:'Annual indoor water use of the design fixtures against the LEED baseline, with the points it earns.',
+ src:[['LEED v4.1 BD+C','WE Indoor water use'],['Mostadam','Water efficiency']],
+ inp:[{id:'n',l:'Full-time occupants',u:'',v:400},{id:'fp',l:'Women',u:'%',v:40},{id:'d',l:'Working days per year',u:'d',v:260},{id:'ur',l:'Urinals installed',type:'sel',o:[['1','Yes'],['0','No']],v:'1'},
+  {h:'Design fixtures'},{id:'wc',l:'WC',u:'L/flush',v:4.8},{id:'u',l:'Urinal',u:'L/flush',v:0.5},{id:'lav',l:'Lavatory tap',u:'L/min',v:1.3},{id:'ks',l:'Kitchen sink',u:'L/min',v:5.7},{id:'sh',l:'Shower',u:'L/min',v:6.6}],
+ calc(v){const F=v.n*v.fp/100,M=v.n-F,ur=v.ur==='1';
+  const use=(wc,u,lav,ks,sh)=>{const a=wc*(F*3+M*(ur?1:3)),b=ur?u*M*2:0,c=lav*v.n*3*0.5,dd=ks*v.n*0.25,e=sh*v.n*0.1*5;return [a,b,c,dd,e]};
+  const B=use(6,3.8,1.9,8.3,9.5),D=use(v.wc,v.u,v.lav,v.ks,v.sh),sb=B.reduce((s,x)=>s+x,0),sd=D.reduce((s,x)=>s+x,0),red=(1-sd/sb)*100;
+  let pts=0;LEEDW.forEach(x=>{if(red>=x[0])pts=x[1]});
+  return {res:[{l:'Reduction',v:red,u:'%',key:1,d:1},{l:'LEED points',v:pts,key:1,d:0},{l:'Baseline use',v:sb*v.d/1000,u:'m³/yr',d:0},{l:'Design use',v:sd*v.d/1000,u:'m³/yr',d:0}],
+   chk:[red>=20?{s:'ok',t:'Meets the 20 % prerequisite.'}:{s:'bad',t:'Below the 20 % prerequisite.'}],
+   tbl:{head:['Fixture','Baseline L/d','Design L/d'],rows:WFIX.map((x,i)=>[x[0],fmt(B[i],0),fmt(D[i],0)])}};},
+ f:['Daily use = flow × uses × occupants','Uses per day: WC women 3, men 1 with urinals (3 without), urinal men 2, lavatory 3 × 30 s, kitchen sink 15 s, shower 0.1 × 5 min','Reduction = 1 − design ÷ baseline'],
+ notes:['Baseline: WC 6.0 L, urinal 3.8 L, public lavatory 1.9 L/min, kitchen sink 8.3 L/min, shower 9.5 L/min.']});
+
+def({id:'recycled',g:'SU',code:'SU-03',t:'Recycled content',ref:1,
+ d:'Recycled content value of the materials as a share of their total cost.',
+ src:[['ISO 14021','Recycled content'],['LEED v4.1','MR credits']],
+ inp:[{id:'rows',type:'rows',cols:[{id:'c',l:'Material cost',v:100000},{id:'po',l:'Post-consumer %',v:0},{id:'pr',l:'Pre-consumer %',v:0}],
+   v:[{c:1800000,po:30,pr:60},{c:1200000,po:0,pr:20},{c:400000,po:40,pr:0},{c:900000,po:0,pr:0}]},{id:'tg',l:'Target',u:'%',v:20}],
+ calc(v){const rows=v.rows.map(x=>{const c=+x.c||0,val=c*((+x.po||0)+0.5*(+x.pr||0))/100;return {c,po:+x.po,pr:+x.pr,val}}),T=rows.reduce((s,x)=>s+x.c,0),R=rows.reduce((s,x)=>s+x.val,0),p=T?R/T*100:0;
+  return {res:[{l:'Recycled content',v:p,u:'%',key:1,d:1},{l:'Recycled content value',v:R,d:0},{l:'Total materials cost',v:T,d:0}],
+   chk:[p>=v.tg?{s:'ok',t:'Meets the target.'}:{s:'warn',t:'Below the target.'}],
+   tbl:{head:['Cost','Post-consumer %','Pre-consumer %','Value'],rows:rows.map(x=>[fmt(x.c,0),fmt(x.po,0),fmt(x.pr,0),fmt(x.val,0)])}};},
+ f:['Value = cost × (post-consumer % + ½ pre-consumer %)','Share = Σ value ÷ Σ cost'],
+ notes:['Use the recycled content stated by the manufacturer, by weight.']});
+
+def({id:'rainwater',g:'SU',code:'SU-04',t:'Rainwater harvesting',ref:1,
+ d:'Annual rainwater collected from a roof, the share of a non-potable demand it covers, and the tank for a design storm.',
+ src:[['BS EN 16941-1','Rainwater systems'],['ASPE','Rainwater catchment']],
+ inp:[{id:'A',l:'Roof area',u:'m²',v:2000},{id:'R',l:'Annual rainfall',u:'mm',v:100,hint:'Riyadh about 100 mm, Abha about 300 mm'},{id:'C',l:'Runoff coefficient',u:'',v:0.85},
+  {id:'ls',l:'First flush and filter losses',u:'%',v:10},{id:'dem',l:'Non-potable demand',u:'L/d',v:5000},{id:'st',l:'Design storm',u:'mm',v:25}],
+ calc(v){const Y=v.A*v.R/1000*v.C*(1-v.ls/100),D=v.dem*365/1000,tank=v.A*v.st/1000*v.C*(1-v.ls/100);
+  return {res:[{l:'Annual yield',v:Y,u:'m³/yr',key:1,d:0},{l:'Share of demand met',v:Math.min(100,Y/D*100),u:'%',key:1,d:1},{l:'Tank for the design storm',v:tank,u:'m³',key:1,d:1},{l:'Annual demand',v:D,u:'m³/yr',d:0}],
+   chk:[Y<D*0.1?{s:'warn',t:'Rain covers under 10 % of the demand. Condensate or grey water may be a better source.'}:{s:'ok',t:'Rainwater makes a useful contribution.'}]};},
+ f:['Yield = area × rainfall × C × (1 − losses)','Tank = area × design storm × C × (1 − losses)'],
+ notes:['In dry climates rain falls in a few storms: size the tank on a storm, not on the monthly average.','AC condensate is often a larger and steadier source in the Gulf.']});
+
+/* ===== stormwater and hydrology ===== */
+const RUNC=[['Roof',0.95],['Asphalt or concrete',0.9],['Interlocking paving',0.75],['Gravel',0.5],['Desert sand',0.3],['Lawn and planting',0.25]];
+const KERBY=[['Smooth pavement',0.02],['Bare packed soil',0.1],['Poor grass or rough bare soil',0.2],['Average grass',0.4],['Dense grass',0.8]];
+
+def({id:'rational',g:'SW',code:'SW-01',t:'Peak runoff (rational method)',ref:1,
+ d:'Peak stormwater flow from a site with mixed surfaces for a design rainfall intensity.',
+ src:[['ASCE MOP 77','Rational method'],['FHWA HEC-22','Chapter 3']],
+ inp:[{id:'rows',type:'rows',cols:[{id:'s',l:'Surface',type:'sel',o:opt(RUNC.map(x=>x[0])),set:r=>{r.c=RUNC[+r.s][1]}},{id:'a',l:'Area m²',v:1000},{id:'c',l:'C',v:0.9}],
+   v:[{s:'0',a:4000,c:0.95},{s:'1',a:6000,c:0.9},{s:'5',a:2500,c:0.25}]},
+  {id:'i',l:'Rainfall intensity',u:'mm/h',v:60,hint:'From the local IDF curve for the time of concentration'}],
+ calc(v){const rows=v.rows.map(x=>({n:(RUNC[+x.s]||RUNC[0])[0],a:+x.a||0,c:+x.c||0})),A=rows.reduce((s,x)=>s+x.a,0),CA=rows.reduce((s,x)=>s+x.a*x.c,0),Q=CA*v.i/3600;
+  return {res:[{l:'Peak flow',v:Q,u:'L/s',key:1,d:1},{l:'Composite C',v:A?CA/A:0,key:1,d:2},{l:'Total area',v:A/10000,u:'ha',d:3},{l:'Peak flow',v:Q*3.6,u:'m³/h',d:0}],
+   chk:[A>800000?{s:'warn',t:'Over 80 ha: the rational method is less reliable. Use a hydrograph method.'}:{s:'ok',t:'Site size suits the rational method.'}],
+   tbl:{head:['Surface','Area m²','C','L/s'],rows:rows.map(x=>[x.n,fmt(x.a,0),fmt(x.c,2),fmt(x.a*x.c*v.i/3600,1)])}};},
+ f:['Q (L/s) = C × i (mm/h) × A (m²) ÷ 3,600','Equivalent to Q = C i A ÷ 360 with A in ha and Q in m³/s'],
+ notes:['Use the intensity for a storm lasting as long as the time of concentration (SW-02).']});
+
+def({id:'tc',g:'SW',code:'SW-02',t:'Time of concentration',ref:1,
+ d:'Time for runoff to travel from the furthest point of a catchment to the outlet: overland flow (Kerby) plus channel flow (Kirpich).',
+ src:[['Kirpich (1940)','Channel flow'],['Kerby (1959)','Overland flow']],
+ inp:[{h:'Overland flow'},{id:'L1',l:'Length',u:'m',v:80},{id:'S1',l:'Slope',u:'%',v:1},{id:'r',l:'Surface',type:'sel',o:opt(KERBY.map(x=>x[0])),v:'0'},
+  {h:'Channel or pipe flow'},{id:'L2',l:'Length',u:'m',v:400},{id:'S2',l:'Slope',u:'%',v:0.5}],
+ calc(v){const t1=v.L1>0?1.44*Math.pow(v.L1*KERBY[+v.r][1]/Math.sqrt(v.S1/100),0.467):0,t2=v.L2>0?0.0195*Math.pow(v.L2,0.77)*Math.pow(v.S2/100,-0.385):0,t=Math.max(5,t1+t2);
+  return {res:[{l:'Time of concentration',v:t,u:'min',key:1,d:1},{l:'Overland flow',v:t1,u:'min',d:1},{l:'Channel flow',v:t2,u:'min',d:1}],
+   chk:[t1+t2<5?{s:'warn',t:'Less than 5 minutes: 5 minutes is used as the minimum.'}:{s:'ok',t:'Use this duration to read the intensity from the IDF curve.'}]};},
+ f:['Kerby: t = 1.44 (L r ÷ √S)^0.467   (L m, t min)','Kirpich: t = 0.0195 L^0.77 S^−0.385'],
+ notes:['Kerby applies to overland flow up to about 365 m.']});
+
+def({id:'detention',g:'SW',code:'SW-03',t:'Detention tank',ref:1,
+ d:'Storage needed to limit a site\'s outflow, by the modified rational method over a range of storm durations.',
+ src:[['ASCE MOP 77','Modified rational method'],['CIRIA C753','Storage']],
+ inp:[{id:'A',l:'Catchment area',u:'m²',v:12500},{id:'C',l:'Composite C',u:'',v:0.8},{id:'Qo',l:'Allowed outflow',u:'L/s',v:50},
+  {id:'rows',type:'rows',cols:[{id:'t',l:'Duration min',v:10},{id:'i',l:'Intensity mm/h',v:60}],v:[{t:5,i:120},{t:10,i:95},{t:15,i:80},{t:30,i:55},{t:60,i:35},{t:120,i:20}]}],
+ calc(v){const rows=v.rows.map(x=>{const t=+x.t||0,i=+x.i||0,Qi=v.C*i*v.A/3600,V=Math.max(0,(Qi-v.Qo)*t*60/1000);return {t,i,Qi,V}});let k=0;rows.forEach((x,j)=>{if(x.V>rows[k].V)k=j});const M=rows[k]||{V:0,t:0};
+  return {res:[{l:'Storage needed',v:M.V,u:'m³',key:1,d:1},{l:'Critical storm',v:M.t,u:'min',key:1,d:0},{l:'Peak inflow for that storm',v:M.Qi,u:'L/s',d:1}],
+   chk:[k===rows.length-1&&rows.length>1?{s:'warn',t:'Largest storage is at the longest duration: add longer durations to the table.'}:{s:'ok',t:'Critical duration is inside the range given.'}],
+   tbl:{head:['Duration min','Intensity mm/h','Inflow L/s','Storage m³'],rows:rows.map((x,j)=>({hl:j===k,c:[fmt(x.t,0),fmt(x.i,0),fmt(x.Qi,1),fmt(x.V,1)]}))}};},
+ f:['Inflow = C i A','Storage = (inflow − allowed outflow) × duration','Design storage = the largest over all durations'],
+ notes:['Default intensities are an example only. Enter the local IDF curve for the return period required.']});
+
+def({id:'soakaway',g:'SW',code:'SW-04',t:'Soakaway',ref:1,
+ d:'Check of a rectangular gravel-filled soakaway against a design storm, and its time to half empty.',
+ src:[['BRE Digest 365','Soakaway design'],['CIRIA C753','Infiltration']],
+ inp:[{id:'A',l:'Area drained',u:'m²',v:300},{id:'R',l:'Storm rainfall',u:'mm',v:25},{id:'D',l:'Storm duration',u:'min',v:60},
+  {id:'L',l:'Pit length',u:'m',v:6},{id:'W',l:'Pit width',u:'m',v:3},{id:'H',l:'Effective depth',u:'m',v:2},{id:'n',l:'Fill void ratio',u:'',v:0.3},{id:'f',l:'Soil infiltration rate',u:'m/s',v:1e-5}],
+ calc(v){const I=v.A*v.R/1000,a50=(2*(v.L+v.W))*v.H/2,O=a50*v.f*v.D*60,S=v.L*v.W*v.H*v.n,need=Math.max(0,I-O),t50=S*0.5/(a50*v.f)/3600;
+  return {res:[{l:'Storage provided',v:S,u:'m³',key:1,d:2},{l:'Storage needed',v:need,u:'m³',key:1,d:2},{l:'Time to half empty',v:t50,u:'h',key:1,d:1},{l:'Inflow',v:I,u:'m³',d:2},{l:'Outflow during the storm',v:O,u:'m³',d:2}],
+   chk:[S>=need?{s:'ok',t:'Soakaway holds the storm.'}:{s:'bad',t:'Soakaway too small for the storm.'},t50<=24?{s:'ok',t:'Half empties within 24 h.'}:{s:'bad',t:'Takes over 24 h to half empty.'}]};},
+ f:['Inflow = area × rainfall','Outflow = a_s50 × f × duration,   a_s50 = side area to half depth','Storage = L W H × void ratio'],
+ notes:['Measure the infiltration rate on site by the BRE 365 test. Repeat for several storm durations.']});
+
+/* ===== water and wastewater ===== */
+const GWF=[['6','With dishwasher'],['5','Without dishwasher'],['2','Single-service kitchen']];
+
+def({id:'septic',g:'WT',code:'WT-01',t:'Septic tank',ref:1,
+ d:'Septic tank capacity for the number of people served, with suggested internal dimensions.',
+ src:[['BS 6297','§6.3'],['EN 12566-1','Septic tanks']],
+ inp:[{id:'P',l:'People served',u:'',v:20},{id:'q',l:'Wastewater per person',u:'L/d',v:150},{id:'h',l:'Liquid depth',u:'m',v:1.5}],
+ calc(v){const P=Math.max(4,v.P),C=180*P+2000,W=Math.sqrt(C/1000/v.h/3),L=3*W;
+  return {res:[{l:'Capacity',v:C/1000,u:'m³',key:1,d:2},{l:'Internal length',v:L,u:'m',key:1,d:2},{l:'Internal width',v:W,u:'m',d:2},{l:'Retention time',v:C/(v.P*v.q),u:'d',d:1}],
+   chk:[C/(v.P*v.q)>=1?{s:'ok',t:'At least one day of retention.'}:{s:'warn',t:'Under one day of retention at this flow.'}]};},
+ f:['C = 180 P + 2,000 litres  (P ≥ 4)','Length = 3 × width'],
+ notes:['Use two compartments, the first about two thirds of the length. Empty the sludge at least once a year.']});
+
+def({id:'grease',g:'WT',code:'WT-02',t:'Grease interceptor',ref:1,
+ d:'Grease interceptor volume for a commercial kitchen from meals served in the peak hour.',
+ src:[['UPC','§1014.3'],['IPC','§1003.3']],
+ inp:[{id:'m',l:'Meals in the peak hour',u:'',v:200},{id:'w',l:'Kitchen type',type:'sel',o:GWF,v:'6',wide:1},{id:'rt',l:'Retention time',u:'h',v:2.5,hint:'Commercial kitchen 2.5 h, single service 1.5 h'},
+  {id:'sf',l:'Hours of operation',type:'sel',o:[['1','8 h'],['1.5','12 h'],['2','16 h'],['3','24 h']],v:'1.5'}],
+ calc(v){const gal=v.m*(+v.w)*v.rt*(+v.sf),L=gal*3.785;
+  return {res:[{l:'Interceptor volume',v:L,u:'L',key:1,d:0},{l:'In gallons',v:gal,u:'gal',d:0}],
+   chk:[L<1000?{s:'warn',t:'Under 1,000 L: many authorities set this as the minimum for a kitchen.'}:{s:'ok',t:'Size meets the usual minimum.'}]};},
+ f:['Volume (gal) = meals × waste flow × retention × storage factor','Waste flow: with dishwasher 6 gal, without 5, single service 2'],
+ notes:['Check the local authority\'s rules: many set their own minimum size.']});
+
+def({id:'wet-well',g:'WT',code:'WT-03',t:'Pumping station wet well',ref:1,
+ d:'Wet well working volume to limit pump starts, the level band, and the pump power.',
+ src:[['Hydraulic Institute','Pump intake design'],['EN 752','Pumping stations']],
+ inp:[{id:'Q',l:'Pump flow (peak inflow)',u:'L/s',v:30},{id:'N',l:'Maximum starts per hour',u:'',v:10},{id:'D',l:'Wet well diameter',u:'m',v:2.5},
+  {id:'H',l:'Total head',u:'m',v:18},{id:'eta',l:'Pump efficiency',u:'%',v:65}],
+ calc(v){const V=0.9*v.Q/v.N,A=PI*v.D*v.D/4,kw=1000*G*v.Q/1000*v.H/(v.eta/100)/1000;
+  return {res:[{l:'Working volume',v:V,u:'m³',key:1,d:2},{l:'Level band, start to stop',v:V/A,u:'m',key:1,d:2},{l:'Pump input power',v:kw,u:'kW',key:1,d:1},{l:'Minimum cycle time',v:60/v.N,u:'min',d:1}],
+   chk:[V/A<0.5?{s:'warn',t:'Level band under 0.5 m: hard to control. Use a smaller well or alternate the pumps.'}:{s:'ok',t:'Level band is workable.'}]};},
+ f:['V = Q × T ÷ 4,   T = 60 ÷ starts per hour','V (m³) = 0.9 × Q (L/s) ÷ starts','Power = ρ g Q H ÷ η'],
+ notes:['Alternating two duty pumps halves the volume needed for the same starts per pump.']});
+
+def({id:'clarifier',g:'WT',code:'WT-04',t:'Settling tank',ref:1,
+ d:'Surface area, diameter and detention time of a circular settling tank from the surface overflow rate.',
+ src:[['Metcalf & Eddy','Sedimentation'],['Ten States Standards','Clarifiers']],
+ inp:[{id:'Q',l:'Average flow',u:'m³/d',v:3000},{id:'sor',l:'Surface overflow rate',u:'m³/m²·d',v:35,hint:'Primary 30–50, secondary 16–28'},{id:'h',l:'Side water depth',u:'m',v:3.5},
+  {id:'n',l:'Number of tanks',u:'',v:2},{id:'wl',l:'Weir loading limit',u:'m³/m·d',v:125}],
+ calc(v){const A=v.Q/v.sor/v.n,D=Math.sqrt(4*A/PI),Vt=A*v.h,hrt=Vt/(v.Q/v.n)*24,wl=v.Q/v.n/(PI*D);
+  return {res:[{l:'Diameter of each tank',v:D,u:'m',key:1,d:1},{l:'Surface area of each tank',v:A,u:'m²',d:0},{l:'Detention time',v:hrt,u:'h',key:1,d:1},{l:'Weir loading',v:wl,u:'m³/m·d',d:0},{l:'Volume of each tank',v:Vt,u:'m³',d:0}],
+   chk:[hrt>=1.5&&hrt<=4?{s:'ok',t:'Detention time within 1.5–4 h.'}:{s:'warn',t:'Detention time outside 1.5–4 h. Adjust the depth.'},wl<=v.wl?{s:'ok',t:'Weir loading within the limit.'}:{s:'warn',t:'Weir loading above the limit.'}]};},
+ f:['A = Q ÷ SOR,   D = √(4A ÷ π)','Detention = A h ÷ Q','Weir loading = Q ÷ (π D)'],
+ notes:['Check the peak flow against the peak overflow rate as well.']});
+
+/* ===== irrigation ===== */
+const KC=[['Turf grass',0.8,0.7],['Shrubs',0.5,0.9],['Trees',0.5,0.9],['Date palms',0.7,0.9],['Ground cover',0.5,0.9],['Desert planting',0.2,0.9]];
+
+def({id:'irr-demand',g:'IR',code:'IR-01',t:'Landscape water demand',ref:1,
+ d:'Peak-day irrigation water need from the reference evapotranspiration and the plant types.',
+ src:[['FAO 56','Crop coefficients'],['WUCOLS','Landscape coefficients']],
+ inp:[{id:'et',l:'Reference evapotranspiration',u:'mm/d',v:12,hint:'Riyadh summer about 11–13 mm/d'},
+  {id:'rows',type:'rows',cols:[{id:'p',l:'Plant type',type:'sel',o:opt(KC.map(x=>x[0])),set:r=>{r.kc=KC[+r.p][1];r.e=KC[+r.p][2]*100}},{id:'a',l:'Area m²',v:500},{id:'kc',l:'Kc',v:0.5},{id:'e',l:'Efficiency %',v:90}],
+   v:[{p:'0',a:2000,kc:0.8,e:70},{p:'1',a:1500,kc:0.5,e:90},{p:'3',a:800,kc:0.7,e:90}]}],
+ calc(v){const rows=v.rows.map(x=>{const a=+x.a||0,kc=+x.kc||0,e=(+x.e||100)/100;return {n:(KC[+x.p]||KC[0])[0],a,kc,e,q:v.et*kc*a/e}}),T=rows.reduce((s,x)=>s+x.q,0);
+  return {res:[{l:'Peak-day water',v:T/1000,u:'m³/d',key:1,d:1},{l:'Average depth',v:T/rows.reduce((s,x)=>s+x.a,0),u:'mm/d',d:1},{l:'Peak month',v:T*30/1000,u:'m³',d:0}],
+   chk:[{s:'ok',t:'Turf uses the most water per square metre: limit it where possible.'}],
+   tbl:{head:['Plant type','Area m²','Kc','Efficiency %','L/d'],rows:rows.map(x=>[x.n,fmt(x.a,0),fmt(x.kc,2),fmt(x.e*100,0),fmt(x.q,0)])}};},
+ f:['L/d = ET₀ (mm/d) × Kc × area ÷ efficiency'],
+ notes:['Spray irrigation is about 70 % efficient, drip about 90 %.']});
+
+def({id:'drip',g:'IR',code:'IR-02',t:'Drip irrigation zones',ref:1,
+ d:'Run time of a drip zone, its flow and how many zones the pump can serve in the watering window.',
+ src:[['ASABE EP405','Drip design'],['FAO 56','Water need']],
+ inp:[{id:'n',l:'Plants in the area',u:'',v:400},{id:'need',l:'Water per plant',u:'L/d',v:40},{id:'e',l:'Emitters per plant',u:'',v:4},{id:'q',l:'Emitter flow',u:'L/h',v:4},
+  {id:'P',l:'Pump flow',u:'L/s',v:3},{id:'win',l:'Watering window',u:'h',v:8}],
+ calc(v){const rt=v.need/(v.e*v.q)*60,zq=v.n*v.e*v.q/3600,zones=Math.ceil(zq/v.P),plantsPerZone=Math.floor(v.P*3600/(v.e*v.q)),total=zones*rt/60;
+  return {res:[{l:'Run time',v:rt,u:'min',key:1,d:0},{l:'Zones needed',v:zones,key:1,d:0},{l:'Plants per zone',v:plantsPerZone,d:0},{l:'Total watering time',v:total,u:'h',key:1,d:1},{l:'Flow if all on at once',v:zq,u:'L/s',d:2}],
+   chk:[total<=v.win?{s:'ok',t:'All zones fit in the watering window.'}:{s:'bad',t:'Zones do not fit in the window. Use a larger pump or more emitters.'}]};},
+ f:['Run time = need ÷ (emitters × flow)','Plants per zone = pump flow ÷ (emitters × emitter flow)'],
+ notes:['Water at night in summer to cut evaporation.']});
+
+def({id:'irr-tank',g:'IR',code:'IR-03',t:'Irrigation tank and pump',ref:1,
+ d:'Storage tank volume and pump motor for an irrigation demand.',
+ src:[['FAO 56','Water need'],['Hydraulic Institute','Pump power']],
+ inp:[{id:'Qd',l:'Daily demand',u:'m³/d',v:60},{id:'days',l:'Storage',u:'d',v:2},{id:'win',l:'Watering window',u:'h',v:8},{id:'H',l:'Total head',u:'m',v:45},{id:'eta',l:'Pump efficiency',u:'%',v:65}],
+ calc(v){const V=v.Qd*v.days,Q=v.Qd/v.win/3.6,kw=1000*G*Q/1000*v.H/(v.eta/100)/1000,mot=nextStd(kw*1.15,[0.75,1.1,1.5,2.2,3,4,5.5,7.5,11,15,18.5,22,30,37,45,55,75]);
+  return {res:[{l:'Tank volume',v:V,u:'m³',key:1,d:0},{l:'Pump flow',v:Q,u:'L/s',key:1,d:2},{l:'Pump input power',v:kw,u:'kW',d:2},{l:'Motor',v:mot?mot+' kW':'> 75 kW',key:1}],
+   chk:[{s:'ok',t:'Allow for a dead volume below the suction and a freeboard above the top level.'}]};},
+ f:['Tank = daily demand × days','Pump flow = daily demand ÷ window','Power = ρ g Q H ÷ η,   motor ≥ 1.15 × power'],
+ notes:['Treated sewage effluent needs a filter and a separate, marked pipework system.']});
+
+/* ===== roads and transport ===== */
+const SIDEF=[[30,0.2],[40,0.18],[50,0.16],[60,0.15],[70,0.14],[80,0.14],[90,0.13],[100,0.12],[110,0.11],[120,0.09],[130,0.08]];
+const sideF=V=>{if(V<=30)return 0.2;if(V>=130)return 0.08;for(let i=1;i<SIDEF.length;i++)if(V<=SIDEF[i][0]){const a=SIDEF[i-1],b=SIDEF[i];return a[1]+(b[1]-a[1])*(V-a[0])/(b[0]-a[0])}return 0.08};
+const ssdOf=(V,t,a,g)=>0.278*V*t+V*V/(254*(a/9.81+g/100));
+const ZR=[['50','50 %',0],['75','75 %',-0.674],['80','80 %',-0.841],['85','85 %',-1.037],['90','90 %',-1.282],['95','95 %',-1.645],['99','99 %',-2.327]];
+
+def({id:'ssd',g:'RD',code:'RD-01',t:'Stopping sight distance',ref:1,
+ d:'Distance a driver needs to see ahead to stop, for a design speed and grade.',
+ src:[['AASHTO Green Book','§3.2.2'],['AASHTO Green Book','Table 3-2']],
+ inp:[{id:'V',l:'Design speed',u:'km/h',v:80},{id:'t',l:'Brake reaction time',u:'s',v:2.5},{id:'a',l:'Deceleration',u:'m/s²',v:3.4},{id:'g',l:'Grade (+ up, − down)',u:'%',v:0}],
+ calc(v){const d1=0.278*v.V*v.t,d2=v.V*v.V/(254*(v.a/9.81+v.g/100));
+  return {res:[{l:'Stopping sight distance',v:d1+d2,u:'m',key:1,d:0},{l:'Reaction distance',v:d1,u:'m',d:1},{l:'Braking distance',v:d2,u:'m',d:1}],
+   chk:[v.g<-3?{s:'warn',t:'Steep downgrade: braking distance grows quickly.'}:{s:'ok',t:'Provide this distance along the whole road, including curves and crests.'}]};},
+ f:['SSD = 0.278 V t + V² ÷ [ 254 (a ÷ 9.81 ± G) ]'],
+ notes:['On level roads AASHTO rounds up, for example 130 m at 80 km/h.']});
+
+def({id:'h-curve',g:'RD',code:'RD-02',t:'Horizontal curve',ref:1,
+ d:'Minimum radius for a design speed, and the setting-out elements of a circular curve.',
+ src:[['AASHTO Green Book','§3.3'],['AASHTO Green Book','Table 3-7']],
+ inp:[{id:'V',l:'Design speed',u:'km/h',v:80},{id:'e',l:'Maximum superelevation',u:'%',v:6},{id:'R',l:'Radius used',u:'m',v:300},{id:'D',l:'Deflection angle',u:'°',v:35}],
+ calc(v){const f=sideF(v.V),Rmin=v.V*v.V/(127*(v.e/100+f)),th=v.D*PI/180,T=v.R*Math.tan(th/2),Lc=v.R*th,E=v.R*(1/Math.cos(th/2)-1),M=v.R*(1-Math.cos(th/2)),C=2*v.R*Math.sin(th/2),eReq=(v.V*v.V/(127*v.R)-f)*100;
+  return {res:[{l:'Minimum radius',v:Rmin,u:'m',key:1,d:0},{l:'Curve length',v:Lc,u:'m',key:1,d:1},{l:'Tangent length',v:T,u:'m',d:2},{l:'External distance',v:E,u:'m',d:2},{l:'Middle ordinate',v:M,u:'m',d:2},{l:'Long chord',v:C,u:'m',d:2},{l:'Side friction factor',v:f,d:2}],
+   chk:[v.R>=Rmin?{s:'ok',t:'Radius meets the minimum for the speed.'}:{s:'bad',t:'Radius below the minimum for the speed.'},eReq>v.e?{s:'bad',t:'Needs more superelevation than allowed.'}:{s:'ok',t:'Superelevation within the maximum.'}]};},
+ f:['R_min = V² ÷ [ 127 (e + f) ]','T = R tan(Δ/2),   L = R Δ,   E = R [ sec(Δ/2) − 1 ],   M = R [ 1 − cos(Δ/2) ]'],
+ notes:['Side friction factors are the AASHTO values for high-speed roads.']});
+
+def({id:'v-curve',g:'RD',code:'RD-03',t:'Vertical curve',ref:1,
+ d:'Minimum length of a crest or sag curve for stopping sight distance, and the high or low point of the curve used.',
+ src:[['AASHTO Green Book','§3.4.6'],['AASHTO Green Book','Eq. 3-41 to 3-50']],
+ inp:[{id:'g1',l:'Grade in',u:'%',v:3},{id:'g2',l:'Grade out',u:'%',v:-2},{id:'V',l:'Design speed',u:'km/h',v:80},{id:'L',l:'Curve length used',u:'m',v:250},
+  {id:'ch',l:'PVI chainage',u:'m',v:1000},{id:'z',l:'PVI level',u:'m',v:100}],
+ calc(v){const A=Math.abs(v.g2-v.g1),crest=v.g1>v.g2,S=ssdOf(v.V,2.5,3.4,0);let Lm;
+  if(crest){Lm=A*S*S/658;if(Lm<S)Lm=Math.max(0,2*S-658/A)}else{Lm=A*S*S/(120+3.5*S);if(Lm<S)Lm=Math.max(0,2*S-(120+3.5*S)/A)}
+  const bvc=v.ch-v.L/2,zb=v.z-v.g1/100*v.L/2,x=v.g1/(v.g1-v.g2)*v.L,inside=x>0&&x<v.L,zx=zb+v.g1/100*x+(v.g2-v.g1)/100/(2*v.L)*x*x;
+  return {res:[{l:'Minimum length',v:Lm,u:'m',key:1,d:0},{l:'K value used',v:A?v.L/A:NaN,key:1,d:1},{l:'Stopping sight distance',v:S,u:'m',d:0},{l:crest?'High point chainage':'Low point chainage',v:inside?bvc+x:NaN,u:'m',d:2},{l:crest?'High point level':'Low point level',v:inside?zx:NaN,u:'m',d:3},{l:'Curve start chainage',v:bvc,u:'m',d:2},{l:'Curve start level',v:zb,u:'m',d:3}],
+   chk:[v.L>=Lm?{s:'ok',t:'Length meets the sight distance.'}:{s:'bad',t:'Curve too short for the sight distance.'},{s:'ok',t:crest?'Crest curve.':'Sag curve (headlight sight distance).'}]};},
+ f:['Crest, S < L: L = A S² ÷ 658','Sag, S < L: L = A S² ÷ (120 + 3.5 S)','x to high or low point = g₁ L ÷ (g₁ − g₂)'],
+ notes:['SSD uses 2.5 s reaction and 3.4 m/s² on a level road.']});
+
+def({id:'pavement',g:'RD',code:'RD-04',t:'Flexible pavement thickness',ref:1,
+ d:'Structural number for the design traffic by the AASHTO 1993 method, and the asphalt thickness over the base and subbase given.',
+ src:[['AASHTO 1993','Part II, Eq. 3.1'],['AASHTO 1993','Layer coefficients']],
+ inp:[{id:'W',l:'Design traffic',u:'million ESAL',v:5},{id:'R',l:'Reliability',type:'sel',o:ZR.map(x=>[x[0],x[1]]),v:'90'},{id:'S0',l:'Standard deviation',u:'',v:0.45},
+  {id:'dpsi',l:'Serviceability loss ΔPSI',u:'',v:1.9},{id:'Mr',l:'Subgrade resilient modulus',u:'MPa',v:60,hint:'Roughly 10 × CBR'},
+  {h:'Layers'},{id:'a1',l:'Asphalt coefficient',u:'per inch',v:0.44},{id:'D2',l:'Base thickness',u:'mm',v:200},{id:'a2',l:'Base coefficient',u:'',v:0.14},
+  {id:'D3',l:'Subbase thickness',u:'mm',v:150},{id:'a3',l:'Subbase coefficient',u:'',v:0.11},{id:'m',l:'Drainage coefficient',u:'',v:1}],
+ calc(v){const z=(ZR.find(x=>x[0]===String(v.R))||ZR[4])[2],Mpsi=v.Mr*145.04,lw=Math.log10(v.W*1e6);
+  const F=SN=>z*v.S0+9.36*Math.log10(SN+1)-0.2+Math.log10(v.dpsi/2.7)/(0.4+1094/Math.pow(SN+1,5.19))+2.32*Math.log10(Mpsi)-8.07-lw;
+  const SN=F(0.1)>0?0.1:F(20)<0?NaN:bisect(F,0.1,20),D1=(SN-v.a2*v.D2/25.4*v.m-v.a3*v.D3/25.4*v.m)/v.a1*25.4;
+  return {res:[{l:'Structural number',v:SN,key:1,d:2},{l:'Asphalt thickness',v:Math.max(D1,0),u:'mm',key:1,d:0},{l:'Contribution of base and subbase',v:(v.a2*v.D2+v.a3*v.D3)/25.4*v.m,d:2},{l:'Reliability factor ZR',v:z,d:3}],
+   chk:[D1<50?{s:'warn',t:'Asphalt under 50 mm: use the practical minimum for the traffic (typically 50–100 mm).'}:{s:'ok',t:'Asphalt thickness found.'}]};},
+ f:['log W₁₈ = Z_R S₀ + 9.36 log(SN+1) − 0.20 + log(ΔPSI ÷ 2.7) ÷ [0.40 + 1094 ÷ (SN+1)^5.19] + 2.32 log M_R − 8.07','SN = a₁ D₁ + a₂ D₂ m₂ + a₃ D₃ m₃   (D in inches)'],
+ notes:['M_R is converted to psi inside the formula.','Check each layer also protects the layer below (layered design).']});
+
+def({id:'esal',g:'RD',code:'RD-05',t:'Design traffic (ESAL)',ref:1,
+ d:'Equivalent single axle loads over the design life from the daily truck traffic.',
+ src:[['AASHTO 1993','Appendix D'],['AASHTO 1993','Traffic']],
+ inp:[{id:'adt',l:'Average daily traffic',u:'veh/d',v:12000},{id:'tr',l:'Trucks',u:'%',v:15},{id:'tf',l:'Truck factor',u:'ESAL/truck',v:1.2},
+  {id:'dd',l:'Directional split',u:'%',v:50},{id:'ld',l:'Design lane share',u:'%',v:80},{id:'g',l:'Annual growth',u:'%',v:3},{id:'n',l:'Design life',u:'yr',v:20}],
+ calc(v){const GF=v.g>0?(Math.pow(1+v.g/100,v.n)-1)/(v.g/100):v.n,W=v.adt*v.tr/100*v.tf*365*GF*v.dd/100*v.ld/100;
+  return {res:[{l:'Design ESAL',v:W/1e6,u:'million',key:1,d:2},{l:'Growth factor',v:GF,d:2},{l:'First-year ESAL',v:v.adt*v.tr/100*v.tf*365*v.dd/100*v.ld/100,d:0}],
+   chk:[{s:'ok',t:'Use this as the design traffic in RD-04.'}]};},
+ f:['ESAL = ADT × truck % × truck factor × 365 × growth factor × D × L','Growth factor = [ (1 + g)ⁿ − 1 ] ÷ g'],
+ notes:['Lane share: 100 % for one lane each way, about 80–100 % for two lanes, 60–80 % for three.']});
+
+/* ===== surveying ===== */
+def({id:'coord-area',g:'SV',code:'SV-01',t:'Area from coordinates',ref:1,
+ d:'Area and perimeter of a plot from the coordinates of its corners, by the shoelace formula.',
+ src:[['Ghilani','Elementary Surveying, area by coordinates'],['RICS','Measured surveys']],
+ inp:[{id:'rows',type:'rows',cols:[{id:'e',l:'Easting',v:0},{id:'n',l:'Northing',v:0}],v:[{e:1000,n:2000},{e:1040,n:2005},{e:1045,n:2060},{e:1002,n:2052}]}],
+ calc(v){const p=v.rows.map(x=>[+x.e||0,+x.n||0]),k=p.length;let s=0,P=0;for(let i=0;i<k;i++){const a=p[i],b=p[(i+1)%k];s+=a[0]*b[1]-b[0]*a[1];P+=Math.hypot(b[0]-a[0],b[1]-a[1])}const A=Math.abs(s)/2;
+  return {res:[{l:'Area',v:A,u:'m²',key:1,d:2},{l:'Area',v:A/10000,u:'ha',d:4},{l:'Perimeter',v:P,u:'m',key:1,d:2},{l:'Corners',v:k,d:0}],
+   chk:[k<3?{s:'bad',t:'At least three corners are needed.'}:{s:'ok',t:'Enter the corners in order around the boundary.'}],
+   tbl:{head:['Corner','Easting','Northing','Side to next m'],rows:p.map((a,i)=>{const b=p[(i+1)%k];return [String(i+1),fmt(a[0],3),fmt(a[1],3),fmt(Math.hypot(b[0]-a[0],b[1]-a[1]),3)]})}};},
+ f:['A = ½ | Σ (Eᵢ Nᵢ₊₁ − Eᵢ₊₁ Nᵢ) |'],
+ notes:['Coordinates must be on a plane grid such as UTM, in metres.']});
+
+def({id:'traverse',g:'SV',code:'SV-02',t:'Traverse closure (Bowditch)',ref:1,
+ d:'Misclosure and precision of a closed traverse, and corrected coordinates by the Bowditch rule.',
+ src:[['Ghilani','Traverse computations'],['RICS','Control surveys']],
+ inp:[{id:'e0',l:'Start easting',u:'m',v:1000},{id:'n0',l:'Start northing',u:'m',v:1000},
+  {id:'rows',type:'rows',cols:[{id:'b',l:'Bearing °',v:0},{id:'d',l:'Distance m',v:100}],v:[{b:63.4369,d:111.807},{b:147.9936,d:94.334},{b:240.9469,d:102.959},{b:323.1281,d:100.005}]}],
+ calc(v){const L=v.rows.map(x=>{const b=(+x.b||0)*PI/180,d=+x.d||0;return {b:+x.b,d,de:d*Math.sin(b),dn:d*Math.cos(b)}}),P=L.reduce((s,x)=>s+x.d,0),ce=L.reduce((s,x)=>s+x.de,0),cn=L.reduce((s,x)=>s+x.dn,0),m=Math.hypot(ce,cn);
+  let E=v.e0,N=v.n0;const rows=L.map((x,i)=>{E+=x.de-ce*x.d/P;N+=x.dn-cn*x.d/P;return [String(i+1),fmt(x.b,4),fmt(x.d,3),fmt(E,3),fmt(N,3)]});
+  return {res:[{l:'Linear misclosure',v:m,u:'m',key:1,d:3},{l:'Precision 1 in',v:m>0?P/m:Infinity,key:1,d:0},{l:'Misclosure in easting',v:ce,u:'m',d:3},{l:'Misclosure in northing',v:cn,u:'m',d:3},{l:'Perimeter',v:P,u:'m',d:2}],
+   chk:[m>0&&P/m<5000?{s:'warn',t:'Precision worse than 1 in 5,000: check the field readings.'}:{s:'ok',t:'Precision acceptable for most engineering surveys.'}],
+   tbl:{head:['Leg','Bearing °','Distance m','Corrected E','Corrected N'],rows}};},
+ f:['ΔE = d sin θ,   ΔN = d cos θ','Correction to each leg = − misclosure × leg ÷ perimeter','Precision = perimeter ÷ linear misclosure'],
+ notes:['Bearings are whole-circle bearings in decimal degrees, already corrected for angular misclosure.']});
+
+def({id:'levelling',g:'SV',code:'SV-03',t:'Level book (rise and fall)',ref:1,
+ d:'Reduced levels from backsight, intermediate and foresight readings, with the arithmetic check.',
+ src:[['Uren & Price','Levelling'],['BS 7334','Surveying instruments']],
+ inp:[{id:'rl',l:'Starting level (benchmark)',u:'m',v:100},
+  {id:'rows',type:'rows',cols:[{id:'bs',l:'BS',v:0},{id:'is',l:'IS',v:0},{id:'fs',l:'FS',v:0}],v:[{bs:1.525,is:0,fs:0},{bs:0,is:2.105,fs:0},{bs:0,is:1.86,fs:0},{bs:1.42,is:0,fs:2.64},{bs:0,is:1.105,fs:0},{bs:0,is:0,fs:1.875}]}],
+ calc(v){let prev=null,rl=v.rl,sb=0,sf=0,R=0,F=0;const rows=v.rows.map((x,i)=>{const bs=+x.bs||0,is=+x.is||0,fs=+x.fs||0;let rise='',fall='';
+   const cur=fs||is;if(prev!==null&&cur){const d=prev-cur;if(d>=0){rise=fmt(d,3);R+=d}else{fall=fmt(-d,3);F-=d}rl+=d}
+   sb+=bs;sf+=fs;prev=bs||cur||prev;return [String(i+1),bs?fmt(bs,3):'',is?fmt(is,3):'',fs?fmt(fs,3):'',rise,fall,fmt(rl,3)]});
+  return {res:[{l:'Last reduced level',v:rl,u:'m',key:1,d:3},{l:'Σ BS − Σ FS',v:sb-sf,u:'m',d:3},{l:'Σ rise − Σ fall',v:R-F,u:'m',d:3},{l:'Last − first level',v:rl-v.rl,u:'m',d:3}],
+   chk:[Math.abs((sb-sf)-(R-F))<0.0005&&Math.abs((sb-sf)-(rl-v.rl))<0.0005?{s:'ok',t:'Arithmetic check agrees.'}:{s:'bad',t:'Arithmetic check fails: a reading is missing or in the wrong column.'}],
+   tbl:{head:['Point','BS','IS','FS','Rise','Fall','RL'],rows}};},
+ f:['Rise or fall = previous reading − this reading','Check: Σ BS − Σ FS = Σ rise − Σ fall = last RL − first RL'],
+ notes:['Leave a cell at 0 when there is no reading. A change point has both a FS and a BS on the same row.']});
+
+def({id:'earthworks',g:'SV',code:'SV-04',t:'Cut and fill volumes',ref:1,
+ d:'Cut and fill between cross-sections by the average end area method, with bulking of cut material.',
+ src:[['Uren & Price','Earthwork volumes'],['AASHTO','Earthwork']],
+ inp:[{id:'rows',type:'rows',cols:[{id:'ch',l:'Chainage m',v:0},{id:'c',l:'Cut m²',v:0},{id:'f',l:'Fill m²',v:0}],v:[{ch:0,c:12.5,f:0},{ch:20,c:8.4,f:1.2},{ch:40,c:3.1,f:4.8},{ch:60,c:0,f:9.6},{ch:80,c:0,f:12.2}]},
+  {id:'bk',l:'Bulking factor of cut',u:'',v:1.25},{id:'sh',l:'Compaction factor of fill',u:'',v:0.9}],
+ calc(v){let C=0,F=0;const r=v.rows,rows=[];for(let i=1;i<r.length;i++){const L=(+r[i].ch)-(+r[i-1].ch),c=L*((+r[i].c)+(+r[i-1].c))/2,f=L*((+r[i].f)+(+r[i-1].f))/2;C+=c;F+=f;rows.push([fmt(+r[i-1].ch,0)+'–'+fmt(+r[i].ch,0),fmt(c,1),fmt(f,1)])}
+  const usable=C*v.sh,bal=usable-F;
+  return {res:[{l:'Cut',v:C,u:'m³',key:1,d:0},{l:'Fill',v:F,u:'m³',key:1,d:0},{l:bal>=0?'Surplus (compacted)':'Import needed (compacted)',v:Math.abs(bal),u:'m³',key:1,d:0},{l:'Cut as loose volume for haulage',v:C*v.bk,u:'m³',d:0}],
+   chk:[{s:bal>=0?'ok':'warn',t:bal>=0?'Cut is enough to make the fill.':'Not enough cut: material must be imported.'}],
+   tbl:{head:['Between chainages','Cut m³','Fill m³'],rows}};},
+ f:['V = L × (A₁ + A₂) ÷ 2','Balance = cut × compaction factor − fill'],
+ notes:['The prismoidal formula gives slightly smaller volumes where areas change quickly.']});
+
+/* ===== mining ===== */
+const MGRADE=[['gt','g/t (gold, silver)'],['pct','% (copper, zinc, iron)']];
+
+def({id:'blast',g:'MN',code:'MN-01',t:'Bench blast design',ref:1,
+ d:'Burden, spacing, stemming, subdrill and powder factor of a bench blast from the hole diameter.',
+ src:[['Konya & Walter','Surface blast design'],['ISEE Blasters\' Handbook','Bench blasting']],
+ inp:[{id:'d',l:'Hole diameter',u:'mm',v:115},{id:'H',l:'Bench height',u:'m',v:10},{id:'re',l:'Explosive density',u:'g/cm³',v:0.85,hint:'ANFO 0.85, emulsion 1.15'},
+  {id:'rr',l:'Rock density',u:'g/cm³',v:2.6},{id:'ks',l:'Spacing ÷ burden',u:'',v:1.15}],
+ calc(v){const B=0.012*(2*v.re/v.rr+1.5)*v.d,S=v.ks*B,T=0.7*B,J=0.3*B,Lc=Math.max(0,v.H+J-T),q=PI*Math.pow(v.d/1000,2)/4*v.re*1000*Lc,Vh=B*S*v.H;
+  return {res:[{l:'Burden',v:B,u:'m',key:1,d:2},{l:'Spacing',v:S,u:'m',key:1,d:2},{l:'Powder factor',v:q/Vh,u:'kg/m³',key:1,d:2},{l:'Stemming',v:T,u:'m',d:2},{l:'Subdrill',v:J,u:'m',d:2},{l:'Charge per hole',v:q,u:'kg',d:1},{l:'Rock per hole',v:Vh,u:'m³',d:0},{l:'Rock per hole',v:Vh*v.rr,u:'t',d:0}],
+   chk:[v.H/B<2?{s:'warn',t:'Bench height under twice the burden: expect poor fragmentation. Use a smaller hole.'}:{s:'ok',t:'Bench height suits the burden.'}]};},
+ f:['B = 0.012 (2 ρₑ ÷ ρᵣ + 1.5) D   (B m, D mm)','S = 1.15 B,   T = 0.7 B,   J = 0.3 B','Powder factor = charge ÷ (B S H)'],
+ notes:['Adjust after trial blasts and keep within the site\'s vibration and flyrock limits.']});
+
+def({id:'haul',g:'MN',code:'MN-02',t:'Haul truck fleet',ref:1,
+ d:'Truck cycle time, trucks needed for a production target and the match with the loading unit.',
+ src:[['Caterpillar Performance Handbook','Production estimating'],['SME Mining Engineering Handbook','Haulage']],
+ inp:[{id:'P',l:'Production target',u:'t/h',v:1200},{id:'cap',l:'Truck payload',u:'t',v:90},{id:'lt',l:'Loading time',u:'min',v:3},{id:'dist',l:'Haul distance (one way)',u:'km',v:3},
+  {id:'vl',l:'Loaded speed',u:'km/h',v:20},{id:'ve',l:'Empty speed',u:'km/h',v:35},{id:'dt',l:'Dump and spot time',u:'min',v:2},{id:'eff',l:'Working minutes per hour',u:'min',v:50}],
+ calc(v){const cyc=v.lt+v.dist/v.vl*60+v.dist/v.ve*60+v.dt,pt=v.cap*v.eff/cyc,n=Math.ceil(v.P/pt),mf=n*v.lt/cyc;
+  return {res:[{l:'Trucks needed',v:n,key:1,d:0},{l:'Cycle time',v:cyc,u:'min',key:1,d:1},{l:'Output per truck',v:pt,u:'t/h',d:0},{l:'Fleet output',v:n*pt,u:'t/h',d:0},{l:'Match factor',v:mf,key:1,d:2}],
+   chk:[mf<0.9?{s:'warn',t:'Match factor under 0.9: the loader waits for trucks.'}:mf>1.1?{s:'warn',t:'Match factor over 1.1: trucks queue at the loader.'}:{s:'ok',t:'Trucks and loader are well matched.'}]};},
+ f:['Cycle = load + haul + return + dump','Trucks = target ÷ (payload × working min ÷ cycle)','Match factor = trucks × load time ÷ cycle'],
+ notes:['Speeds should come from rimpull curves for the grade and rolling resistance of the haul road.']});
+
+def({id:'mine-vent',g:'MN',code:'MN-03',t:'Underground mine ventilation',ref:1,
+ d:'Airflow needed for diesel equipment and people, airway velocity, Atkinson pressure loss and fan power.',
+ src:[['McPherson','Subsurface Ventilation Engineering'],['MSHA / provincial rules','Diesel dilution']],
+ inp:[{id:'kw',l:'Diesel engine power in use',u:'kW',v:800},{id:'qk',l:'Air per kW of diesel',u:'m³/s per kW',v:0.06},{id:'np',l:'People underground',u:'',v:40},{id:'qp',l:'Air per person',u:'m³/s',v:0.1},
+  {h:'Airway'},{id:'A',l:'Cross-section area',u:'m²',v:25},{id:'Pm',l:'Perimeter',u:'m',v:20},{id:'L',l:'Length',u:'m',v:2500},{id:'k',l:'Friction factor',u:'kg/m³',v:0.012,hint:'Smooth lined 0.004, rough rock 0.012–0.015'},{id:'eta',l:'Fan efficiency',u:'%',v:70}],
+ calc(v){const Q=Math.max(v.kw*v.qk,0)+v.np*v.qp,vel=Q/v.A,R=v.k*v.Pm*v.L/Math.pow(v.A,3),p=R*Q*Q,P=p*Q/(v.eta/100)/1000;
+  return {res:[{l:'Airflow needed',v:Q,u:'m³/s',key:1,d:1},{l:'Airway velocity',v:vel,u:'m/s',key:1,d:2},{l:'Pressure loss',v:p,u:'Pa',key:1,d:0},{l:'Fan input power',v:P,u:'kW',d:1},{l:'Airway resistance',v:R,u:'Ns²/m⁸',d:4}],
+   chk:[vel<0.25?{s:'bad',t:'Velocity under 0.25 m/s: air will not be well mixed.'}:vel>6?{s:'warn',t:'Velocity over 6 m/s: dust and discomfort in travelways.'}:{s:'ok',t:'Velocity within 0.25–6 m/s.'}]};},
+ f:['Q = kW × air per kW + people × air per person','R = k P L ÷ A³,   p = R Q²','Fan power = p Q ÷ η'],
+ notes:['Air per kW varies by jurisdiction, commonly 0.05–0.08 m³/s. Use the rule that applies to the mine.']});
+
+def({id:'reserve',g:'MN',code:'MN-04',t:'Tonnage, grade and strip ratio',ref:1,
+ d:'Ore tonnage, average grade and contained metal of blocks above a cut-off grade, with the strip ratio.',
+ src:[['JORC Code','Reporting'],['SME Mining Engineering Handbook','Resource estimation']],
+ inp:[{id:'gu',l:'Grade unit',type:'sel',o:MGRADE,v:'gt',wide:1},{id:'co',l:'Cut-off grade',u:'',v:0.5},
+  {id:'rows',type:'rows',cols:[{id:'v',l:'Volume m³',v:10000},{id:'r',l:'Density t/m³',v:2.7},{id:'g',l:'Grade',v:1}],v:[{v:40000,r:2.7,g:1.8},{v:55000,r:2.7,g:1.1},{v:60000,r:2.65,g:0.7},{v:80000,r:2.6,g:0.3},{v:120000,r:2.5,g:0.05}]}],
+ calc(v){let ot=0,wt=0,m=0;const rows=v.rows.map(x=>{const t=(+x.v||0)*(+x.r||0),g=+x.g||0,ore=g>=v.co;if(ore){ot+=t;m+=t*g}else wt+=t;return [fmt(+x.v,0),fmt(+x.r,2),fmt(g,2),fmt(t,0),ore?'Ore':'Waste']});
+  const ag=ot?m/ot:0,gt=v.gu==='gt',metal=gt?m/31.1035:m/100;
+  return {res:[{l:'Ore tonnage',v:ot,u:'t',key:1,d:0},{l:'Average grade',v:ag,u:gt?'g/t':'%',key:1,d:2},{l:'Contained metal',v:metal,u:gt?'oz':'t',key:1,d:0},{l:'Waste tonnage',v:wt,u:'t',d:0},{l:'Strip ratio (waste ÷ ore)',v:ot?wt/ot:NaN,d:2}],
+   chk:[ot?{s:'ok',t:'Blocks at or above the cut-off are counted as ore.'}:{s:'warn',t:'No block reaches the cut-off grade.'}],
+   tbl:{head:['Volume m³','Density','Grade','Tonnes','Class'],rows}};},
+ f:['Tonnes = volume × density','Average grade = Σ (t × g) ÷ Σ t','Gold: oz = Σ (t × g/t) ÷ 31.1035;   base metal: t = Σ (t × %) ÷ 100'],
+ notes:['Public reporting of resources and reserves must be signed off by a Competent Person.']});
+
+def({id:'cutoff',g:'MN',code:'MN-05',t:'Cut-off grade',ref:1,
+ d:'Break-even and marginal cut-off grades from the metal price, recovery and costs.',
+ src:[['Lane (1988)','Cut-off grade theory'],['SME Mining Engineering Handbook','Cut-off grade']],
+ inp:[{id:'gu',l:'Grade unit',type:'sel',o:MGRADE,v:'gt',wide:1},{id:'p',l:'Metal price',u:'per oz or per t',v:2400},{id:'sc',l:'Selling and refining cost',u:'per oz or per t',v:10},
+  {id:'rec',l:'Process recovery',u:'%',v:90},{id:'mc',l:'Mining cost',u:'per t',v:3.5},{id:'pc',l:'Processing cost',u:'per t',v:18},{id:'ga',l:'General and admin cost',u:'per t',v:4}],
+ calc(v){const gt=v.gu==='gt',net=(v.p-v.sc)*v.rec/100,unit=gt?net/31.1035:net/100,be=(v.mc+v.pc+v.ga)/unit,mg=(v.pc+v.ga)/unit;
+  return {res:[{l:'Break-even cut-off',v:be,u:gt?'g/t':'%',key:1,d:gt?2:3},{l:'Marginal cut-off',v:mg,u:gt?'g/t':'%',key:1,d:gt?2:3},{l:'Value of one grade unit per tonne',v:unit,d:2}],
+   chk:[{s:'ok',t:'Marginal cut-off applies to rock that must be mined anyway; break-even to rock mined only for its value.'}]};},
+ f:['Value per grade unit = (price − selling cost) × recovery ÷ 31.1035 (g/t) or ÷ 100 (%)','Break-even = (mining + processing + G&A) ÷ value per unit','Marginal = (processing + G&A) ÷ value per unit'],
+ notes:['Prices and costs in any one currency.']});
+
+/* ===== pile foundations ===== */
+const SOILT=[['c','Clay'],['s','Sand']];
+const PGRID=[[1,2],[2,2],[2,3],[3,3],[3,4],[4,4],[4,5],[5,5]];
+
+def({id:'pile-cap',g:'PF',code:'PF-01',t:'Bored pile capacity',ref:1,
+ d:'Shaft and base resistance of a single bored pile in layered clay and sand, and its allowable load.',
+ src:[['FHWA-NHI-10-016','Drilled shafts, Chapter 13'],['AASHTO LRFD','§10.8.3']],
+ inp:[{id:'D',l:'Pile diameter',u:'mm',v:800},{id:'fs',l:'Factor of safety',u:'',v:2.5},
+  {id:'rows',type:'rows',cols:[{id:'t',l:'Soil',type:'sel',o:SOILT},{id:'h',l:'Thickness m',v:5},{id:'cu',l:'cu kPa (clay)',v:0},{id:'n',l:'N60 (sand)',v:0},{id:'g',l:'γ′ kN/m³',v:9}],
+   v:[{t:'c',h:4,cu:40,n:0,g:8},{t:'s',h:8,cu:0,n:20,g:10},{t:'c',h:6,cu:120,n:0,g:9},{t:'s',h:4,cu:0,n:45,g:11}]}],
+ calc(v){const d=v.D/1000,per=PI*d,Ab=PI*d*d/4;let z=0,sv=0,Qs=0;const rows=v.rows.map(x=>{const h=+x.h||0,g=+x.g||0,zm=z+h/2,svm=sv+g*h/2;let f;
+   if(x.t==='c'){const cu=+x.cu||0;f=0.55*cu}else{const N=+x.n||0;let b=1.5-0.245*Math.sqrt(Math.max(zm,0));if(N<15)b*=N/15;b=Math.min(1.2,Math.max(0.25,b));f=b*svm}
+   const q=f*per*h;Qs+=q;z+=h;sv+=g*h;return {t:x.t,h,f,q}});
+  const last=v.rows[v.rows.length-1]||{t:'c',cu:0,n:0},qb=last.t==='c'?Math.min(9*(+last.cu||0),3800):Math.min(57.5*(+last.n||0),2900),Qb=qb*Ab,Qu=Qs+Qb;
+  return {res:[{l:'Allowable load',v:Qu/v.fs,u:'kN',key:1,d:0},{l:'Ultimate capacity',v:Qu,u:'kN',key:1,d:0},{l:'Shaft resistance',v:Qs,u:'kN',d:0},{l:'Base resistance',v:Qb,u:'kN',d:0},{l:'Pile length',v:z,u:'m',d:1}],
+   chk:[Qb>Qs?{s:'warn',t:'Base carries more than the shaft: base resistance needs larger settlement to mobilise.'}:{s:'ok',t:'Shaft carries most of the load.'}],
+   tbl:{head:['Soil','Thickness m','Unit shaft kPa','Shaft kN'],rows:rows.map(x=>[x.t==='c'?'Clay':'Sand',fmt(x.h,1),fmt(x.f,0),fmt(x.q,0)])}};},
+ f:['Clay: f = 0.55 cu,   base q = 9 cu ≤ 3,800 kPa','Sand: f = β σ′v,   β = 1.5 − 0.245 √z (× N60 ÷ 15 when N60 < 15), 0.25 ≤ β ≤ 1.2','Sand base: q = 57.5 N60 ≤ 2,900 kPa'],
+ notes:['Layers run from the ground surface down; the pile toe is at the bottom of the last layer.','Confirm the design capacity by a pile load test.']});
+
+def({id:'pile-group',g:'PF',code:'PF-02',t:'Pile group capacity',ref:1,
+ d:'Capacity of a rectangular pile group by the Converse–Labarre efficiency, and the block failure check in clay.',
+ src:[['Das','Principles of Foundation Engineering, §12'],['Tomlinson','Pile Design and Construction']],
+ inp:[{id:'m',l:'Piles in each row',u:'',v:3},{id:'n',l:'Rows',u:'',v:3},{id:'d',l:'Pile diameter',u:'mm',v:600},{id:'s',l:'Pile spacing',u:'mm',v:1800},
+  {id:'Q',l:'Ultimate capacity of one pile',u:'kN',v:2500},{id:'L',l:'Pile length',u:'m',v:18},{id:'cu',l:'Average cu along the piles',u:'kPa',v:60},{id:'cb',l:'cu at the pile toe',u:'kPa',v:100},{id:'fs',l:'Factor of safety',u:'',v:2.5}],
+ calc(v){const th=Math.atan(v.d/v.s)*180/PI,E=1-th*(v.n*(v.m-1)+v.m*(v.n-1))/(90*v.m*v.n),Qg=E*v.m*v.n*v.Q,B=((v.m-1)*v.s+v.d)/1000,Lb=((v.n-1)*v.s+v.d)/1000,Qbl=2*(B+Lb)*v.L*v.cu+9*v.cb*B*Lb,Qu=Math.min(Qg,Qbl);
+  return {res:[{l:'Allowable group load',v:Qu/v.fs,u:'kN',key:1,d:0},{l:'Group efficiency',v:E*100,u:'%',key:1,d:1},{l:'Group capacity by efficiency',v:Qg,u:'kN',d:0},{l:'Block failure capacity',v:Qbl,u:'kN',d:0},{l:'Spacing ÷ diameter',v:v.s/v.d,d:2}],
+   chk:[v.s/v.d<2.5?{s:'warn',t:'Spacing under 2.5 diameters.'}:{s:'ok',t:'Spacing at least 2.5 diameters.'},Qbl<Qg?{s:'warn',t:'Block failure governs.'}:{s:'ok',t:'Individual pile failure governs.'}]};},
+ f:['E = 1 − θ [ n(m − 1) + m(n − 1) ] ÷ (90 m n),   θ = atan(d ÷ s) in degrees','Block = 2 (B + L) D cu + 9 cu,b B L'],
+ notes:['In sand the group efficiency is usually taken as 1 for driven piles.']});
+
+def({id:'pile-loads',g:'PF',code:'PF-03',t:'Pile cap layout and pile loads',ref:1,
+ d:'Number of piles under a column, a rectangular layout and the load on each pile with moments.',
+ src:[['Tomlinson','Pile groups'],['ACI 318','§13.4']],
+ inp:[{id:'P',l:'Column load (service)',u:'kN',v:6000},{id:'Mx',l:'Moment about x',u:'kN·m',v:300},{id:'My',l:'Moment about y',u:'kN·m',v:150},
+  {id:'Qa',l:'Allowable load per pile',u:'kN',v:1200},{id:'d',l:'Pile diameter',u:'mm',v:600},{id:'sf',l:'Spacing ÷ diameter',u:'',v:3},{id:'cw',l:'Cap self-weight allowance',u:'%',v:10}],
+ calc(v){const Pt=v.P*(1+v.cw/100),need=Math.ceil(Pt/v.Qa),grid=PGRID.find(g=>g[0]*g[1]>=need)||PGRID[PGRID.length-1],nx=grid[1],ny=grid[0],n=nx*ny,s=v.sf*v.d/1000;
+  let sx=0,sy=0,xs=[],ys=[];for(let i=0;i<nx;i++)xs.push((i-(nx-1)/2)*s);for(let j=0;j<ny;j++)ys.push((j-(ny-1)/2)*s);xs.forEach(x=>sx+=x*x*ny);ys.forEach(y=>sy+=y*y*nx);
+  const xm=Math.max(...xs),ym=Math.max(...ys),Rmax=Pt/n+(sy?v.Mx*ym/sy:0)+(sx?v.My*xm/sx:0),Rmin=Pt/n-(sy?v.Mx*ym/sy:0)-(sx?v.My*xm/sx:0),edge=v.d/1000*1.5;
+  return {res:[{l:'Piles',v:n,key:1,d:0},{l:'Layout',v:nx+' × '+ny,key:1},{l:'Maximum pile load',v:Rmax,u:'kN',key:1,d:0},{l:'Minimum pile load',v:Rmin,u:'kN',d:0},{l:'Cap length',v:(nx-1)*s+2*edge,u:'m',d:2},{l:'Cap width',v:(ny-1)*s+2*edge,u:'m',d:2},{l:'Pile spacing',v:s,u:'m',d:2}],
+   chk:[Rmax<=v.Qa?{s:'ok',t:'Most loaded pile within the allowable load.'}:{s:'bad',t:'Most loaded pile exceeds the allowable load. Add piles or increase spacing.'},Rmin<0?{s:'warn',t:'A pile is in tension: check uplift capacity and reinforcement.'}:{s:'ok',t:'No pile in tension.'}]};},
+ f:['n ≥ P (1 + cap allowance) ÷ Q_a','R = P ÷ n ± Mx y ÷ Σy² ± My x ÷ Σx²','Cap edge = 1.5 d beyond the pile centre lines'],
+ notes:['Design the cap for bending, shear and punching under the factored loads.']});
+
+/* ===== quantity surveying ===== */
+const BLK=[['400 × 200 × 200',0.4,0.2,0.2],['400 × 200 × 150',0.4,0.2,0.15],['400 × 200 × 100',0.4,0.2,0.1],['Clay brick 215 × 65 × 102.5',0.215,0.065,0.1025]];
+const MIX=[['4','1 : 4'],['5','1 : 5'],['6','1 : 6']];
+const QFORM=[['Column',1],['Beam',2],['Slab',3],['Footing',4],['Wall',5]];
+
+const mortarMat=(V,r)=>({cem:1.33*V/(1+r)*1440/50,sand:1.33*V*r/(1+r)});
+
+def({id:'blockwork',g:'QS',code:'QS-01',t:'Blockwork and mortar',ref:1,
+ d:'Number of blocks, mortar volume, cement bags and sand for a wall.',
+ src:[['BS EN 1996','Masonry'],['Standard method of measurement','Masonry']],
+ inp:[{id:'L',l:'Wall length',u:'m',v:40},{id:'H',l:'Wall height',u:'m',v:3},{id:'op',l:'Openings',u:'m²',v:12},{id:'b',l:'Unit',type:'sel',o:opt(BLK.map(x=>x[0])),v:'0',wide:1},
+  {id:'j',l:'Joint thickness',u:'mm',v:10},{id:'mix',l:'Mortar mix (cement : sand)',type:'sel',o:MIX,v:'4'},{id:'w',l:'Wastage',u:'%',v:5}],
+ calc(v){const B=BLK[+v.b],j=v.j/1000,A=Math.max(0,v.L*v.H-v.op),per=1/((B[1]+j)*(B[2]+j)),n=A*per*(1+v.w/100),Vm=A*B[3]-A*per*B[1]*B[2]*B[3],M=mortarMat(Vm*(1+v.w/100),+v.mix);
+  return {res:[{l:'Units',v:Math.ceil(n),key:1,d:0},{l:'Mortar',v:Vm*(1+v.w/100),u:'m³',key:1,d:2},{l:'Cement',v:Math.ceil(M.cem),u:'bags of 50 kg',key:1,d:0},{l:'Sand',v:M.sand,u:'m³',d:2},{l:'Net wall area',v:A,u:'m²',d:1},{l:'Units per m²',v:per,d:1}],
+   chk:[{s:'ok',t:'Hollow blocks take mortar in the bed and head joints only; the figure assumes solid joints.'}]};},
+ f:['Units per m² = 1 ÷ [ (L + j)(H + j) ]','Mortar = wall volume − unit volume','Dry volume = 1.33 × wet;  cement = dry ÷ (1 + r) × 1,440 kg/m³'],
+ notes:['Add separately for lintels, bond beams and cutting at corners.']});
+
+def({id:'plaster-paint',g:'QS',code:'QS-02',t:'Plaster and paint',ref:1,
+ d:'Cement, sand and paint quantities for plastering and painting an area.',
+ src:[['BS EN 13914','Rendering and plastering'],['Paint manufacturer data','Coverage']],
+ inp:[{id:'A',l:'Area',u:'m²',v:500},{id:'t',l:'Plaster thickness',u:'mm',v:15},{id:'mix',l:'Plaster mix (cement : sand)',type:'sel',o:MIX,v:'4'},{id:'w',l:'Wastage',u:'%',v:10},
+  {h:'Paint'},{id:'c',l:'Coats',u:'',v:2},{id:'cov',l:'Coverage per coat',u:'m²/L',v:10},{id:'pr',l:'Primer coverage',u:'m²/L',v:12}],
+ calc(v){const Vm=v.A*v.t/1000*(1+v.w/100),M=mortarMat(Vm,+v.mix),paint=v.A*v.c/v.cov*(1+v.w/100),prim=v.A/v.pr*(1+v.w/100);
+  return {res:[{l:'Cement',v:Math.ceil(M.cem),u:'bags of 50 kg',key:1,d:0},{l:'Sand',v:M.sand,u:'m³',key:1,d:2},{l:'Paint',v:paint,u:'L',key:1,d:0},{l:'Primer',v:prim,u:'L',d:0},{l:'Wet plaster volume',v:Vm,u:'m³',d:2}],
+   chk:[v.t>20?{s:'warn',t:'Plaster over 20 mm should be applied in two coats.'}:{s:'ok',t:'Thickness suits a single coat.'}]};},
+ f:['Plaster volume = area × thickness × (1 + wastage)','Paint litres = area × coats ÷ coverage'],
+ notes:['Rough or absorbent walls take more paint than the label coverage.']});
+
+def({id:'tiles',g:'QS',code:'QS-03',t:'Tiling quantities',ref:1,
+ d:'Tiles, boxes, adhesive and grout for a floor or wall.',
+ src:[['BS 5385','Tiling'],['ANSI A108','Tile installation']],
+ inp:[{id:'L',l:'Length',u:'m',v:6},{id:'W',l:'Width',u:'m',v:5},{id:'tl',l:'Tile length',u:'mm',v:600},{id:'tw',l:'Tile width',u:'mm',v:600},{id:'j',l:'Joint width',u:'mm',v:3},
+  {id:'bx',l:'Area per box',u:'m²',v:1.44},{id:'w',l:'Wastage',u:'%',v:10},{id:'ad',l:'Adhesive',u:'kg/m²',v:5}],
+ calc(v){const A=v.L*v.W,per=1/((v.tl+v.j)*(v.tw+v.j)/1e6),n=Math.ceil(A*per*(1+v.w/100)),gr=(v.tl+v.tw)/(v.tl*v.tw)*v.j*10*1.6*A;
+  return {res:[{l:'Tiles',v:n,key:1,d:0},{l:'Boxes',v:Math.ceil(A*(1+v.w/100)/v.bx),key:1,d:0},{l:'Adhesive',v:A*v.ad,u:'kg',key:1,d:0},{l:'Grout',v:gr,u:'kg',d:1},{l:'Area',v:A,u:'m²',d:2}],
+   chk:[v.w<10&&v.tl>=600?{s:'warn',t:'Large tiles cut with more waste: allow at least 10 %.'}:{s:'ok',t:'Wastage allowance is reasonable.'}]};},
+ f:['Tiles = area ÷ [(l + j)(w + j)] × (1 + wastage)','Grout kg ≈ (l + w) ÷ (l w) × joint width × joint depth × 1.6 × area'],
+ notes:['Grout assumes a 10 mm deep joint and 1.6 kg/L density.']});
+
+def({id:'excavation',g:'QS',code:'QS-04',t:'Excavation and backfill',ref:1,
+ d:'Excavation, haulage and backfill volumes for foundation pits with working space and side slopes.',
+ src:[['Standard method of measurement','Excavation'],['OSHA 1926 Subpart P','Sloping']],
+ inp:[{id:'rows',type:'rows',cols:[{id:'L',l:'Length m',v:2},{id:'W',l:'Width m',v:2},{id:'D',l:'Depth m',v:1.5},{id:'q',l:'Qty',v:1}],v:[{L:2.4,W:2.4,D:1.8,q:12},{L:3,W:3,D:2,q:6},{L:30,W:0.8,D:1,q:1}]},
+  {id:'ws',l:'Working space each side',u:'m',v:0.5},{id:'sl',l:'Side slope (horizontal per 1 vertical)',u:'',v:0.5},{id:'Vs',l:'Volume of structure below ground',u:'m³',v:90},
+  {id:'bk',l:'Bulking factor',u:'',v:1.25},{id:'tr',l:'Truck capacity',u:'m³',v:16}],
+ calc(v){let V=0;const rows=v.rows.map(x=>{const a=(+x.L||0)+2*v.ws,b=(+x.W||0)+2*v.ws,d=+x.D||0,k=v.sl*d,A1=a*b,A2=(a+2*k)*(b+2*k),Am=(a+k)*(b+k),vol=d/6*(A1+4*Am+A2)*(+x.q||0);V+=vol;return [fmt(+x.L,2)+' × '+fmt(+x.W,2)+' × '+fmt(d,2),fmt(+x.q,0),fmt(vol,1)]});
+  const bf=Math.max(0,V-v.Vs),sp=V*v.bk;
+  return {res:[{l:'Excavation (bank)',v:V,u:'m³',key:1,d:0},{l:'Backfill (compacted)',v:bf,u:'m³',key:1,d:0},{l:'Loose volume',v:sp,u:'m³',d:0},{l:'Truckloads to remove the surplus',v:Math.ceil((V-bf/0.9)*v.bk/v.tr),key:1,d:0}],
+   chk:[v.sl===0&&v.rows.some(x=>+x.D>1.5)?{s:'warn',t:'Vertical sides deeper than 1.5 m need shoring.'}:{s:'ok',t:'Side slopes included.'}],
+   tbl:{head:['Pit L × W × D m','Qty','m³'],rows}};},
+ f:['Pit with working space and slope by the prismoidal formula: V = d ÷ 6 (A₁ + 4A_m + A₂)','Backfill = excavation − structure','Surplus = excavation − backfill ÷ 0.9, loose × bulking'],
+ notes:['Backfill is reused from the excavation at a compaction factor of 0.9.']});
+
+def({id:'formwork',g:'QS',code:'QS-05',t:'Formwork and concrete',ref:1,
+ d:'Formwork contact area and concrete volume for columns, beams, slabs, footings and walls.',
+ src:[['ACI 347','Formwork'],['Standard method of measurement','Concrete work']],
+ inp:[{id:'rows',type:'rows',cols:[{id:'t',l:'Element',type:'sel',o:opt(QFORM.map(x=>x[0]))},{id:'a',l:'L or width m',v:0.4},{id:'b',l:'Width or depth m',v:0.4},{id:'h',l:'Height or length m',v:3},{id:'q',l:'Qty',v:1}],
+   v:[{t:'0',a:0.5,b:0.5,h:3.2,q:24},{t:'1',a:0.3,b:0.6,h:6,q:30},{t:'2',a:20,b:0.2,h:30,q:1},{t:'3',a:2.4,b:0.7,h:2.4,q:24}]}],
+ calc(v){let FA=0,VC=0;const rows=v.rows.map(x=>{const t=+x.t,a=+x.a||0,b=+x.b||0,h=+x.h||0,q=+x.q||0;let f,c;
+   if(t===0){f=2*(a+b)*h;c=a*b*h}else if(t===1){f=(a+2*b)*h;c=a*b*h}else if(t===2){f=a*h+2*(a+h)*b;c=a*b*h}else if(t===3){f=2*(a+h)*b;c=a*b*h}else{f=2*a*h;c=a*b*h}
+   FA+=f*q;VC+=c*q;return [(QFORM[t]||QFORM[0])[0],fmt(q,0),fmt(f*q,1),fmt(c*q,2)]});
+  return {res:[{l:'Formwork area',v:FA,u:'m²',key:1,d:0},{l:'Concrete',v:VC,u:'m³',key:1,d:1},{l:'Formwork per m³',v:VC?FA/VC:NaN,u:'m²/m³',d:1}],
+   chk:[{s:'ok',t:'Beam forms include the soffit and both sides; slab forms include the soffit and edges.'}],
+   tbl:{head:['Element','Qty','Formwork m²','Concrete m³'],rows}};},
+ f:['Column: 2(a + b) h','Beam: (width + 2 depth) × length','Slab: area + edges,   footing: sides only,   wall: both faces'],
+ notes:['For a slab enter length, thickness and width; for a wall enter length, thickness and height.']});
+
+def({id:'cost-est',g:'QS',code:'QS-06',t:'Cost estimate',ref:1,
+ d:'Total project cost from trade costs, with contingency, overheads and profit, VAT and the cost per square metre.',
+ src:[['RICS NRM 1','Order of cost estimating'],['ZATCA','VAT 15 %']],
+ inp:[{id:'rows',type:'rows',cols:[{id:'c',l:'Trade cost',v:100000}],v:[{c:2400000},{c:3100000},{c:1650000},{c:2200000},{c:900000},{c:600000}]},
+  {id:'A',l:'Gross floor area',u:'m²',v:5000},{id:'ct',l:'Contingency',u:'%',v:7.5},{id:'oh',l:'Overheads and profit',u:'%',v:12},{id:'vat',l:'VAT',u:'%',v:15}],
+ calc(v){const S=v.rows.reduce((s,x)=>s+(+x.c||0),0),C=S*v.ct/100,O=(S+C)*v.oh/100,N=S+C+O,V=N*v.vat/100,T=N+V;
+  return {res:[{l:'Total including VAT',v:T,key:1,d:0},{l:'Cost per m²',v:T/v.A,key:1,d:0},{l:'Trade costs',v:S,d:0},{l:'Contingency',v:C,d:0},{l:'Overheads and profit',v:O,d:0},{l:'VAT',v:V,d:0}],
+   chk:[v.ct<5?{s:'warn',t:'Contingency under 5 % is low at early design stages.'}:{s:'ok',t:'Contingency is reasonable for this stage.'}],
+   tbl:{head:['Item','Amount','Share %'],rows:[['Trade costs',S],['Contingency',C],['Overheads and profit',O],['VAT',V]].map(x=>[x[0],fmt(x[1],0),fmt(T?x[1]/T*100:0,1)])}};},
+ f:['Net = trades + contingency + OH&P on (trades + contingency)','Total = net × (1 + VAT)'],
+ notes:['Money values are in any one currency.']});
+
+/* ===== project management ===== */
+const PRED=[['0','—']].concat(Array.from({length:20},(_,i)=>[String(i+1),String(i+1)]));
+
+def({id:'cpm',g:'PM',code:'PM-01',t:'Critical path',ref:1,
+ d:'Early and late start and finish, float and the critical path of up to 20 activities with finish-to-start links.',
+ src:[['PMI PMBOK','Schedule management'],['AACE 24R-03','CPM scheduling']],
+ inp:[{id:'rows',type:'rows',cols:[{id:'d',l:'Duration d',v:5},{id:'p1',l:'After',type:'sel',o:PRED},{id:'p2',l:'And after',type:'sel',o:PRED},{id:'p3',l:'And after',type:'sel',o:PRED}],
+   v:[{d:5,p1:'0',p2:'0',p3:'0'},{d:10,p1:'1',p2:'0',p3:'0'},{d:8,p1:'1',p2:'0',p3:'0'},{d:12,p1:'2',p2:'0',p3:'0'},{d:6,p1:'2',p2:'3',p3:'0'},{d:4,p1:'4',p2:'5',p3:'0'}]}],
+ calc(v){const A=v.rows.map((x,i)=>({i,d:+x.d||0,p:[x.p1,x.p2,x.p3].map(Number).filter(k=>k>0&&k<=v.rows.length&&k!==i+1).map(k=>k-1)})),n=A.length;
+  const ES=Array(n).fill(0),EF=Array(n).fill(0);let ok=true;
+  for(let pass=0;pass<=n;pass++){let ch=false;A.forEach(a=>{const es=a.p.reduce((m,k)=>Math.max(m,EF[k]),0);if(es!==ES[a.i]||ES[a.i]+a.d!==EF[a.i]){ES[a.i]=es;EF[a.i]=es+a.d;ch=true}});if(!ch)break;if(pass===n)ok=false}
+  const T=Math.max(0,...EF),LF=Array(n).fill(T),LS=Array(n).fill(0);
+  for(let pass=0;pass<=n;pass++){let ch=false;A.forEach(a=>{const succ=A.filter(b=>b.p.includes(a.i)),lf=succ.length?Math.min(...succ.map(b=>LF[b.i]-b.d)):T;if(lf!==LF[a.i]){LF[a.i]=lf;ch=true}LS[a.i]=LF[a.i]-a.d});if(!ch)break}
+  const crit=A.filter(a=>Math.abs(LS[a.i]-ES[a.i])<1e-9).map(a=>a.i+1);
+  return {res:[{l:'Project duration',v:T,u:'d',key:1,d:0},{l:'Critical path',v:ok?crit.join(' → '):'—',key:1},{l:'Activities',v:n,d:0}],
+   chk:[ok?{s:'ok',t:'Network is valid.'}:{s:'bad',t:'The links form a loop. Check the predecessors.'}],
+   tbl:{head:['Activity','Duration','ES','EF','LS','LF','Float'],rows:A.map(a=>({hl:crit.includes(a.i+1),c:[String(a.i+1),fmt(a.d,0),fmt(ES[a.i],0),fmt(EF[a.i],0),fmt(LS[a.i],0),fmt(LF[a.i],0),fmt(LS[a.i]-ES[a.i],0)]}))}};},
+ f:['ES = max EF of predecessors,   EF = ES + duration','LF = min LS of successors,   LS = LF − duration','Float = LS − ES; critical when float = 0'],
+ notes:['Activities are numbered by row. Durations are in working days.']});
+
+def({id:'evm',g:'PM',code:'PM-02',t:'Earned value',ref:1,
+ d:'Cost and schedule performance of a project from planned value, earned value and actual cost, with the forecast at completion.',
+ src:[['PMI PMBOK','Cost management'],['ANSI/EIA-748','Earned value']],
+ inp:[{id:'BAC',l:'Budget at completion',u:'',v:10000000},{id:'PV',l:'Planned value to date',u:'',v:4000000},{id:'EV',l:'Earned value to date',u:'',v:3600000},{id:'AC',l:'Actual cost to date',u:'',v:3500000}],
+ calc(v){const CPI=v.EV/v.AC,SPI=v.EV/v.PV,EAC=v.BAC/CPI,TCPI=(v.BAC-v.EV)/(v.BAC-v.AC);
+  return {res:[{l:'Cost performance index CPI',v:CPI,key:1,d:2},{l:'Schedule performance index SPI',v:SPI,key:1,d:2},{l:'Estimate at completion',v:EAC,key:1,d:0},{l:'Cost variance',v:v.EV-v.AC,d:0},{l:'Schedule variance',v:v.EV-v.PV,d:0},
+   {l:'Estimate to complete',v:EAC-v.AC,d:0},{l:'Variance at completion',v:v.BAC-EAC,d:0},{l:'TCPI to finish on budget',v:TCPI,d:2},{l:'Percent complete',v:v.EV/v.BAC*100,u:'%',d:1}],
+   chk:[CPI>=1?{s:'ok',t:'Under budget for the work done.'}:{s:'bad',t:'Over budget for the work done.'},SPI>=1?{s:'ok',t:'On or ahead of schedule.'}:{s:'warn',t:'Behind schedule.'}]};},
+ f:['CPI = EV ÷ AC,   SPI = EV ÷ PV','EAC = BAC ÷ CPI,   ETC = EAC − AC','TCPI = (BAC − EV) ÷ (BAC − AC)'],
+ notes:['EAC by CPI assumes the cost performance so far will continue.']});
+
+def({id:'productivity',g:'PM',code:'PM-03',t:'Crew productivity and duration',ref:1,
+ d:'Duration of an activity from its quantity and crew output, and the crews needed to finish by a target date.',
+ src:[['RSMeans','Crew productivity'],['AACE 25R-03','Productivity loss']],
+ inp:[{id:'Q',l:'Quantity',u:'',v:2400},{id:'p',l:'Output per crew per day',u:'',v:60},{id:'c',l:'Crews',u:'',v:2},{id:'e',l:'Efficiency',u:'%',v:85,hint:'Heat, access and overtime lower productivity'},{id:'t',l:'Target duration',u:'d',v:15}],
+ calc(v){const out=v.p*v.c*v.e/100,D=v.Q/out,need=Math.ceil(v.Q/(v.t*v.p*v.e/100));
+  return {res:[{l:'Duration',v:D,u:'d',key:1,d:1},{l:'Crews for the target',v:need,key:1,d:0},{l:'Daily output',v:out,d:1}],
+   chk:[D<=v.t?{s:'ok',t:'Finishes within the target.'}:{s:'warn',t:'Misses the target with '+v.c+' crews.'}]};},
+ f:['Duration = quantity ÷ (output × crews × efficiency)'],
+ notes:['Summer work in the Gulf has restricted midday hours: reduce the efficiency to suit.']});
+
+def({id:'pour',g:'PM',code:'PM-04',t:'Concrete pour planning',ref:1,
+ d:'Pour duration, number of truck mixers and truckloads for a concrete pour by pump.',
+ src:[['ACI 304R','Placing concrete'],['ACI 304.2R','Pumping']],
+ inp:[{id:'V',l:'Pour volume',u:'m³',v:450},{id:'pr',l:'Pump output',u:'m³/h',v:60},{id:'e',l:'Pump efficiency',u:'%',v:70},{id:'tc',l:'Truck capacity',u:'m³',v:9},
+  {id:'rt',l:'Truck round trip',u:'min',v:75},{id:'set',l:'Initial set time of the mix',u:'h',v:3}],
+ calc(v){const rate=v.pr*v.e/100,T=v.V/rate,per=v.tc/rate*60,n=Math.ceil(v.rt/per)+1,loads=Math.ceil(v.V/v.tc);
+  return {res:[{l:'Pour duration',v:T,u:'h',key:1,d:1},{l:'Truck mixers needed',v:n,key:1,d:0},{l:'Truckloads',v:loads,key:1,d:0},{l:'Effective placing rate',v:rate,u:'m³/h',d:1},{l:'Interval between trucks',v:per,u:'min',d:1}],
+   chk:[per>v.set*60/4?{s:'warn',t:'Long gaps between trucks: risk of cold joints.'}:{s:'ok',t:'Truck interval is short enough for a continuous pour.'},T>12?{s:'warn',t:'Pour over 12 h: plan crew shifts and a second pump.'}:{s:'ok',t:'Pour fits in one shift.'}]};},
+ f:['Duration = volume ÷ (pump output × efficiency)','Trucks = ⌈ round trip ÷ unloading interval ⌉ + 1 standby'],
+ notes:['In hot weather use retarders and pour at night to keep the concrete below its maximum temperature.']});
+
 /* pipe table builder (defined after use in calc, hoisted function) */
 function pipeTbl(ps){
   const lo=Math.max(0,(ps.sel<0?ps.rows.length:ps.sel)-2),hi=Math.min(ps.rows.length,ps.sel<0?ps.rows.length:ps.sel+3);
@@ -1169,6 +2007,7 @@ function num(c,s){const o={};c.inp.forEach(i=>{if(i.h)return;const x=s[i.id];o[i
 
 /* ---------- language ---------- */
 const AR={
+"L/flush":"L/دفقة","Fuel gas":"الغاز","Medical gases":"الغازات الطبية","Refrigeration & steam":"التبريد والبخار","ELV & low-current":"التيار الخفيف","Solar & energy":"الطاقة الشمسية والطاقة","Sustainability":"الاستدامة","Stormwater & hydrology":"مياه الأمطار والهيدرولوجيا","Water & wastewater":"المياه والصرف","Irrigation":"الري","Roads & transport":"الطرق والنقل","Surveying":"المساحة","Mining":"التعدين","Pile foundations":"الأساسات الخازوقية","Quantity surveying":"حساب الكميات","Project management":"إدارة المشاريع","per kWh":"لكل kWh","per yr":"سنويًا","million ESAL":"مليون ESAL","million":"مليون","per inch":"لكل بوصة","per oz or per t":"لكل أونصة أو طن","per t":"لكل طن","m³/s per kW":"m³/s لكل kW","bags of 50 kg":"كيس 50 kg","veh/d":"مركبة/يوم","ESAL/truck":"ESAL/شاحنة","oz":"أونصة","Gas pipe sizing":"تحجيم مواسير الغاز","Low-pressure natural gas or LPG pipe size for a load and length, by the Pole formula.":"قطر ماسورة الغاز الطبيعي أو الغاز المسال منخفض الضغط لحمل وطول معينين، بمعادلة Pole.","Bores are for medium-weight steel tube. Copper and polyethylene have different bores: check the size against its own table.":"الأقطار الداخلية لمواسير الحديد متوسطة الوزن. النحاس والبولي إيثيلين لهما أقطار مختلفة: راجع المقاس في جدوله الخاص.","Keep the drop from the meter to the furthest appliance within the limit for the supply pressure.":"حافظ على هبوط الضغط من العداد حتى أبعد جهاز ضمن الحد المسموح لضغط التغذية.","Gas":"الغاز","Natural gas":"غاز طبيعي","LPG (propane)":"غاز مسال (بروبان)","Gas load":"حمل الغاز","Pipe length":"طول الماسورة","Allowed pressure drop":"هبوط الضغط المسموح","Natural gas 1 mbar, LPG 2.5 mbar":"الغاز الطبيعي 1 mbar، الغاز المسال 2.5 mbar","Pipe size":"مقاس الماسورة","Gas flow":"تدفق الغاز","Minimum bore":"أقل قطر داخلي","Capacity of the size chosen":"سعة المقاس المختار","Effective length":"الطول المكافئ","Pressure drop within {0} mbar.":"هبوط الضغط ضمن {0} mbar.","No size in the table is large enough. Shorten the run or allow a larger drop.":"لا يوجد مقاس كافٍ في الجدول. قصّر المسار أو اسمح بهبوط أكبر.","Velocity over 6 m/s: expect noise.":"السرعة أكثر من 6 m/s: توقّع ضوضاء.","Velocity is low.":"السرعة منخفضة.","Bore mm":"القطر الداخلي mm","Capacity m³/h":"السعة m³/h","Gas appliance load":"حمل أجهزة الغاز","Connected and design gas load of a group of appliances, as natural gas flow and LPG mass flow.":"حمل الغاز الموصول والتصميمي لمجموعة أجهزة، كتدفق غاز طبيعي وتدفق كتلي للغاز المسال.","Ratings are gross heat input. Use the nameplate figure where you have it.":"القدرات هي مدخل الحرارة الإجمالي. استخدم قيمة لوحة الجهاز إن توفرت.","Appliance":"الجهاز","Domestic cooker":"طباخ منزلي","Domestic water heater":"سخان مياه منزلي","Combi boiler":"غلاية مدمجة","Commercial range (6 burners)":"موقد تجاري (6 شعلات)","Commercial oven":"فرن تجاري","Fryer":"قلاية","Bratt pan":"مقلاة كبيرة","Grill / salamander":"شواية / سلمندر","Wok burner":"موقد ووك","Boiler 100 kW":"غلاية 100 kW","kW each":"kW لكل جهاز","Diversity factor":"معامل التباين","Commercial kitchens 100 %; groups of dwellings much lower":"المطابخ التجارية 100 %؛ مجموعات المساكن أقل بكثير","Design load":"الحمل التصميمي","Natural gas flow":"تدفق الغاز الطبيعي","LPG flow":"تدفق الغاز المسال","LPG vapour flow":"تدفق بخار الغاز المسال","Diversity applied. Make sure it suits how the appliances are used together.":"تم تطبيق معامل التباين. تأكد أنه يناسب طريقة تشغيل الأجهزة معًا.","No diversity: all appliances at full rate.":"بدون تباين: كل الأجهزة بكامل قدرتها.","kW":"kW","LPG storage":"تخزين الغاز المسال","LPG tank size for a load and days of storage, and the cylinders needed if a cylinder manifold is used instead.":"حجم خزان الغاز المسال لحمل وعدد أيام تخزين، وعدد الأسطوانات اللازمة عند استخدام مجمّع أسطوانات بدلًا منه.","Check separation distances to buildings, boundaries and openings for the tank size chosen.":"راجع مسافات الفصل عن المباني والحدود والفتحات لحجم الخزان المختار.","A tank's natural vaporisation falls in cold weather. Large loads may need a vaporiser.":"يقل التبخر الطبيعي للخزان في الطقس البارد. قد تحتاج الأحمال الكبيرة إلى مبخّر.","Hours of use per day":"ساعات الاستخدام يوميًا","Days of storage":"أيام التخزين","Maximum fill":"أقصى نسبة تعبئة","Cylinder size":"حجم الأسطوانة","Off-take per cylinder":"معدل السحب لكل أسطوانة","About 1 kg/h at 15 °C; less in cold weather":"حوالي 1 kg/h عند 15 °C؛ أقل في الطقس البارد","Tank water capacity needed":"السعة المائية المطلوبة للخزان","Standard tank":"الخزان القياسي","LPG stored":"الغاز المسال المخزّن","Daily use":"الاستهلاك اليومي","Peak flow":"التدفق الأقصى","Cylinders on line":"الأسطوانات العاملة","Cylinders for two banks":"أسطوانات لمجموعتين","Cylinder changes per week":"مرات تبديل الأسطوانات أسبوعيًا","More than 10 cylinders on line: a bulk tank is usually the better choice.":"أكثر من 10 أسطوانات عاملة: الخزان الكبير عادةً الخيار الأفضل.","A cylinder manifold is practical for this load.":"مجمّع الأسطوانات عملي لهذا الحمل.","Medical gas design flow":"التدفق التصميمي للغازات الطبية","Diversified design flow of each medical gas from the outlets in each department.":"التدفق التصميمي بعد التباين لكل غاز طبي من مخارج كل قسم.","Default flows and diversities are typical ward and theatre values. Use the department figures in HTM 02-01 or NFPA 99 for final design.":"التدفقات ومعاملات التباين الافتراضية قيم نموذجية للأجنحة وغرف العمليات. استخدم قيم الأقسام في HTM 02-01 أو NFPA 99 للتصميم النهائي.","Oxygen":"أكسجين","Medical air 4 bar":"هواء طبي 4 bar","Surgical air 7 bar":"هواء جراحي 7 bar","Nitrous oxide":"أكسيد النيتروز","Vacuum":"شفط (فاكيوم)","Outlets":"المخارج","L/min first outlet":"L/min للمخرج الأول","Diversity %":"التباين %","Design flow":"التدفق التصميمي","Each line: first outlet at full flow plus the others at the diversity given.":"كل سطر: المخرج الأول بكامل التدفق والباقي بمعامل التباين المعطى.","Design L/min":"التصميمي L/min","Medical gas pipe sizing":"تحجيم مواسير الغازات الطبية","Copper pipe size for a medical gas or vacuum flow, from the pressure drop over the run.":"مقاس ماسورة النحاس لتدفق غاز طبي أو شفط، من هبوط الضغط على طول المسار.","Vacuum is sized at 0.4 bar absolute; its flow is free air at atmospheric pressure.":"يُحجَّم الشفط عند 0.4 bar مطلق؛ وتدفقه هواء حر عند الضغط الجوي.","Minimum size is usually 12 mm for terminal drops and 15 mm for branches.":"أقل مقاس عادةً 12 mm لنزلات المخارج و15 mm للفروع.","Design flow (free air)":"التدفق التصميمي (هواء حر)","4 bar: 0.2 bar; 7 bar: 0.35 bar; vacuum: 0.13 bar":"4 bar: 0.2 bar؛ 7 bar: 0.35 bar؛ الشفط: 0.13 bar","Copper size (OD × wall)":"مقاس النحاس (القطر الخارجي × السماكة)","Pressure drop":"هبوط الضغط","Absolute pressure":"الضغط المطلق","Actual flow":"التدفق الفعلي","Drop within {0} bar.":"الهبوط ضمن {0} bar.","No copper size in the table meets the drop. Split the load or allow a larger drop.":"لا يحقق أي مقاس نحاس في الجدول الهبوط المسموح. قسّم الحمل أو اسمح بهبوط أكبر.","Velocity over 15 m/s.":"السرعة أكثر من 15 m/s.","Velocity acceptable.":"السرعة مقبولة.","Size mm":"المقاس mm","Drop bar":"الهبوط bar","Oxygen storage":"تخزين الأكسجين","Liquid oxygen tank (VIE) size for days of storage, and the cylinders for the emergency reserve.":"حجم خزان الأكسجين السائل (VIE) لعدد أيام التخزين، والأسطوانات للاحتياطي الطارئ.","Average use is usually 30–50 % of the design flow. Use the hospital's records where they exist.":"متوسط الاستهلاك عادةً 30–50 % من التدفق التصميمي. استخدم سجلات المستشفى إن وُجدت.","Oxygen design flow":"التدفق التصميمي للأكسجين","Average use as a share of design flow":"متوسط الاستهلاك كنسبة من التدفق التصميمي","Emergency reserve":"الاحتياطي الطارئ","Cylinder content":"محتوى الأسطوانة","J size about 6,800 L":"مقاس J حوالي 6,800 L","Liquid oxygen needed":"الأكسجين السائل المطلوب","Standard VIE tank":"خزان VIE قياسي","Reserve cylinders":"أسطوانات الاحتياطي","Average daily use":"متوسط الاستهلاك اليومي","Days from the tank chosen":"أيام يكفيها الخزان المختار","Keep a secondary supply as well as the reserve, so one fault cannot stop oxygen.":"احتفظ بمصدر ثانوي إضافة إلى الاحتياطي، حتى لا يوقف عطل واحد الأكسجين.","Cold room load":"حمل غرفة التبريد","Refrigeration load of a chiller or freezer room from its walls, product, air changes, people, lights and fans.":"حمل التبريد لغرفة تبريد أو تجميد من الجدران والمنتج وتغيير الهواء والأشخاص والإنارة والمراوح.","Product data are typical. Use the supplier's figures for unusual products.":"بيانات المنتجات نموذجية. استخدم أرقام المورّد للمنتجات غير المعتادة.","Freezers need defrost: allow for it in the running time.":"غرف التجميد تحتاج إذابة الصقيع: احسب ذلك في زمن التشغيل.","Surrounding temperature":"درجة الحرارة المحيطة","Panel U-value":"معامل U للألواح","100 mm PIR about 0.22":"ألواح PIR بسماكة 100 mm حوالي 0.22","Product":"المنتج","Beef / lamb":"لحم بقري / ضأن","Poultry":"دواجن","Fish":"أسماك","Fruit":"فواكه","Vegetables":"خضروات","Milk and dairy":"حليب ومنتجات ألبان","Bakery":"مخبوزات","Product brought in per day":"المنتج الداخل يوميًا","Entering temperature":"درجة حرارة الدخول","Other loads":"أحمال أخرى","People working inside":"العاملون بالداخل","Hours inside per day":"ساعات البقاء بالداخل يوميًا","Evaporator fans":"مراوح المبخّر","Compressor running time":"زمن تشغيل الضاغط","Chillers 16–18 h, freezers 18–20 h":"التبريد 16–18 h، التجميد 18–20 h","Refrigeration capacity":"قدرة التبريد","Daily load with safety factor":"الحمل اليومي مع معامل الأمان","In tons of refrigeration":"بأطنان التبريد","Air changes per day":"تغييرات الهواء يوميًا","Room is below the freezing point of the product: freezing load included.":"الغرفة أبرد من نقطة تجمد المنتج: حمل التجميد محسوب.","Chilling only: the product does not freeze.":"تبريد فقط: المنتج لا يتجمد.","Temperature difference {0} K.":"فرق درجات الحرارة {0} K.","Room must be colder than its surroundings.":"يجب أن تكون الغرفة أبرد من محيطها.","kWh/d":"kWh/d","Share %":"النسبة %","Walls, roof and floor":"الجدران والسقف والأرضية","Fans":"المراوح","Steam pipe sizing":"تحجيم مواسير البخار","Steel pipe size for saturated steam by velocity, with the pressure drop per 100 m.":"مقاس ماسورة الحديد للبخار المشبع حسب السرعة، مع هبوط الضغط لكل 100 m.","Bores are Schedule 40. Steam properties are interpolated from saturated steam tables.":"الأقطار الداخلية Schedule 40. خواص البخار مستنبطة من جداول البخار المشبع.","Steam flow":"تدفق البخار","Steam pressure":"ضغط البخار","Velocity limit":"حد السرعة","Mains 25–35 m/s, branches 15–25 m/s":"الخطوط الرئيسية 25–35 m/s، الفروع 15–25 m/s","Pressure drop per 100 m":"هبوط الضغط لكل 100 m","Saturation temperature":"درجة حرارة التشبع","Specific volume":"الحجم النوعي","Velocity within {0} m/s.":"السرعة ضمن {0} m/s.","Flow too large for the table.":"التدفق أكبر من الجدول.","Drop over 0.5 bar per 100 m: check the pressure at the far end.":"الهبوط أكثر من 0.5 bar لكل 100 m: راجع الضغط عند الطرف البعيد.","Pressure drop is moderate.":"هبوط الضغط معتدل.","Drop bar/100 m":"الهبوط bar/100 m","Steam boiler sizing":"تحجيم غلاية البخار","Steam flow, boiler rating and fuel use for a process or heating load.":"تدفق البخار وقدرة الغلاية واستهلاك الوقود لحمل تصنيعي أو تدفئة.","Calorific values: diesel 42.6 MJ/kg, natural gas 38.7 MJ/m³, LPG 46.3 MJ/kg.":"القيم الحرارية: الديزل 42.6 MJ/kg، الغاز الطبيعي 38.7 MJ/m³، الغاز المسال 46.3 MJ/kg.","Use two boilers where the load cannot stop for maintenance.":"استخدم غلايتين حيث لا يمكن إيقاف الحمل للصيانة.","Heat load":"الحمل الحراري","Operating pressure":"ضغط التشغيل","Feedwater temperature":"درجة حرارة مياه التغذية","Losses and margin":"الفواقد والهامش","Boiler efficiency":"كفاءة الغلاية","Fuel":"الوقود","Diesel":"ديزل","LPG":"غاز مسال","Boiler output":"قدرة الغلاية","From and at 100 °C":"من وعند 100 °C","Boiler horsepower":"قدرة الغلاية بالحصان","Fuel use":"استهلاك الوقود","Feedwater below 60 °C raises oxygen corrosion: consider a hotter hotwell or a deaerator.":"مياه التغذية أقل من 60 °C تزيد تآكل الأكسجين: فكّر في خزان تغذية أسخن أو جهاز نزع الهواء.","Feedwater temperature is reasonable.":"درجة حرارة مياه التغذية مناسبة.","Flash steam":"بخار الوميض","Flash steam released when condensate drops to a lower pressure, and the vent or flash line size.":"بخار الوميض المتحرر عند انخفاض ضغط المتكثف، ومقاس خط التنفيس أو الوميض.","Size condensate return lines for the flash steam volume, not the water.":"حجّم خطوط رجوع المتكثف لحجم بخار الوميض، لا للماء.","Condensate flow":"تدفق المتكثف","Steam trap inlet pressure":"ضغط مدخل مصيدة البخار","Receiver or flash vessel pressure":"ضغط خزان الاستقبال أو وعاء الوميض","Flash line velocity":"سرعة خط الوميض","Flash steam flow":"تدفق بخار الوميض","Condensate left":"المتكثف المتبقي","Flash line size":"مقاس خط الوميض","Heat in the flash steam":"الحرارة في بخار الوميض","Receiver pressure must be lower than the trap pressure.":"يجب أن يكون ضغط خزان الاستقبال أقل من ضغط المصيدة.","Flash steam can be recovered for low-pressure heating.":"يمكن استرجاع بخار الوميض للتسخين بالضغط المنخفض.","UPS and battery autonomy":"UPS وزمن البطاريات","UPS rating for a set of loads and the battery energy for the backup time.":"قدرة UPS لمجموعة أحمال وطاقة البطاريات لزمن الدعم.","Short backup times draw high currents: pick the battery from the maker's constant-power discharge table, not from Ah alone.":"أزمنة الدعم القصيرة تسحب تيارات عالية: اختر البطارية من جدول التفريغ بالقدرة الثابتة للمصنّع، لا من Ah وحدها.","W each":"W لكل حمل","Load power factor":"معامل قدرة الحمل","Future growth":"التوسع المستقبلي","Backup time":"زمن الدعم","Inverter efficiency":"كفاءة العاكس","Battery string voltage":"جهد سلسلة البطاريات","Ageing factor":"معامل التقادم","UPS rating":"قدرة UPS","Battery energy":"طاقة البطاريات","Battery capacity":"سعة البطاريات","UPS loaded to {0} % at design load (sized for {1} % or less).":"تحميل UPS {0} % عند الحمل التصميمي (محجّم لتحميل {1} % أو أقل).","CCTV storage":"تخزين كاميرات المراقبة","Recorder storage and network bandwidth for a set of cameras and a retention period.":"سعة تخزين المسجّل وعرض نطاق الشبكة لمجموعة كاميرات ومدة احتفاظ.","Bit rates vary with scene, frame rate and compression settings. Use the camera maker's calculator for final sizing.":"معدلات البت تختلف حسب المشهد ومعدل الإطارات وإعدادات الضغط. استخدم حاسبة مصنّع الكاميرا للتحجيم النهائي.","Camera type":"نوع الكاميرا","Cameras":"الكاميرات","Mbps each":"Mbps لكل كاميرا","Recording hours per day":"ساعات التسجيل يوميًا","Recording time with motion":"زمن التسجيل مع الحركة","100 % for continuous recording":"100 % للتسجيل المستمر","Retention":"مدة الاحتفاظ","RAID and spare overhead":"إضافة RAID والاحتياطي","Storage needed":"التخزين المطلوب","Video data":"بيانات الفيديو","Total bandwidth":"إجمالي عرض النطاق","Over 700 Mbps: split the recording across several recorders or a 10 Gb network.":"أكثر من 700 Mbps: وزّع التسجيل على عدة مسجّلات أو شبكة 10 Gb.","Bandwidth fits a 1 Gb network.":"عرض النطاق يناسب شبكة 1 Gb.","TB":"TB","Fire alarm battery":"بطاريات إنذار الحريق","Standby battery capacity of a fire alarm panel for the standby and alarm periods.":"سعة بطاريات الاحتياط للوحة إنذار الحريق لفترتي الاستعداد والإنذار.","Take device currents from the panel and device data sheets, for all loops and outputs.":"خذ تيارات الأجهزة من نشرات اللوحة والأجهزة، لكل الدوائر والمخارج.","Standby current":"تيار الاستعداد","Alarm current":"تيار الإنذار","Standby period":"فترة الاستعداد","Alarm period":"فترة الإنذار","5 min (NFPA 72)":"5 min (NFPA 72)","15 min (voice)":"15 min (إخلاء صوتي)","30 min (BS 5839)":"30 min (BS 5839)","Derating factor":"معامل التخفيض","Standard battery":"البطارية القياسية","Standby":"الاستعداد","Alarm":"الإنذار","Two 12 V batteries in series of this size give 24 V.":"بطاريتان 12 V على التوالي بهذا المقاس تعطيان 24 V.","Over 100 Ah: use a separate power supply or split the load.":"أكثر من 100 Ah: استخدم مصدر تغذية منفصلًا أو قسّم الحمل.","Fire alarm circuit voltage drop":"هبوط الجهد في دائرة الإنذار","Voltage at the last sounder or strobe on a notification circuit, at the end-of-life battery voltage.":"الجهد عند آخر جرس أو فلاش في دائرة التنبيه، عند جهد البطارية في نهاية عمرها.","Device minimum voltage is on its listing, often 16 V for 24 V devices.":"أقل جهد للجهاز مذكور في اعتماده، غالبًا 16 V لأجهزة 24 V.","Circuit alarm current":"تيار الدائرة عند الإنذار","Circuit length (one way)":"طول الدائرة (اتجاه واحد)","Load layout":"توزيع الحمل","At the end":"في النهاية","Spread evenly":"موزع بالتساوي","Supply voltage at end of battery life":"جهد التغذية في نهاية عمر البطارية","Minimum device voltage":"أقل جهد للجهاز","Voltage at the last device":"الجهد عند آخر جهاز","Drop":"الهبوط","Maximum length":"أقصى طول","Loop resistance":"مقاومة الدائرة","Last device gets at least {0} V.":"آخر جهاز يحصل على {0} V على الأقل.","Voltage at the last device is too low. Use a larger cable or split the circuit.":"الجهد عند آخر جهاز منخفض جدًا. استخدم كابلًا أكبر أو قسّم الدائرة.","Structured cabling quantities":"كميات الكابلات الهيكلية","Average cable run, number of 305 m boxes, patch panels and switch ports for a floor.":"متوسط طول الكابل وعدد صناديق 305 m ولوحات التوصيل ومنافذ المحوّلات لطابق.","Order whole boxes: offcuts shorter than a run are waste.":"اطلب صناديق كاملة: البواقي الأقصر من مسار واحد هدر.","Data outlets":"مخارج البيانات","Shortest run":"أقصر مسار","Longest run":"أطول مسار","Slack at both ends":"الزيادة عند الطرفين","Spare switch ports":"منافذ محوّل احتياطية","305 m boxes":"صناديق 305 m","Average run":"متوسط المسار","Runs per box":"مسارات لكل صندوق","Total cable":"إجمالي الكابل","24-port patch panels":"لوحات توصيل 24 منفذًا","Switch ports":"منافذ المحوّل","Longest permanent link within 90 m.":"أطول وصلة دائمة ضمن 90 m.","Longest run over 90 m: add a telecom room closer to the outlets.":"أطول مسار أكثر من 90 m: أضف غرفة اتصالات أقرب إلى المخارج.","Grid-tied PV system":"نظام شمسي متصل بالشبكة","PV array size, number of modules and roof area to offset a share of a building's annual energy use.":"حجم المصفوفة الشمسية وعدد الألواح ومساحة السطح لتغطية نسبة من الاستهلاك السنوي للمبنى.","Dust is heavy in the Gulf: plan for regular cleaning or reduce the performance ratio.":"الغبار كثيف في الخليج: خطط لتنظيف منتظم أو خفّض نسبة الأداء.","Check the utility's rules on export and system size before design.":"راجع أنظمة شركة الكهرباء بشأن التصدير وحجم النظام قبل التصميم.","Annual energy use":"الاستهلاك السنوي للطاقة","Share to offset":"النسبة المراد تغطيتها","Peak sun hours":"ساعات الذروة الشمسية","Riyadh and Jeddah about 6":"الرياض وجدة حوالي 6","Performance ratio":"نسبة الأداء","Module rating":"قدرة اللوح","Module area":"مساحة اللوح","Roof area per module area":"مساحة السطح لكل مساحة لوح","Tilted rows need gaps to avoid shading":"الصفوف المائلة تحتاج مسافات لتجنب التظليل","Roof area available":"مساحة السطح المتاحة","Array size":"حجم المصفوفة","Modules":"الألواح","Annual yield":"الإنتاج السنوي","Share of use offset":"نسبة الاستهلاك المغطاة","Roof area used":"مساحة السطح المستخدمة","Inverter AC rating (DC/AC 1.2)":"قدرة العاكس AC (DC/AC 1.2)","Roof too small for the target: {0} modules fit.":"السطح أصغر من الهدف: يتسع لـ {0} لوحًا.","Target fits on the roof.":"الهدف يتسع على السطح.","Off-grid battery and PV":"بطاريات وألواح نظام منفصل","Battery bank and PV array for an off-grid load with days of autonomy.":"بنك البطاريات والمصفوفة الشمسية لحمل منفصل عن الشبكة مع أيام اكتفاء.","Lead-acid batteries last longer at 30–50 % depth of discharge; LFP tolerates 80–90 %.":"بطاريات الرصاص الحمضية تعيش أطول عند عمق تفريغ 30–50 %؛ وتتحمل LFP نسبة 80–90 %.","Daily energy use":"الاستهلاك اليومي للطاقة","Days of autonomy":"أيام الاكتفاء","Battery type and depth of discharge":"نوع البطارية وعمق التفريغ","Lithium (LFP), 90 %":"ليثيوم (LFP)، 90 %","Lead-acid, 50 %":"رصاص حمضي، 50 %","System voltage":"جهد النظام","Temperature factor":"معامل الحرارة","Peak sun hours (worst month)":"ساعات الذروة الشمسية (أسوأ شهر)","System losses factor":"معامل فواقد النظام","PV array":"المصفوفة الشمسية","Charge controller current":"تيار منظم الشحن","Daily energy from the battery":"الطاقة اليومية من البطاريات","Over 3 kWh per day: a 48 V system keeps currents and cable sizes down.":"أكثر من 3 kWh يوميًا: نظام 48 V يخفض التيارات ومقاطع الكابلات.","System voltage suits the load.":"جهد النظام يناسب الحمل.","PV string sizing":"تحجيم سلاسل الألواح","Minimum and maximum modules per string for an inverter, corrected for the coldest and hottest cell temperatures.":"أقل وأكثر عدد ألواح في السلسلة للعاكس، مصححًا لأبرد وأسخن درجة حرارة للخلايا.","Cell temperature in the Gulf summer often exceeds 70 °C. The lowest cell temperature is about the lowest ambient at dawn.":"حرارة الخلايا في صيف الخليج تتجاوز غالبًا 70 °C. أقل حرارة للخلايا تقارب أقل حرارة جو عند الفجر.","Module":"اللوح","Open-circuit voltage Voc":"جهد الدائرة المفتوحة Voc","Maximum-power voltage Vmp":"جهد القدرة القصوى Vmp","Short-circuit current Isc":"تيار القصر Isc","Voc temperature coefficient":"معامل حرارة Voc","Vmp temperature coefficient":"معامل حرارة Vmp","Site":"الموقع","Lowest cell temperature":"أقل حرارة للخلايا","Highest cell temperature":"أعلى حرارة للخلايا","Inverter":"العاكس","Maximum DC voltage":"أقصى جهد DC","MPPT range, low":"نطاق MPPT، الأدنى","MPPT range, high":"نطاق MPPT، الأعلى","Maximum input current per MPPT":"أقصى تيار دخل لكل MPPT","Modules per string chosen":"عدد الألواح المختار في السلسلة","Maximum modules per string":"أقصى عدد ألواح في السلسلة","Minimum modules per string":"أقل عدد ألواح في السلسلة","Strings per MPPT":"السلاسل لكل MPPT","String Voc when cold":"Voc للسلسلة في البرد","String Vmp when hot":"Vmp للسلسلة في الحر","String Vmp when cold":"Vmp للسلسلة في البرد","Cold open-circuit voltage within the inverter maximum.":"جهد الدائرة المفتوحة في البرد ضمن حد العاكس.","Cold open-circuit voltage exceeds the inverter maximum.":"جهد الدائرة المفتوحة في البرد يتجاوز حد العاكس.","Hot operating voltage stays above the MPPT minimum.":"جهد التشغيل في الحر يبقى فوق أدنى MPPT.","Hot operating voltage drops below the MPPT range.":"جهد التشغيل في الحر ينخفض تحت نطاق MPPT.","Cold operating voltage within the MPPT range.":"جهد التشغيل في البرد ضمن نطاق MPPT.","Cold operating voltage above the MPPT range.":"جهد التشغيل في البرد فوق نطاق MPPT.","Solar payback":"استرداد تكلفة النظام الشمسي","Simple payback, lifetime savings and cost of energy of a PV system.":"فترة الاسترداد البسيطة والوفر خلال العمر وتكلفة الطاقة لنظام شمسي.","Money values are in any one currency. Discounting is not applied.":"القيم المالية بأي عملة واحدة. لا يُطبَّق الخصم.","System size":"حجم النظام","Specific yield":"الإنتاج النوعي","Installed cost per kWp":"تكلفة التركيب لكل kWp","Electricity tariff per kWh":"تعرفة الكهرباء لكل kWh","Operation and maintenance":"التشغيل والصيانة","Yearly degradation":"التدهور السنوي","Tariff increase per year":"زيادة التعرفة سنويًا","System life":"عمر النظام","Simple payback":"فترة الاسترداد البسيطة","Net savings over life":"صافي الوفر خلال العمر","Cost of energy":"تكلفة الطاقة","Installed cost":"تكلفة التركيب","First-year energy":"طاقة السنة الأولى","The system does not pay back within its life.":"النظام لا يسترد تكلفته خلال عمره.","Pays back in under 8 years.":"يسترد تكلفته في أقل من 8 سنوات.","Payback over 8 years.":"فترة الاسترداد أكثر من 8 سنوات.","Year":"السنة","Saving":"الوفر","Cumulative":"التراكمي","Building energy use intensity":"كثافة استهلاك الطاقة في المبنى","Annual energy use per square metre by end use, with carbon and cost, compared with a typical value for the building type.":"الاستهلاك السنوي للطاقة لكل متر مربع حسب الاستخدام، مع الكربون والتكلفة، مقارنة بقيمة نموذجية لنوع المبنى.","Typical values are rough figures for hot-climate buildings. Compare with your own portfolio or local benchmarks.":"القيم النموذجية تقريبية لمباني المناخ الحار. قارن بمبانيك أو بالمرجعيات المحلية.","Retail":"تجاري","Gross floor area":"المساحة الإجمالية للطوابق","End use":"الاستخدام النهائي","Cooling":"التبريد","Equipment and plug loads":"المعدات والمقابس","Fans and pumps":"المراوح والمضخات","Hot water":"المياه الساخنة","Grid emission factor":"معامل انبعاثات الشبكة","Tariff per kWh":"التعرفة لكل kWh","Energy use intensity":"كثافة استهلاك الطاقة","Typical for the type":"النموذجي لهذا النوع","Annual energy":"الطاقة السنوية","Carbon":"الكربون","Energy cost":"تكلفة الطاقة","At or below the typical value for this building type.":"عند القيمة النموذجية لهذا النوع أو أقل.","Above the typical value: review cooling and lighting first.":"أعلى من القيمة النموذجية: راجع التبريد والإنارة أولًا.","Embodied carbon":"الكربون المتجسد","Cradle-to-gate embodied carbon of the main materials, total and per square metre of floor area.":"الكربون المتجسد من المهد إلى بوابة المصنع للمواد الرئيسية، الإجمالي ولكل متر مربع من المساحة.","Factors are typical A1–A3 values. Use the product EPD where you have it.":"المعاملات قيم نموذجية للمراحل A1–A3. استخدم إعلان المنتج البيئي EPD إن توفر.","Transport, construction, use and end of life (A4–C4) are not included.":"النقل والتنفيذ والاستخدام ونهاية العمر (A4–C4) غير مشمولة.","Concrete C30/37 (m³)":"خرسانة C30/37 (m³)","Concrete C40/50 (m³)":"خرسانة C40/50 (m³)","Concrete C30/37 with 30 % GGBS or fly ash (m³)":"خرسانة C30/37 مع 30 % خبث أو رماد متطاير (m³)","Reinforcing steel (t)":"حديد تسليح (t)","Structural steel sections (t)":"قطاعات حديد إنشائي (t)","Aluminium, typical recycled content (t)":"ألمنيوم بمحتوى معاد تدويره نموذجي (t)","Float glass (t)":"زجاج مسطح (t)","Clay brick (t)":"طوب طيني (t)","Concrete block (t)":"بلوك خرساني (t)","Cement mortar (t)":"مونة إسمنتية (t)","Gypsum board (t)":"ألواح جبسية (t)","EPS insulation (t)":"عزل EPS (t)","Mineral wool (t)":"صوف معدني (t)","Ceramic tiles (t)":"بلاط سيراميك (t)","Copper (t)":"نحاس (t)","PVC pipe (t)":"مواسير PVC (t)","Aggregates (t)":"ركام (t)","kg CO₂e per unit":"kg CO₂e لكل وحدة","Per floor area":"لكل متر مربع","Within the target.":"ضمن الهدف.","Above the target. The largest items in the table give the biggest savings.":"أعلى من الهدف. أكبر البنود في الجدول تعطي أكبر وفر.","Indoor water use reduction":"خفض استهلاك المياه الداخلي","Annual indoor water use of the design fixtures against the LEED baseline, with the points it earns.":"الاستهلاك السنوي للمياه الداخلية للأجهزة التصميمية مقارنة بخط الأساس في LEED، مع النقاط المستحقة.","Baseline: WC 6.0 L, urinal 3.8 L, public lavatory 1.9 L/min, kitchen sink 8.3 L/min, shower 9.5 L/min.":"خط الأساس: المرحاض 6.0 L، المبولة 3.8 L، مغسلة عامة 1.9 L/min، حوض المطبخ 8.3 L/min، الدش 9.5 L/min.","Full-time occupants":"شاغلو الدوام الكامل","Working days per year":"أيام العمل سنويًا","Urinals installed":"توجد مباول","Yes":"نعم","Design fixtures":"الأجهزة التصميمية","Lavatory tap":"صنبور المغسلة","Reduction":"نسبة الخفض","LEED points":"نقاط LEED","Baseline use":"استهلاك خط الأساس","Design use":"الاستهلاك التصميمي","Meets the 20 % prerequisite.":"يحقق المتطلب الأساسي 20 %.","Below the 20 % prerequisite.":"أقل من المتطلب الأساسي 20 %.","Baseline L/d":"خط الأساس L/d","Design L/d":"التصميمي L/d","Recycled content":"المحتوى المعاد تدويره","Recycled content value of the materials as a share of their total cost.":"قيمة المحتوى المعاد تدويره في المواد كنسبة من تكلفتها الإجمالية.","Use the recycled content stated by the manufacturer, by weight.":"استخدم المحتوى المعاد تدويره الذي يعلنه المصنّع، بالوزن.","Material cost":"تكلفة المادة","Post-consumer %":"بعد الاستهلاك %","Pre-consumer %":"قبل الاستهلاك %","Recycled content value":"قيمة المحتوى المعاد تدويره","Total materials cost":"إجمالي تكلفة المواد","Meets the target.":"يحقق الهدف.","Below the target.":"أقل من الهدف.","Cost":"التكلفة","Rainwater harvesting":"حصاد مياه الأمطار","Annual rainwater collected from a roof, the share of a non-potable demand it covers, and the tank for a design storm.":"مياه الأمطار السنوية المجمعة من سطح، ونسبة ما تغطيه من طلب غير صالح للشرب، والخزان لعاصفة تصميمية.","In dry climates rain falls in a few storms: size the tank on a storm, not on the monthly average.":"في المناخ الجاف تهطل الأمطار في عواصف قليلة: حجّم الخزان على عاصفة، لا على المتوسط الشهري.","AC condensate is often a larger and steadier source in the Gulf.":"مياه تكثيف المكيفات غالبًا مصدر أكبر وأثبت في الخليج.","Annual rainfall":"الهطول السنوي","Riyadh about 100 mm, Abha about 300 mm":"الرياض حوالي 100 mm، أبها حوالي 300 mm","Runoff coefficient":"معامل الجريان","First flush and filter losses":"فواقد الغسيل الأول والفلتر","Non-potable demand":"الطلب غير الصالح للشرب","Design storm":"العاصفة التصميمية","Share of demand met":"نسبة الطلب المغطاة","Tank for the design storm":"الخزان للعاصفة التصميمية","Annual demand":"الطلب السنوي","Rain covers under 10 % of the demand. Condensate or grey water may be a better source.":"الأمطار تغطي أقل من 10 % من الطلب. قد تكون مياه التكثيف أو المياه الرمادية مصدرًا أفضل.","Rainwater makes a useful contribution.":"مياه الأمطار تساهم مساهمة مفيدة.","Peak runoff (rational method)":"الجريان الأقصى (الطريقة المنطقية)","Peak stormwater flow from a site with mixed surfaces for a design rainfall intensity.":"أقصى تدفق لمياه الأمطار من موقع بأسطح مختلفة لشدة مطر تصميمية.","Use the intensity for a storm lasting as long as the time of concentration (SW-02).":"استخدم شدة عاصفة تساوي مدتها زمن التركيز (SW-02).","Surface":"السطح","Asphalt or concrete":"أسفلت أو خرسانة","Interlocking paving":"بلاط متداخل","Gravel":"حصى","Desert sand":"رمل صحراوي","Lawn and planting":"عشب ونباتات","From the local IDF curve for the time of concentration":"من منحنى IDF المحلي لزمن التركيز","Composite C":"C المركب","Over 80 ha: the rational method is less reliable. Use a hydrograph method.":"أكثر من 80 ha: الطريقة المنطقية أقل دقة. استخدم طريقة الهيدروجراف.","Site size suits the rational method.":"حجم الموقع يناسب الطريقة المنطقية.","Time of concentration":"زمن التركيز","Time for runoff to travel from the furthest point of a catchment to the outlet: overland flow (Kerby) plus channel flow (Kirpich).":"زمن انتقال الجريان من أبعد نقطة في الحوض إلى المخرج: الجريان السطحي (Kerby) والجريان في القنوات (Kirpich).","Kerby applies to overland flow up to about 365 m.":"معادلة Kerby للجريان السطحي حتى حوالي 365 m.","Overland flow":"الجريان السطحي","Smooth pavement":"رصف أملس","Bare packed soil":"تربة عارية مدموكة","Poor grass or rough bare soil":"عشب خفيف أو تربة عارية خشنة","Average grass":"عشب متوسط","Dense grass":"عشب كثيف","Channel or pipe flow":"الجريان في القناة أو الماسورة","Channel flow":"الجريان في القناة","Less than 5 minutes: 5 minutes is used as the minimum.":"أقل من 5 دقائق: تُستخدم 5 دقائق كحد أدنى.","Use this duration to read the intensity from the IDF curve.":"استخدم هذه المدة لقراءة الشدة من منحنى IDF.","Detention tank":"خزان الاحتجاز","Storage needed to limit a site's outflow, by the modified rational method over a range of storm durations.":"التخزين اللازم لتحديد التدفق الخارج من الموقع، بالطريقة المنطقية المعدلة لعدة مدد عواصف.","Default intensities are an example only. Enter the local IDF curve for the return period required.":"الشدات الافتراضية مثال فقط. أدخل منحنى IDF المحلي لفترة التكرار المطلوبة.","Catchment area":"مساحة الحوض","Allowed outflow":"التدفق الخارج المسموح","Intensity mm/h":"الشدة mm/h","Critical storm":"العاصفة الحرجة","Peak inflow for that storm":"أقصى تدفق داخل لهذه العاصفة","Largest storage is at the longest duration: add longer durations to the table.":"أكبر تخزين عند أطول مدة: أضف مددًا أطول إلى الجدول.","Critical duration is inside the range given.":"المدة الحرجة داخل النطاق المعطى.","Inflow L/s":"التدفق الداخل L/s","Storage m³":"التخزين m³","Soakaway":"بئر الامتصاص","Check of a rectangular gravel-filled soakaway against a design storm, and its time to half empty.":"فحص بئر امتصاص مستطيل مملوء بالحصى لعاصفة تصميمية، وزمن تفريغ نصفه.","Measure the infiltration rate on site by the BRE 365 test. Repeat for several storm durations.":"قس معدل التسرب في الموقع باختبار BRE 365. كرر الحساب لعدة مدد عواصف.","Area drained":"المساحة المصرّفة","Storm rainfall":"مطر العاصفة","Storm duration":"مدة العاصفة","Pit length":"طول الحفرة","Pit width":"عرض الحفرة","Effective depth":"العمق الفعال","Fill void ratio":"نسبة الفراغات في الحشو","Soil infiltration rate":"معدل تسرب التربة","Storage provided":"التخزين المتوفر","Time to half empty":"زمن تفريغ النصف","Inflow":"التدفق الداخل","Outflow during the storm":"التدفق الخارج أثناء العاصفة","Soakaway holds the storm.":"بئر الامتصاص يستوعب العاصفة.","Soakaway too small for the storm.":"بئر الامتصاص صغير على العاصفة.","Half empties within 24 h.":"يفرغ نصفه خلال 24 h.","Takes over 24 h to half empty.":"يحتاج أكثر من 24 h لتفريغ نصفه.","Septic tank":"خزان التحليل (سبتك)","Septic tank capacity for the number of people served, with suggested internal dimensions.":"سعة خزان التحليل لعدد الأشخاص المخدومين، مع أبعاد داخلية مقترحة.","Use two compartments, the first about two thirds of the length. Empty the sludge at least once a year.":"استخدم حجرتين، الأولى حوالي ثلثي الطول. أفرغ الحمأة مرة سنويًا على الأقل.","People served":"الأشخاص المخدومون","Wastewater per person":"الصرف لكل شخص","Liquid depth":"عمق السائل","Capacity":"السعة","Internal length":"الطول الداخلي","Internal width":"العرض الداخلي","Retention time":"زمن البقاء","At least one day of retention.":"زمن بقاء يوم واحد على الأقل.","Under one day of retention at this flow.":"زمن البقاء أقل من يوم عند هذا التدفق.","Grease interceptor":"مصيدة الشحوم","Grease interceptor volume for a commercial kitchen from meals served in the peak hour.":"حجم مصيدة الشحوم لمطبخ تجاري من عدد الوجبات في ساعة الذروة.","Check the local authority's rules: many set their own minimum size.":"راجع أنظمة الجهة المحلية: كثير منها يحدد حدًا أدنى خاصًا.","Meals in the peak hour":"الوجبات في ساعة الذروة","Kitchen type":"نوع المطبخ","With dishwasher":"مع غسالة أطباق","Without dishwasher":"بدون غسالة أطباق","Single-service kitchen":"مطبخ وجبات أحادية الاستخدام","Commercial kitchen 2.5 h, single service 1.5 h":"المطبخ التجاري 2.5 h، الأحادي 1.5 h","Hours of operation":"ساعات التشغيل","Interceptor volume":"حجم المصيدة","In gallons":"بالجالون","Under 1,000 L: many authorities set this as the minimum for a kitchen.":"أقل من 1,000 L: كثير من الجهات تجعل هذا الحد الأدنى للمطبخ.","Size meets the usual minimum.":"الحجم يحقق الحد الأدنى المعتاد.","Pumping station wet well":"البئر الرطبة لمحطة الضخ","Wet well working volume to limit pump starts, the level band, and the pump power.":"الحجم الفعال للبئر الرطبة لتحديد عدد مرات تشغيل المضخة، ومدى المنسوب، وقدرة المضخة.","Alternating two duty pumps halves the volume needed for the same starts per pump.":"تبديل مضختين عاملتين يخفض الحجم اللازم للنصف لنفس عدد مرات التشغيل لكل مضخة.","Pump flow (peak inflow)":"تدفق المضخة (أقصى تدفق داخل)","Maximum starts per hour":"أقصى عدد تشغيل في الساعة","Wet well diameter":"قطر البئر الرطبة","Total head":"الرفع الكلي","Working volume":"الحجم الفعال","Level band, start to stop":"مدى المنسوب من التشغيل إلى الإيقاف","Pump input power":"قدرة دخل المضخة","Minimum cycle time":"أقل زمن دورة","Level band under 0.5 m: hard to control. Use a smaller well or alternate the pumps.":"مدى المنسوب أقل من 0.5 m: يصعب التحكم. استخدم بئرًا أصغر أو بدّل المضخات.","Level band is workable.":"مدى المنسوب عملي.","Settling tank":"حوض الترسيب","Surface area, diameter and detention time of a circular settling tank from the surface overflow rate.":"المساحة السطحية والقطر وزمن الاحتجاز لحوض ترسيب دائري من معدل الفيضان السطحي.","Check the peak flow against the peak overflow rate as well.":"افحص أيضًا التدفق الأقصى مقابل معدل الفيضان الأقصى.","Surface overflow rate":"معدل الفيضان السطحي","Primary 30–50, secondary 16–28":"ابتدائي 30–50، ثانوي 16–28","Side water depth":"عمق الماء الجانبي","Number of tanks":"عدد الأحواض","Weir loading limit":"حد تحميل الهدار","Diameter of each tank":"قطر كل حوض","Surface area of each tank":"مساحة سطح كل حوض","Detention time":"زمن الاحتجاز","Weir loading":"تحميل الهدار","Volume of each tank":"حجم كل حوض","Detention time within 1.5–4 h.":"زمن الاحتجاز ضمن 1.5–4 h.","Detention time outside 1.5–4 h. Adjust the depth.":"زمن الاحتجاز خارج 1.5–4 h. عدّل العمق.","Weir loading within the limit.":"تحميل الهدار ضمن الحد.","Weir loading above the limit.":"تحميل الهدار أعلى من الحد.","Landscape water demand":"احتياج الري للمسطحات","Peak-day irrigation water need from the reference evapotranspiration and the plant types.":"احتياج مياه الري في يوم الذروة من البخر-نتح المرجعي وأنواع النباتات.","Spray irrigation is about 70 % efficient, drip about 90 %.":"كفاءة الري بالرش حوالي 70 %، والتنقيط حوالي 90 %.","Reference evapotranspiration":"البخر-نتح المرجعي","Riyadh summer about 11–13 mm/d":"صيف الرياض حوالي 11–13 mm/d","Plant type":"نوع النبات","Turf grass":"نجيل","Shrubs":"شجيرات","Trees":"أشجار","Date palms":"نخيل","Ground cover":"مغطيات تربة","Desert planting":"نباتات صحراوية","Kc":"Kc","Efficiency %":"الكفاءة %","Peak-day water":"مياه يوم الذروة","Average depth":"متوسط العمق","Peak month":"شهر الذروة","Turf uses the most water per square metre: limit it where possible.":"النجيل يستهلك أكثر مياه لكل متر مربع: قلّله قدر الإمكان.","L/d":"L/d","Drip irrigation zones":"مناطق الري بالتنقيط","Run time of a drip zone, its flow and how many zones the pump can serve in the watering window.":"زمن تشغيل منطقة التنقيط وتدفقها وعدد المناطق التي تخدمها المضخة في فترة الري.","Water at night in summer to cut evaporation.":"اسقِ ليلًا في الصيف لتقليل التبخر.","Plants in the area":"عدد النباتات","Water per plant":"المياه لكل نبتة","Emitters per plant":"النقاطات لكل نبتة","Emitter flow":"تدفق النقاط","Pump flow":"تدفق المضخة","Watering window":"فترة الري","Run time":"زمن التشغيل","Zones needed":"المناطق اللازمة","Plants per zone":"النباتات لكل منطقة","Total watering time":"إجمالي زمن الري","Flow if all on at once":"التدفق لو شُغّلت كلها معًا","All zones fit in the watering window.":"كل المناطق تتسع في فترة الري.","Zones do not fit in the window. Use a larger pump or more emitters.":"المناطق لا تتسع في الفترة. استخدم مضخة أكبر أو نقاطات أكثر.","Irrigation tank and pump":"خزان ومضخة الري","Storage tank volume and pump motor for an irrigation demand.":"حجم خزان التخزين ومحرك المضخة لاحتياج ري.","Treated sewage effluent needs a filter and a separate, marked pipework system.":"مياه الصرف المعالجة تحتاج فلترًا وشبكة مواسير منفصلة ومميزة.","Tank volume":"حجم الخزان","Motor":"المحرك","Allow for a dead volume below the suction and a freeboard above the top level.":"اترك حجمًا ميتًا تحت السحب وارتفاعًا حرًا فوق أعلى منسوب.","Stopping sight distance":"مسافة الرؤية للتوقف","Distance a driver needs to see ahead to stop, for a design speed and grade.":"المسافة التي يحتاج السائق رؤيتها أمامه ليتوقف، لسرعة تصميمية وميل معينين.","On level roads AASHTO rounds up, for example 130 m at 80 km/h.":"على الطرق المستوية تقرّب AASHTO للأعلى، مثلًا 130 m عند 80 km/h.","Design speed":"السرعة التصميمية","Brake reaction time":"زمن رد الفعل للفرملة","Deceleration":"التباطؤ","Grade (+ up, − down)":"الميل (+ صعود، − نزول)","Reaction distance":"مسافة رد الفعل","Braking distance":"مسافة الفرملة","Steep downgrade: braking distance grows quickly.":"نزول حاد: مسافة الفرملة تزيد بسرعة.","Provide this distance along the whole road, including curves and crests.":"وفّر هذه المسافة على طول الطريق، بما فيه المنحنيات والقمم.","Horizontal curve":"المنحنى الأفقي","Minimum radius for a design speed, and the setting-out elements of a circular curve.":"أقل نصف قطر لسرعة تصميمية، وعناصر توقيع المنحنى الدائري.","Side friction factors are the AASHTO values for high-speed roads.":"معاملات الاحتكاك الجانبي هي قيم AASHTO للطرق السريعة.","Maximum superelevation":"أقصى ميل عرضي","Radius used":"نصف القطر المستخدم","Deflection angle":"زاوية الانحراف","Minimum radius":"أقل نصف قطر","Curve length":"طول المنحنى","Tangent length":"طول المماس","External distance":"المسافة الخارجية","Middle ordinate":"الإحداثي الأوسط","Long chord":"الوتر الطويل","Side friction factor":"معامل الاحتكاك الجانبي","Radius meets the minimum for the speed.":"نصف القطر يحقق الحد الأدنى للسرعة.","Radius below the minimum for the speed.":"نصف القطر أقل من الحد الأدنى للسرعة.","Needs more superelevation than allowed.":"يحتاج ميلًا عرضيًا أكبر من المسموح.","Superelevation within the maximum.":"الميل العرضي ضمن الحد الأقصى.","Vertical curve":"المنحنى الرأسي","Minimum length of a crest or sag curve for stopping sight distance, and the high or low point of the curve used.":"أقل طول لمنحنى قمة أو قاع لمسافة الرؤية للتوقف، وأعلى أو أدنى نقطة في المنحنى المستخدم.","SSD uses 2.5 s reaction and 3.4 m/s² on a level road.":"مسافة التوقف بزمن رد فعل 2.5 s وتباطؤ 3.4 m/s² على طريق مستوٍ.","Grade in":"الميل الداخل","Grade out":"الميل الخارج","Curve length used":"طول المنحنى المستخدم","PVI chainage":"محطة نقطة التقاطع PVI","PVI level":"منسوب نقطة التقاطع PVI","Minimum length":"أقل طول","K value used":"قيمة K المستخدمة","High point chainage":"محطة أعلى نقطة","High point level":"منسوب أعلى نقطة","Low point chainage":"محطة أدنى نقطة","Low point level":"منسوب أدنى نقطة","Curve start chainage":"محطة بداية المنحنى","Curve start level":"منسوب بداية المنحنى","Length meets the sight distance.":"الطول يحقق مسافة الرؤية.","Curve too short for the sight distance.":"المنحنى أقصر من اللازم لمسافة الرؤية.","Crest curve.":"منحنى قمة.","Sag curve (headlight sight distance).":"منحنى قاع (مسافة رؤية المصابيح).","Flexible pavement thickness":"سماكة الرصف المرن","Structural number for the design traffic by the AASHTO 1993 method, and the asphalt thickness over the base and subbase given.":"الرقم الإنشائي لحركة المرور التصميمية بطريقة AASHTO 1993، وسماكة الأسفلت فوق طبقتي الأساس والأساس المساعد المعطاتين.","M_R is converted to psi inside the formula.":"يُحوَّل M_R إلى psi داخل المعادلة.","Check each layer also protects the layer below (layered design).":"تأكد أن كل طبقة تحمي الطبقة التي تحتها (التصميم الطبقي).","Design traffic":"حركة المرور التصميمية","Reliability":"الاعتمادية","Serviceability loss ΔPSI":"فقد الصلاحية ΔPSI","Subgrade resilient modulus":"معامل المرونة لتربة القاعدة","Roughly 10 × CBR":"تقريبًا 10 × CBR","Layers":"الطبقات","Asphalt coefficient":"معامل الأسفلت","Base coefficient":"معامل الأساس","Subbase thickness":"سماكة الأساس المساعد","Subbase coefficient":"معامل الأساس المساعد","Drainage coefficient":"معامل التصريف","Structural number":"الرقم الإنشائي","Asphalt thickness":"سماكة الأسفلت","Contribution of base and subbase":"مساهمة الأساس والأساس المساعد","Reliability factor ZR":"معامل الاعتمادية ZR","Asphalt under 50 mm: use the practical minimum for the traffic (typically 50–100 mm).":"الأسفلت أقل من 50 mm: استخدم الحد الأدنى العملي للمرور (عادة 50–100 mm).","Asphalt thickness found.":"تم إيجاد سماكة الأسفلت.","Design traffic (ESAL)":"حركة المرور التصميمية (ESAL)","Equivalent single axle loads over the design life from the daily truck traffic.":"أحمال المحور المفرد المكافئة خلال العمر التصميمي من حركة الشاحنات اليومية.","Lane share: 100 % for one lane each way, about 80–100 % for two lanes, 60–80 % for three.":"نسبة الحارة: 100 % لحارة واحدة في كل اتجاه، حوالي 80–100 % لحارتين، 60–80 % لثلاث.","Average daily traffic":"متوسط المرور اليومي","Trucks":"الشاحنات","Truck factor":"معامل الشاحنة","Directional split":"التوزيع الاتجاهي","Design lane share":"نسبة حارة التصميم","Annual growth":"النمو السنوي","Design life":"العمر التصميمي","Design ESAL":"ESAL التصميمي","Growth factor":"معامل النمو","First-year ESAL":"ESAL للسنة الأولى","Use this as the design traffic in RD-04.":"استخدم هذا كحركة المرور التصميمية في RD-04.","Area from coordinates":"المساحة من الإحداثيات","Area and perimeter of a plot from the coordinates of its corners, by the shoelace formula.":"مساحة ومحيط قطعة أرض من إحداثيات أركانها، بطريقة رباط الحذاء.","Coordinates must be on a plane grid such as UTM, in metres.":"يجب أن تكون الإحداثيات على شبكة مستوية مثل UTM، بالمتر.","Easting":"الشرقيات","Northing":"الشماليات","Perimeter":"المحيط","Corners":"الأركان","At least three corners are needed.":"يلزم ثلاثة أركان على الأقل.","Enter the corners in order around the boundary.":"أدخل الأركان بالترتيب حول الحدود.","Side to next m":"الضلع إلى التالي m","Traverse closure (Bowditch)":"قفل المضلع (Bowditch)","Misclosure and precision of a closed traverse, and corrected coordinates by the Bowditch rule.":"خطأ القفل ودقة مضلع مغلق، والإحداثيات المصححة بقاعدة Bowditch.","Bearings are whole-circle bearings in decimal degrees, already corrected for angular misclosure.":"الانحرافات دائرية كاملة بالدرجات العشرية، ومصححة مسبقًا من خطأ القفل الزاوي.","Start easting":"شرقيات البداية","Start northing":"شماليات البداية","Bearing °":"الانحراف °","Distance m":"المسافة m","Linear misclosure":"خطأ القفل الطولي","Precision 1 in":"الدقة 1 إلى","Misclosure in easting":"خطأ القفل في الشرقيات","Misclosure in northing":"خطأ القفل في الشماليات","Precision worse than 1 in 5,000: check the field readings.":"الدقة أسوأ من 1 إلى 5,000: راجع القراءات الحقلية.","Precision acceptable for most engineering surveys.":"الدقة مقبولة لمعظم أعمال المساحة الهندسية.","Leg":"الضلع","Corrected E":"E المصحح","Corrected N":"N المصحح","Level book (rise and fall)":"دفتر الميزانية (الارتفاع والانخفاض)","Reduced levels from backsight, intermediate and foresight readings, with the arithmetic check.":"المناسيب المختزلة من القراءات الخلفية والمتوسطة والأمامية، مع التحقق الحسابي.","Leave a cell at 0 when there is no reading. A change point has both a FS and a BS on the same row.":"اترك الخانة 0 عند عدم وجود قراءة. نقطة الدوران لها قراءة أمامية وخلفية في نفس السطر.","Starting level (benchmark)":"منسوب البداية (الروبير)","Last reduced level":"آخر منسوب مختزل","Σ BS − Σ FS":"Σ BS − Σ FS","Σ rise − Σ fall":"Σ الارتفاع − Σ الانخفاض","Last − first level":"آخر منسوب − أول منسوب","Arithmetic check agrees.":"التحقق الحسابي متطابق.","Arithmetic check fails: a reading is missing or in the wrong column.":"التحقق الحسابي غير متطابق: قراءة ناقصة أو في عمود خاطئ.","Point":"النقطة","Rise":"ارتفاع","Fall":"انخفاض","RL":"المنسوب","Cut and fill volumes":"كميات الحفر والردم","Cut and fill between cross-sections by the average end area method, with bulking of cut material.":"الحفر والردم بين القطاعات العرضية بطريقة متوسط المساحتين، مع انتفاش مواد الحفر.","The prismoidal formula gives slightly smaller volumes where areas change quickly.":"معادلة المنشور تعطي كميات أقل قليلًا حيث تتغير المساحات بسرعة.","Chainage m":"المحطة m","Cut m²":"الحفر m²","Fill m²":"الردم m²","Bulking factor of cut":"معامل انتفاش الحفر","Compaction factor of fill":"معامل دمك الردم","Cut":"الحفر","Fill":"الردم","Surplus (compacted)":"الفائض (مدموك)","Import needed (compacted)":"المطلوب توريده (مدموك)","Cut as loose volume for haulage":"الحفر كحجم منفوش للنقل","Cut is enough to make the fill.":"الحفر يكفي لعمل الردم.","Not enough cut: material must be imported.":"الحفر غير كافٍ: يجب توريد مواد.","Between chainages":"بين المحطات","Cut m³":"الحفر m³","Fill m³":"الردم m³","Bench blast design":"تصميم تفجير المدرجات","Burden, spacing, stemming, subdrill and powder factor of a bench blast from the hole diameter.":"الحمل والتباعد والحشو والحفر الإضافي ومعامل المتفجرات لتفجير مدرج من قطر الثقب.","Adjust after trial blasts and keep within the site's vibration and flyrock limits.":"عدّل بعد تفجيرات تجريبية والتزم بحدود الاهتزاز والحجارة المتطايرة في الموقع.","Hole diameter":"قطر الثقب","Bench height":"ارتفاع المدرج","Explosive density":"كثافة المتفجر","ANFO 0.85, emulsion 1.15":"ANFO 0.85، المستحلب 1.15","Rock density":"كثافة الصخر","Spacing ÷ burden":"التباعد ÷ الحمل","Burden":"الحمل","Powder factor":"معامل المتفجرات","Stemming":"الحشو","Subdrill":"الحفر الإضافي","Charge per hole":"الشحنة لكل ثقب","Rock per hole":"الصخر لكل ثقب","Bench height under twice the burden: expect poor fragmentation. Use a smaller hole.":"ارتفاع المدرج أقل من ضعف الحمل: توقّع تفتيتًا ضعيفًا. استخدم ثقبًا أصغر.","Bench height suits the burden.":"ارتفاع المدرج يناسب الحمل.","Haul truck fleet":"أسطول شاحنات النقل","Truck cycle time, trucks needed for a production target and the match with the loading unit.":"زمن دورة الشاحنة، والشاحنات اللازمة لهدف إنتاج، والتوافق مع وحدة التحميل.","Speeds should come from rimpull curves for the grade and rolling resistance of the haul road.":"يجب أخذ السرعات من منحنيات قوة الجر لميل طريق النقل ومقاومة الدحرجة.","Production target":"هدف الإنتاج","Truck payload":"حمولة الشاحنة","Loading time":"زمن التحميل","Haul distance (one way)":"مسافة النقل (اتجاه واحد)","Loaded speed":"السرعة محمّلة","Empty speed":"السرعة فارغة","Dump and spot time":"زمن التفريغ والتموضع","Working minutes per hour":"دقائق العمل في الساعة","Trucks needed":"الشاحنات اللازمة","Cycle time":"زمن الدورة","Output per truck":"إنتاج الشاحنة","Fleet output":"إنتاج الأسطول","Match factor":"معامل التوافق","Match factor under 0.9: the loader waits for trucks.":"معامل التوافق أقل من 0.9: المحمّل ينتظر الشاحنات.","Match factor over 1.1: trucks queue at the loader.":"معامل التوافق أكثر من 1.1: الشاحنات تصطف عند المحمّل.","Trucks and loader are well matched.":"الشاحنات والمحمّل متوافقان.","Underground mine ventilation":"تهوية المناجم تحت الأرض","Airflow needed for diesel equipment and people, airway velocity, Atkinson pressure loss and fan power.":"تدفق الهواء اللازم لمعدات الديزل والأشخاص، وسرعة الممر الهوائي، وفقد الضغط بمعادلة Atkinson، وقدرة المروحة.","Air per kW varies by jurisdiction, commonly 0.05–0.08 m³/s. Use the rule that applies to the mine.":"الهواء لكل kW يختلف حسب الجهة، غالبًا 0.05–0.08 m³/s. استخدم النظام المطبق على المنجم.","Diesel engine power in use":"قدرة محركات الديزل العاملة","Air per kW of diesel":"الهواء لكل kW ديزل","People underground":"الأشخاص تحت الأرض","Air per person":"الهواء لكل شخص","Airway":"الممر الهوائي","Cross-section area":"مساحة المقطع","Friction factor":"معامل الاحتكاك","Smooth lined 0.004, rough rock 0.012–0.015":"مبطّن أملس 0.004، صخر خشن 0.012–0.015","Airflow needed":"تدفق الهواء اللازم","Airway velocity":"سرعة الممر الهوائي","Fan input power":"قدرة دخل المروحة","Airway resistance":"مقاومة الممر الهوائي","Velocity under 0.25 m/s: air will not be well mixed.":"السرعة أقل من 0.25 m/s: لن يختلط الهواء جيدًا.","Velocity over 6 m/s: dust and discomfort in travelways.":"السرعة أكثر من 6 m/s: غبار وانزعاج في ممرات المشي.","Velocity within 0.25–6 m/s.":"السرعة ضمن 0.25–6 m/s.","Tonnage, grade and strip ratio":"الحمولة والتركيز ونسبة الإزالة","Ore tonnage, average grade and contained metal of blocks above a cut-off grade, with the strip ratio.":"حمولة الخام ومتوسط التركيز والمعدن المحتوى للبلوكات فوق تركيز الحد، مع نسبة الإزالة.","Public reporting of resources and reserves must be signed off by a Competent Person.":"الإفصاح العام عن الموارد والاحتياطيات يجب أن يعتمده شخص مؤهل.","Grade unit":"وحدة التركيز","g/t (gold, silver)":"g/t (ذهب، فضة)","% (copper, zinc, iron)":"% (نحاس، زنك، حديد)","Cut-off grade":"تركيز الحد","Volume m³":"الحجم m³","Density t/m³":"الكثافة t/m³","Grade":"التركيز","Ore tonnage":"حمولة الخام","Average grade":"متوسط التركيز","Contained metal":"المعدن المحتوى","Waste tonnage":"حمولة النفايات الصخرية","Strip ratio (waste ÷ ore)":"نسبة الإزالة (نفايات ÷ خام)","Blocks at or above the cut-off are counted as ore.":"البلوكات عند تركيز الحد أو أعلى تُحسب خامًا.","No block reaches the cut-off grade.":"لا يصل أي بلوك إلى تركيز الحد.","Tonnes":"الأطنان","Class":"التصنيف","Ore":"خام","Waste":"نفايات","Break-even and marginal cut-off grades from the metal price, recovery and costs.":"تركيز الحد عند التعادل والحدّي من سعر المعدن والاستخلاص والتكاليف.","Prices and costs in any one currency.":"الأسعار والتكاليف بأي عملة واحدة.","Metal price":"سعر المعدن","Selling and refining cost":"تكلفة البيع والتكرير","Process recovery":"نسبة الاستخلاص","Mining cost":"تكلفة التعدين","Processing cost":"تكلفة المعالجة","General and admin cost":"التكاليف العامة والإدارية","Break-even cut-off":"تركيز الحد عند التعادل","Marginal cut-off":"تركيز الحد الحدّي","Value of one grade unit per tonne":"قيمة وحدة تركيز واحدة لكل طن","Marginal cut-off applies to rock that must be mined anyway; break-even to rock mined only for its value.":"تركيز الحد الحدّي للصخر الذي سيُعدَّن على أي حال؛ وتركيز التعادل للصخر الذي يُعدَّن لقيمته فقط.","Bored pile capacity":"قدرة تحمل الخازوق المحفور","Shaft and base resistance of a single bored pile in layered clay and sand, and its allowable load.":"مقاومة الجذع والقاعدة لخازوق محفور منفرد في طبقات طين ورمل، وحمله المسموح.","Layers run from the ground surface down; the pile toe is at the bottom of the last layer.":"الطبقات من سطح الأرض للأسفل؛ وقاعدة الخازوق في أسفل آخر طبقة.","Confirm the design capacity by a pile load test.":"أكّد القدرة التصميمية باختبار تحميل للخازوق.","Pile diameter":"قطر الخازوق","Clay":"طين","Thickness m":"السماكة m","cu kPa (clay)":"cu kPa (طين)","N60 (sand)":"N60 (رمل)","γ′ kN/m³":"γ′ kN/m³","Ultimate capacity":"القدرة القصوى","Shaft resistance":"مقاومة الجذع","Base resistance":"مقاومة القاعدة","Pile length":"طول الخازوق","Base carries more than the shaft: base resistance needs larger settlement to mobilise.":"القاعدة تحمل أكثر من الجذع: مقاومة القاعدة تحتاج هبوطًا أكبر لتتفعل.","Shaft carries most of the load.":"الجذع يحمل معظم الحمل.","Unit shaft kPa":"مقاومة الجذع kPa","Shaft kN":"الجذع kN","Pile group capacity":"قدرة مجموعة الخوازيق","Capacity of a rectangular pile group by the Converse–Labarre efficiency, and the block failure check in clay.":"قدرة مجموعة خوازيق مستطيلة بكفاءة Converse–Labarre، وفحص انهيار الكتلة في الطين.","In sand the group efficiency is usually taken as 1 for driven piles.":"في الرمل تؤخذ كفاءة المجموعة عادةً 1 للخوازيق المدقوقة.","Piles in each row":"الخوازيق في كل صف","Rows":"الصفوف","Pile spacing":"تباعد الخوازيق","Ultimate capacity of one pile":"القدرة القصوى لخازوق واحد","Average cu along the piles":"متوسط cu على طول الخوازيق","cu at the pile toe":"cu عند قاعدة الخازوق","Allowable group load":"الحمل المسموح للمجموعة","Group efficiency":"كفاءة المجموعة","Group capacity by efficiency":"قدرة المجموعة بالكفاءة","Block failure capacity":"قدرة انهيار الكتلة","Spacing ÷ diameter":"التباعد ÷ القطر","Spacing under 2.5 diameters.":"التباعد أقل من 2.5 قطر.","Spacing at least 2.5 diameters.":"التباعد 2.5 قطر على الأقل.","Block failure governs.":"انهيار الكتلة هو الحاكم.","Individual pile failure governs.":"انهيار الخازوق المنفرد هو الحاكم.","Pile cap layout and pile loads":"توزيع الخوازيق تحت الهامة وأحمالها","Number of piles under a column, a rectangular layout and the load on each pile with moments.":"عدد الخوازيق تحت عمود، وتوزيع مستطيل، والحمل على كل خازوق مع العزوم.","Design the cap for bending, shear and punching under the factored loads.":"صمم الهامة للانحناء والقص والقص الثاقب تحت الأحمال المصعّدة.","Column load (service)":"حمل العمود (التشغيلي)","Moment about x":"العزم حول x","Moment about y":"العزم حول y","Allowable load per pile":"الحمل المسموح لكل خازوق","Cap self-weight allowance":"إضافة الوزن الذاتي للهامة","Piles":"الخوازيق","Maximum pile load":"أقصى حمل على خازوق","Minimum pile load":"أقل حمل على خازوق","Cap length":"طول الهامة","Cap width":"عرض الهامة","Most loaded pile within the allowable load.":"أكثر الخوازيق تحميلًا ضمن الحمل المسموح.","Most loaded pile exceeds the allowable load. Add piles or increase spacing.":"أكثر الخوازيق تحميلًا يتجاوز الحمل المسموح. أضف خوازيق أو زد التباعد.","A pile is in tension: check uplift capacity and reinforcement.":"يوجد خازوق في شد: افحص مقاومة الاقتلاع والتسليح.","No pile in tension.":"لا يوجد خازوق في شد.","Blockwork and mortar":"البلوك والمونة","Number of blocks, mortar volume, cement bags and sand for a wall.":"عدد البلوكات وحجم المونة وأكياس الإسمنت والرمل لجدار.","Add separately for lintels, bond beams and cutting at corners.":"أضف بشكل منفصل للأعتاب والميد والقص عند الأركان.","Wall length":"طول الجدار","Wall height":"ارتفاع الجدار","Openings":"الفتحات","Unit":"الوحدة","Clay brick 215 × 65 × 102.5":"طوب طيني 215 × 65 × 102.5","Joint thickness":"سماكة العراميس","Mortar mix (cement : sand)":"خلطة المونة (إسمنت : رمل)","Units":"الوحدات","Mortar":"المونة","Net wall area":"صافي مساحة الجدار","Units per m²":"الوحدات لكل m²","Hollow blocks take mortar in the bed and head joints only; the figure assumes solid joints.":"البلوك المفرغ يأخذ المونة في العراميس الأفقية والرأسية فقط؛ والرقم يفترض عراميس مصمتة.","Plaster and paint":"اللياسة والدهان","Cement, sand and paint quantities for plastering and painting an area.":"كميات الإسمنت والرمل والدهان للياسة ودهان مساحة.","Rough or absorbent walls take more paint than the label coverage.":"الجدران الخشنة أو الماصة تأخذ دهانًا أكثر من التغطية المكتوبة.","Plaster thickness":"سماكة اللياسة","Plaster mix (cement : sand)":"خلطة اللياسة (إسمنت : رمل)","Paint":"الدهان","Coats":"الطبقات","Coverage per coat":"التغطية لكل طبقة","Primer coverage":"تغطية البرايمر","Primer":"البرايمر","Wet plaster volume":"حجم اللياسة الرطبة","Plaster over 20 mm should be applied in two coats.":"اللياسة أكثر من 20 mm تُنفذ على طبقتين.","Thickness suits a single coat.":"السماكة تناسب طبقة واحدة.","Tiling quantities":"كميات البلاط","Tiles, boxes, adhesive and grout for a floor or wall.":"البلاط والكراتين واللاصق والترويب لأرضية أو جدار.","Grout assumes a 10 mm deep joint and 1.6 kg/L density.":"الترويب بافتراض عمق فاصل 10 mm وكثافة 1.6 kg/L.","Tile length":"طول البلاطة","Tile width":"عرض البلاطة","Joint width":"عرض الفاصل","Area per box":"المساحة لكل كرتون","Adhesive":"اللاصق","Tiles":"البلاط","Boxes":"الكراتين","Grout":"الترويب","Large tiles cut with more waste: allow at least 10 %.":"البلاط الكبير هالك قصه أكثر: اسمح بـ 10 % على الأقل.","Wastage allowance is reasonable.":"نسبة الهالك مناسبة.","Excavation and backfill":"الحفر والردم","Excavation, haulage and backfill volumes for foundation pits with working space and side slopes.":"كميات الحفر والنقل والردم لحفر الأساسات مع مسافة العمل وميول الجوانب.","Backfill is reused from the excavation at a compaction factor of 0.9.":"يُعاد استخدام ناتج الحفر في الردم بمعامل دمك 0.9.","Length m":"الطول m","Width m":"العرض m","Depth m":"العمق m","Working space each side":"مسافة العمل من كل جانب","Side slope (horizontal per 1 vertical)":"ميل الجانب (أفقي لكل 1 رأسي)","Volume of structure below ground":"حجم المنشأ تحت الأرض","Bulking factor":"معامل الانتفاش","Truck capacity":"سعة الشاحنة","Excavation (bank)":"الحفر (طبيعي)","Backfill (compacted)":"الردم (مدموك)","Loose volume":"الحجم المنفوش","Truckloads to remove the surplus":"نقلات الشاحنات لإزالة الفائض","Vertical sides deeper than 1.5 m need shoring.":"الجوانب الرأسية الأعمق من 1.5 m تحتاج سندًا.","Side slopes included.":"ميول الجوانب محسوبة.","Pit L × W × D m":"الحفرة ط × ع × عمق m","Formwork and concrete":"الشدات والخرسانة","Formwork contact area and concrete volume for columns, beams, slabs, footings and walls.":"مساحة تلامس الشدات وحجم الخرسانة للأعمدة والكمرات والبلاطات والقواعد والجدران.","For a slab enter length, thickness and width; for a wall enter length, thickness and height.":"للبلاطة أدخل الطول والسماكة والعرض؛ وللجدار أدخل الطول والسماكة والارتفاع.","Column":"عمود","Beam":"كمرة","Slab":"بلاطة","Footing":"قاعدة","L or width m":"الطول أو العرض m","Width or depth m":"العرض أو العمق m","Height or length m":"الارتفاع أو الطول m","Formwork area":"مساحة الشدات","Formwork per m³":"الشدات لكل m³","Beam forms include the soffit and both sides; slab forms include the soffit and edges.":"شدات الكمرات تشمل البطنية والجانبين؛ وشدات البلاطات تشمل البطنية والحواف.","Formwork m²":"الشدات m²","Concrete m³":"الخرسانة m³","Cost estimate":"تقدير التكلفة","Total project cost from trade costs, with contingency, overheads and profit, VAT and the cost per square metre.":"التكلفة الإجمالية للمشروع من تكاليف البنود، مع الاحتياطي والمصاريف العامة والربح وضريبة القيمة المضافة والتكلفة لكل متر مربع.","Trade cost":"تكلفة البند","Contingency":"الاحتياطي","Overheads and profit":"المصاريف العامة والربح","VAT":"ضريبة القيمة المضافة","Total including VAT":"الإجمالي شامل الضريبة","Cost per m²":"التكلفة لكل m²","Trade costs":"تكاليف البنود","Contingency under 5 % is low at early design stages.":"احتياطي أقل من 5 % منخفض في مراحل التصميم المبكرة.","Contingency is reasonable for this stage.":"الاحتياطي مناسب لهذه المرحلة.","Item":"البند","Amount":"المبلغ","Critical path":"المسار الحرج","Early and late start and finish, float and the critical path of up to 20 activities with finish-to-start links.":"البداية والنهاية المبكرة والمتأخرة والفائض والمسار الحرج لحتى 20 نشاطًا بعلاقات نهاية-بداية.","Activities are numbered by row. Durations are in working days.":"الأنشطة مرقمة حسب السطر. المدد بأيام العمل.","Duration d":"المدة d","After":"بعد","And after":"وبعد","Project duration":"مدة المشروع","Activities":"الأنشطة","Network is valid.":"الشبكة سليمة.","The links form a loop. Check the predecessors.":"العلاقات تشكل حلقة. راجع الأنشطة السابقة.","Float":"الفائض","Earned value":"القيمة المكتسبة","Cost and schedule performance of a project from planned value, earned value and actual cost, with the forecast at completion.":"أداء التكلفة والجدول الزمني لمشروع من القيمة المخططة والمكتسبة والتكلفة الفعلية، مع التوقع عند الإنجاز.","EAC by CPI assumes the cost performance so far will continue.":"EAC بمؤشر CPI يفترض استمرار أداء التكلفة الحالي.","Budget at completion":"الميزانية عند الإنجاز","Planned value to date":"القيمة المخططة حتى تاريخه","Earned value to date":"القيمة المكتسبة حتى تاريخه","Actual cost to date":"التكلفة الفعلية حتى تاريخه","Cost performance index CPI":"مؤشر أداء التكلفة CPI","Schedule performance index SPI":"مؤشر أداء الجدول SPI","Estimate at completion":"التقدير عند الإنجاز","Cost variance":"انحراف التكلفة","Schedule variance":"انحراف الجدول","Estimate to complete":"التقدير للإنجاز","Variance at completion":"الانحراف عند الإنجاز","TCPI to finish on budget":"TCPI للإنجاز ضمن الميزانية","Percent complete":"نسبة الإنجاز","Under budget for the work done.":"أقل من الميزانية للعمل المنجز.","Over budget for the work done.":"أعلى من الميزانية للعمل المنجز.","On or ahead of schedule.":"ضمن الجدول أو متقدم عليه.","Behind schedule.":"متأخر عن الجدول.","Crew productivity and duration":"إنتاجية الطاقم والمدة","Duration of an activity from its quantity and crew output, and the crews needed to finish by a target date.":"مدة نشاط من كميته وإنتاجية الطاقم، والأطقم اللازمة للإنجاز في الموعد المستهدف.","Summer work in the Gulf has restricted midday hours: reduce the efficiency to suit.":"العمل الصيفي في الخليج له ساعات ظهيرة محظورة: خفّض الكفاءة بما يناسب.","Output per crew per day":"إنتاج الطاقم يوميًا","Crews":"الأطقم","Efficiency":"الكفاءة","Heat, access and overtime lower productivity":"الحرارة وصعوبة الوصول والعمل الإضافي تخفض الإنتاجية","Target duration":"المدة المستهدفة","Crews for the target":"الأطقم اللازمة للهدف","Daily output":"الإنتاج اليومي","Finishes within the target.":"ينتهي ضمن المدة المستهدفة.","Misses the target with {0} crews.":"لا يحقق الهدف بعدد {0} أطقم.","Concrete pour planning":"تخطيط صب الخرسانة","Pour duration, number of truck mixers and truckloads for a concrete pour by pump.":"مدة الصب وعدد الخلاطات ونقلات الشاحنات لصب خرسانة بالمضخة.","In hot weather use retarders and pour at night to keep the concrete below its maximum temperature.":"في الطقس الحار استخدم المؤخرات واصبب ليلًا لإبقاء حرارة الخرسانة تحت حدها الأقصى.","Pour volume":"حجم الصبة","Pump output":"إنتاج المضخة","Truck round trip":"زمن رحلة الشاحنة ذهابًا وإيابًا","Initial set time of the mix":"زمن الشك الابتدائي للخلطة","Pour duration":"مدة الصب","Truck mixers needed":"الخلاطات اللازمة","Truckloads":"النقلات","Effective placing rate":"معدل الصب الفعلي","Interval between trucks":"الفاصل بين الشاحنات","Long gaps between trucks: risk of cold joints.":"فواصل طويلة بين الشاحنات: خطر فواصل باردة.","Truck interval is short enough for a continuous pour.":"الفاصل بين الشاحنات قصير بما يكفي لصب مستمر.","Pour over 12 h: plan crew shifts and a second pump.":"الصب أكثر من 12 h: خطط لورديات الطاقم ومضخة ثانية.","Pour fits in one shift.":"الصب يتسع في وردية واحدة.","Money values are in any one currency.":"القيم المالية بأي عملة واحدة.","yr":"سنة","gal":"جالون",
 "Architecture":"المعماري","Based on":"المرجع","Every calculator lists the BG sheets or code clauses it is based on. Values are for preliminary design; check against the governing code and manufacturer data.":"كل حاسبة تذكر أوراق BG أو بنود الكود التي بُنيت عليها. القيم للتصميم المبدئي؛ راجعها مع الكود المعتمد وبيانات المصنّعين.",
 "m²/pers":"m²/شخص","mm/pers":"mm/شخص","net":"صافية","gross":"إجمالية","WC":"مرحاض","m² sabins":"m² سابين","No":"لا","Not sprinklered":"بدون رشاشات","Sprinklered":"مزوّد برشاشات","Sprinklers":"الرشاشات","As drawn":"حسب المخططات","Use":"الاستخدام","Area m²":"المساحة m²","Occupancy":"الإشغال","Occupant load":"حمل الإشغال","Exits required":"عدد المخارج المطلوبة",
 "Assembly — chairs only (concentrated)":"تجمّع — كراسي فقط (مركّز)","Assembly — tables and chairs (unconcentrated)":"تجمّع — طاولات وكراسي (غير مركّز)","Assembly — standing space":"تجمّع — وقوف","Prayer hall":"مصلى","Business / office (IBC 2018+)":"أعمال / مكاتب (IBC 2018 وما بعده)","Business / office (IBC 2015, SBC 201)":"أعمال / مكاتب (IBC 2015، SBC 201)",
@@ -1476,7 +2315,7 @@ function compute(){
    ${rest.length?`<div class="list">${rest.map(r=>`<div class="r"><span class="l">${esc(tr(r.l))}</span><span class="v">${val(r)}${r.u?`<u>${esc(tr(r.u))}</u>`:''}</span></div>`).join('')}</div>`:''}
    ${c.ex?`<div class="example"><b>${tr('Example.')}</b> ${esc(tr(c.ex))}</div>`:''}`;
   let low='';
-  if(o.tbl) low+=`<div><h3 class="sec">${esc(tr(o.tbl.cap||'Table'))}</h3><div class="tbl"><table><thead><tr>${o.tbl.head.map(h=>`<th>${esc(tr(h))}</th>`).join('')}</tr></thead><tbody>${o.tbl.rows.map(r=>`<tr class="${r.hl?'hl':''} ${r.dim?'dim':''}">${r.c.map(x=>`<td>${esc(tr(x))}</td>`).join('')}</tr>`).join('')}</tbody></table></div></div>`;
+  if(o.tbl) low+=`<div><h3 class="sec">${esc(tr(o.tbl.cap||'Table'))}</h3><div class="tbl"><table><thead><tr>${o.tbl.head.map(h=>`<th>${esc(tr(h))}</th>`).join('')}</tr></thead><tbody>${o.tbl.rows.map(r=>`<tr class="${r.hl?'hl':''} ${r.dim?'dim':''}">${(r.c||r).map(x=>`<td>${esc(tr(x))}</td>`).join('')}</tr>`).join('')}</tbody></table></div></div>`;
   if(c.f) low+=`<div><h3 class="sec">${tr('Method')}</h3><div class="formula">${c.f.map(x=>`<div>${esc(x)}</div>`).join('')}</div></div>`;
   if(c.notes) low+=`<div><h3 class="sec">${tr('Notes')}</h3><ul class="notes">${c.notes.map(x=>`<li>${esc(tr(x))}</li>`).join('')}</ul></div>`;
   $('#lower').innerHTML=low;$('#lower').hidden=!low;
